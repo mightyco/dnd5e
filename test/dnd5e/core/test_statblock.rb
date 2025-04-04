@@ -17,6 +17,7 @@ module Dnd5e
         assert_equal 18, statblock.charisma
         assert_equal 10, statblock.hit_points # (8 + 2)
         assert_equal 11, statblock.armor_class
+        assert_equal 1, statblock.level
       end
 
       def test_ability_modifier
@@ -40,22 +41,54 @@ module Dnd5e
         assert_equal false, statblock.is_alive?
       end
 
-      def test_take_damage
+      def test_damage_and_healing
         statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8")
         statblock.take_damage(5)
         assert_equal 5, statblock.hit_points
-        statblock.take_damage(5)
+        statblock.take_damage(10)
         assert_equal 0, statblock.hit_points
+        statblock.heal(5)
+        assert_equal 5, statblock.hit_points
+        statblock.heal(10)
+        assert_equal 10, statblock.hit_points
       end
 
       def test_calculate_hit_points
-        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8")
-        assert_equal 10, statblock.calculate_hit_points(1)
-        assert_equal 17, statblock.calculate_hit_points(2)
-        assert_equal 24, statblock.calculate_hit_points(3)
-        assert_equal 31, statblock.calculate_hit_points(4)
+        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 1)
+        assert_equal 10, statblock.calculate_hit_points
+        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 2)
+        assert_equal 17, statblock.calculate_hit_points
+        statblock.take_damage(10)
+        assert_equal 7, statblock.hit_points
+        statblock.level_up
+        assert_equal 24, statblock.calculate_hit_points
+        assert_equal 24, statblock.hit_points
       end
 
+      def test_level_up
+        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 1)
+        assert_equal 1, statblock.level
+        assert_equal 10, statblock.hit_points
+        statblock.level_up
+        assert_equal 2, statblock.level
+        assert_equal 17, statblock.hit_points
+        statblock.level_up
+        assert_equal 3, statblock.level
+        assert_equal 24, statblock.hit_points
+      end
+
+      def test_proficiency_bonus
+        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 1)
+        assert_equal 2, statblock.proficiency_bonus
+        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 5)
+        assert_equal 3, statblock.proficiency_bonus
+        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 9)
+        assert_equal 4, statblock.proficiency_bonus
+        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 13)
+        assert_equal 5, statblock.proficiency_bonus
+        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 17)
+        assert_equal 6, statblock.proficiency_bonus
+      end
     end
   end
 end
