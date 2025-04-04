@@ -26,10 +26,13 @@ module Dnd5e
         assert_equal -1, statblock.ability_modifier(:intelligence)
         assert_equal 3, statblock.ability_modifier(:wisdom)
         assert_equal 4, statblock.ability_modifier(:charisma)
+
+        statblock = Statblock.new(name: "Test2", strength: 10, dexterity: 12, constitution: 14, intelligence: 9, wisdom: 16, charisma: 18, hit_points: 20, armor_class: 15)
+        assert_equal -1, statblock.ability_modifier(:intelligence)
       end
 
       def test_is_alive
-        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_points: 20, armor_class: 15)
+        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 9, wisdom: 16, charisma: 18, hit_points: 20, armor_class: 15)
         assert statblock.is_alive?
         statblock.take_damage(20)
         assert_equal 0, statblock.hit_points
