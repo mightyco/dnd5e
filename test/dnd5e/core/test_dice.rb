@@ -1,3 +1,4 @@
+# /home/chuck_mcintyre/src/dnd5e/test/dnd5e/core/test_dice.rb
 require_relative "../../test_helper"
 require 'minitest/mock'
 
@@ -33,7 +34,7 @@ module Dnd5e
       end
 
       def test_roll_returns_rolls_within_correct_range
-        dice = Dice.new(3, 4)
+        dice = Dice.new(100, 4)
         rolls = dice.roll
         rolls.each do |roll|
           assert roll >= 1
@@ -42,21 +43,24 @@ module Dnd5e
       end
 
       def test_total_returns_correct_sum
-        dice = Dice.new(2, 6)
-        rolls = [1, 2] # Mocked rolls for testing
-        dice.stub(:roll, rolls) do
-          assert_equal 3, dice.total
-        end
-        dice = Dice.new(3, 4)
-        rolls = [1, 2, 3] # Mocked rolls for testing
-        dice.stub(:roll, rolls) do
-          assert_equal 6, dice.total
-        end
+        dice = Dice.new(2, 6, rolls: [1, 2])
+        assert_equal 3, dice.total
+
+        dice = Dice.new(3, 4, rolls: [1, 2, 3])
+        assert_equal 6, dice.total
       end
 
       def test_to_s_returns_correct_string_representation
         dice = Dice.new(1, 20)
         assert_equal "1d20", dice.to_s
+        dice = Dice.new(3, 6)
+        assert_equal "3d6", dice.to_s
+      end
+
+      def test_initialize_with_invalid_rolls
+        assert_raises(Dnd5e::Core::InvalidRollsError) { Dice.new(2, 6, rolls: "not an array") }
+        assert_raises(Dnd5e::Core::InvalidRollsError) { Dice.new(2, 6, rolls: [0, 1]) }
+        assert_raises(Dnd5e::Core::InvalidRollsError) { Dice.new(2, 6, rolls: [7, 1]) }
       end
     end
   end
