@@ -1,3 +1,5 @@
 require "minitest/autorun"
-# Helper methods for ruby testsrequire "minitest/autorun"
 require_relative "../lib/dnd5e/core/dice"
+require_relative "../lib/dnd5e/core/statblock"
+require_relative "../lib/dnd5e/core/character"
+require_relative "../lib/dnd5e/core/monster"
