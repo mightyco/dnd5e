@@ -6,7 +6,7 @@ require 'minitest/mock'
 
 module Dnd5e
   module Core
-    class TestAttack < Minitest::Test
+    class TestAttackRoll < Minitest::Test
       def setup
         @statblock = Statblock.new(name: "TestStatblock", strength: 14, dexterity: 12, constitution: 10, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 1)
         @attack = Attack.new(name: "Sword", damage_dice: Dice.new(1, 8), extra_attack_bonus: 2, extra_damage_bonus: 1, relevant_stat: :strength)

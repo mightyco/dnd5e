@@ -3,12 +3,15 @@ require_relative "attack"
 
 module Dnd5e
   module Core
-    class Monster < Statblock
-      attr_reader :attacks
+    class Monster
+      attr_reader :name, :statblock, :attacks
+      attr_accessor :team
 
-      def initialize(name:, strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, hit_die: "d8", level: 1, attacks: [])
-        super(name: name, strength: strength, dexterity: dexterity, constitution: constitution, intelligence: intelligence, wisdom: wisdom, charisma: charisma, hit_die: hit_die, level: level)
+      def initialize(name:, statblock:, attacks: [], team: nil)
+        @name = name
+        @statblock = statblock
         @attacks = attacks
+        @team = team
       end
     end
   end
