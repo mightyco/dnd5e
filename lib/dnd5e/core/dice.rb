@@ -6,9 +6,9 @@ module Dnd5e
     class InvalidRollsError < StandardError; end
 
     class Dice
-      attr_reader :count, :sides
+      attr_reader :count, :sides, :modifier
 
-      def initialize(count, sides, rolls: nil)
+      def initialize(count, sides, rolls: nil, modifier: 0)
         raise InvalidDiceCountError, "Dice count must be greater than 0" unless count > 0
         raise InvalidDiceSidesError, "Dice sides must be greater than 0" unless sides > 0
         if rolls && !rolls.is_a?(Array)
@@ -21,16 +21,17 @@ module Dnd5e
         @count = count
         @sides = sides
         @rolls = rolls || []
+        @modifier = modifier
       end
 
       def advantage
         raise InvalidDiceCountError, "Dice count must be 2" unless count == 2
-        return @rolls.max
+        return @rolls.max + @modifier
       end
 
       def disadvantage
         raise InvalidDiceCountError, "Dice count must be 2" unless count == 2
-        return @rolls.min
+        return @rolls.min + @modifier
       end
 
       def roll
@@ -42,11 +43,13 @@ module Dnd5e
       end
 
       def total
-        @rolls.sum
+        @rolls.sum + @modifier
       end
 
       def to_s
-        "#{@count}d#{@sides}"
+        modifier_str = @modifier.positive? ? "+#{@modifier}" : @modifier.to_s
+        modifier_str = "" if @modifier == 0
+        "#{@count}d#{@sides}#{modifier_str}"
       end
     end
   end

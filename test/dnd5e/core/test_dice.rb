@@ -73,6 +73,35 @@ module Dnd5e
         assert_raises(Dnd5e::Core::InvalidRollsError) { Dice.new(2, 6, rolls: [0, 1]) }
         assert_raises(Dnd5e::Core::InvalidRollsError) { Dice.new(2, 6, rolls: [7, 1]) }
       end
+
+      def test_total_with_modifier
+        dice = Dice.new(2, 6, rolls: [1, 2], modifier: 3)
+        assert_equal 6, dice.total
+
+        dice = Dice.new(3, 4, rolls: [1, 2, 3], modifier: -2)
+        assert_equal 4, dice.total
+      end
+
+      def test_to_s_with_modifier
+        dice = Dice.new(2, 6, modifier: 3)
+        assert_equal "2d6+3", dice.to_s
+
+        dice = Dice.new(3, 4, modifier: -2)
+        assert_equal "3d4-2", dice.to_s
+
+        dice = Dice.new(1, 20, modifier: 0)
+        assert_equal "1d20", dice.to_s
+      end
+
+      def test_with_advantage_or_disadvantage_with_modifier
+        dice = Dice.new(2, 20, rolls: [5, 15], modifier: 2)
+        assert_equal 17, dice.advantage
+        assert_equal 7, dice.disadvantage
+
+        dice = Dice.new(2, 20, rolls: [5, 15], modifier: -3)
+        assert_equal 12, dice.advantage
+        assert_equal 2, dice.disadvantage
+      end
     end
   end
 end
