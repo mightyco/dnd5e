@@ -23,6 +23,16 @@ module Dnd5e
         @rolls = rolls || []
       end
 
+      def advantage
+        raise InvalidDiceCountError, "Dice count must be 2" unless count == 2
+        return @rolls.max
+      end
+
+      def disadvantage
+        raise InvalidDiceCountError, "Dice count must be 2" unless count == 2
+        return @rolls.min
+      end
+
       def roll
         @rolls = [] # Clear previous rolls
         @count.times do

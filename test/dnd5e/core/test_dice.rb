@@ -1,4 +1,3 @@
-# /home/chuck_mcintyre/src/dnd5e/test/dnd5e/core/test_dice.rb
 require_relative "../../test_helper"
 require 'minitest/mock'
 
@@ -48,6 +47,18 @@ module Dnd5e
 
         dice = Dice.new(3, 4, rolls: [1, 2, 3])
         assert_equal 6, dice.total
+      end
+
+      def test_with_advantage_or_disadvantage_returns_correct_roll
+        dice = Dice.new(2, 20, rolls: [5, 15])
+        assert_equal 15, dice.advantage
+        assert_equal 5, dice.disadvantage
+      end
+
+      def test_with_advantage_or_disadvantage_raises_invalid_dice
+        dice = Dice.new(5, 20)
+        assert_raises(Dnd5e::Core::InvalidDiceCountError) { dice.advantage }
+        assert_raises(Dnd5e::Core::InvalidDiceCountError) { dice.disadvantage }
       end
 
       def test_to_s_returns_correct_string_representation
