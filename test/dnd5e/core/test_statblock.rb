@@ -41,12 +41,17 @@ module Dnd5e
         assert_equal false, statblock.is_alive?
       end
 
-      def test_damage_and_healing
+      def test_take_damage
         statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8")
         statblock.take_damage(5)
         assert_equal 5, statblock.hit_points
         statblock.take_damage(10)
         assert_equal 0, statblock.hit_points
+      end
+
+      def test_heal
+        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8")
+        statblock.take_damage(10)
         statblock.heal(5)
         assert_equal 5, statblock.hit_points
         statblock.heal(10)
@@ -58,20 +63,12 @@ module Dnd5e
         assert_equal 10, statblock.calculate_hit_points
         statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 2)
         assert_equal 17, statblock.calculate_hit_points
-        statblock.take_damage(10)
-        assert_equal 7, statblock.hit_points
-        statblock.level_up
-        assert_equal 24, statblock.calculate_hit_points
-        assert_equal 24, statblock.hit_points
       end
 
       def test_level_up
-        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 1)
-        assert_equal 1, statblock.level
-        assert_equal 10, statblock.hit_points
-        statblock.level_up
-        assert_equal 2, statblock.level
-        assert_equal 17, statblock.hit_points
+        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 2)
+        statblock.take_damage(10)
+        assert_equal 7, statblock.hit_points
         statblock.level_up
         assert_equal 3, statblock.level
         assert_equal 24, statblock.hit_points
@@ -88,6 +85,27 @@ module Dnd5e
         assert_equal 5, statblock.proficiency_bonus
         statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 17)
         assert_equal 6, statblock.proficiency_bonus
+      end
+
+      def test_ability_modifier_invalid_ability
+        statblock = Statblock.new(name: "Test")
+        assert_raises ArgumentError do
+          statblock.ability_modifier(:invalid_ability)
+        end
+      end
+
+      def test_take_damage_negative_damage
+        statblock = Statblock.new(name: "Test")
+        assert_raises ArgumentError do
+          statblock.take_damage(-5)
+        end
+      end
+
+      def test_heal_negative_amount
+        statblock = Statblock.new(name: "Test")
+        assert_raises ArgumentError do
+          statblock.heal(-5)
+        end
       end
     end
   end

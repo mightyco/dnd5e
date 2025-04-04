@@ -28,21 +28,12 @@ module Dnd5e
 
       def take_damage(damage)
         raise ArgumentError, "Damage must be non-negative" if damage < 0
-
-        if damage > @hit_points
-          @hit_points = 0
-        else
-         @hit_points -= damage
-        end
+        @hit_points = [0, @hit_points - damage].max
       end
 
       def heal(amount)
         raise ArgumentError, "Healing amount must be non-negative" if amount < 0
-        if amount > calculate_hit_points - @hit_points
-          @hit_points = calculate_hit_points
-        else  
-          @hit_points += amount
-        end
+        @hit_points = [calculate_hit_points, @hit_points + amount].min
       end
 
       def is_alive?
@@ -50,13 +41,9 @@ module Dnd5e
       end
 
       def calculate_hit_points
-        # Calculate initial hit points based on hit die and constitution modifier
         hit_die_sides = @hit_die.sub("d", "").to_i
-        hit_points = hit_die_sides + ability_modifier(:constitution)
-        if @level > 1
-          hit_points += (((hit_die_sides + 1) / 2.0).ceil + ability_modifier(:constitution)) * (@level - 1)
-        end
-        hit_points
+        base_hp = hit_die_sides + ability_modifier(:constitution)
+        @level > 1 ? base_hp + (((hit_die_sides + 1) / 2.0).ceil + ability_modifier(:constitution)) * (@level - 1) : base_hp
       end
 
       def level_up
