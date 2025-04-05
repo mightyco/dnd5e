@@ -10,13 +10,13 @@ module Dnd5e
   module Core
     class TestAttackHit < Attack
       def calculate_attack_roll(statblock, roll: nil)
-        return 100
+        100
       end
     end
 
     class TestAttackMiss < Attack
       def calculate_attack_roll(statblock, roll: nil)
-        return 0
+        0
       end
     end
 
@@ -84,14 +84,14 @@ module Dnd5e
 
       def test_take_turn_selects_valid_defender
         20.times do
-            @combat.roll_initiative
-            @combat.sort_by_initiative
-            @combat.turn_order.each do |attacker|
-                initial_hp = @hero.statblock.hit_points
-                defender = @combat.take_turn(attacker)
-                refute_equal attacker, defender, "Attacker should not be the same as the defender"
-                assert_equal @hero.statblock.hit_points, initial_hp
-            end
+          @combat.roll_initiative
+          @combat.sort_by_initiative
+          @combat.turn_order.each do |attacker|
+            initial_hp = @hero.statblock.hit_points
+            defender = @combat.take_turn(attacker)
+            refute_equal attacker, defender, "Attacker should not be the same as the defender"
+            assert_equal @hero.statblock.hit_points, initial_hp
+          end
         end
       end
 

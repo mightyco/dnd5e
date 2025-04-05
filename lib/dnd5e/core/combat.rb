@@ -14,7 +14,7 @@ module Dnd5e
         roll_initiative
         sort_by_initiative
         until is_over?
-          take_turn(current_combatant) unless is_over?
+          take_turn(current_combatant)
           switch_turns unless is_over?
         end
         puts "The winner is #{winner.name}"
@@ -33,18 +33,21 @@ module Dnd5e
       end
 
       def take_turn(attacker)
-        defender = attacker == @combatant1 ? @combatant2 : @combatant1
+        return unless attacker.statblock.is_alive?
+
+        defender = select_defender(attacker)
         attack(attacker, defender)
       end
 
       def attack(attacker, defender)
-        # return unless attacker.statblock.is_alive? && defender.statblock.is_alive?
-        attack = attacker.attacks.first
-        return if attack.nil?
+        return unless attacker.statblock.is_alive? && defender.statblock.is_alive?
 
-        attack_roll = calculate_attack_roll(attacker, attack)
+        attack_instance = attacker.attacks.first
+        return if attack_instance.nil?
+
+        attack_roll = calculate_attack_roll(attacker, attack_instance)
         if is_hit?(attack_roll, defender)
-          damage = calculate_damage(attacker, attack)
+          damage = calculate_damage(attacker, attack_instance)
           apply_damage(defender, damage)
           puts "#{attacker.name} hits #{defender.name} for #{damage} damage!"
           puts "#{defender.name} is defeated!" unless defender.statblock.is_alive?
@@ -76,6 +79,7 @@ module Dnd5e
       def winner
         return @combatant1 unless @combatant2.statblock.is_alive?
         return @combatant2 unless @combatant1.statblock.is_alive?
+
         nil
       end
 
@@ -85,6 +89,12 @@ module Dnd5e
 
       def switch_turns
         @turn_order.rotate!
+      end
+
+      private
+
+      def select_defender(attacker)
+        attacker == @combatant1 ? @combatant2 : @combatant1
       end
     end
   end
