@@ -1,4 +1,3 @@
-# /home/chuck_mcintyre/src/dnd5e/lib/dnd5e/core/statblock.rb
 module Dnd5e
   module Core
     class Statblock
@@ -67,6 +66,11 @@ module Dnd5e
         else
           raise "Invalid level"
         end
+      end
+
+      # Deep copy method
+      def deep_copy
+        Marshal.load(Marshal.dump(self))
       end
     end
   end
