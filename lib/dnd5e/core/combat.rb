@@ -1,75 +1,49 @@
+require_relative "dice"
+require 'logger'
+
 module Dnd5e
-  require_relative "dice"
   module Core
     class Combat
-      attr_reader :combatant1, :combatant2, :turn_order
+      attr_reader :combatant1, :combatant2, :turn_order, :logger
 
-      def initialize(combatant1:, combatant2:)
+      def initialize(combatant1:, combatant2:, logger: Logger.new($stdout))
         @combatant1 = combatant1
         @combatant2 = combatant2
         @turn_order = []
-      end
-
-      def start
-        roll_initiative
-        sort_by_initiative
-        until is_over?
-          take_turn(current_combatant)
-          switch_turns unless is_over?
+        @logger = logger
+        logger.formatter = proc do |severity, datetime, progname, msg|
+          "#{msg}\n"
         end
-        puts "The winner is #{winner.name}"
       end
 
       def roll_initiative
-        @combatant1.instance_variable_set(:@initiative, Dice.new(1, 20, modifier: @combatant1.statblock.ability_modifier(:dexterity)).roll.first)
-        @combatant2.instance_variable_set(:@initiative, Dice.new(1, 20, modifier: @combatant2.statblock.ability_modifier(:dexterity)).roll.first)
-        @turn_order = [@combatant1, @combatant2]
+        [@combatant1, @combatant2].each do |combatant|
+          initiative_roll = Dice.new(1, 20, modifier: combatant.statblock.ability_modifier(:dexterity)).roll.first
+          combatant.instance_variable_set(:@initiative, initiative_roll)
+          @turn_order << combatant
+        end
       end
 
       def sort_by_initiative
-        @turn_order.sort_by! do |combatant|
-          [-combatant.instance_variable_get(:@initiative), -combatant.statblock.ability_modifier(:dexterity)]
+        @turn_order.sort_by! { |combatant| [-combatant.instance_variable_get(:@initiative), -combatant.statblock.dexterity] }
+      end
+
+      def attack(attacker, defender)
+        attack_roll = Dice.new(1, 20, modifier: attacker.statblock.ability_modifier(attacker.attacks.first.relevant_stat)).roll.first
+        if attack_roll >= defender.statblock.armor_class
+          damage = attacker.attacks.first.damage_dice.roll.sum
+          defender.statblock.take_damage(damage)
+          logger.info "#{attacker.name} hits #{defender.name} for #{damage} damage!"
+          logger.info "#{defender.name} is defeated!" unless defender.statblock.is_alive?
+        else
+          logger.info "#{attacker.name} misses #{defender.name}!"
         end
       end
 
       def take_turn(attacker)
-        return unless attacker.statblock.is_alive?
-
-        defender = select_defender(attacker)
+        defender = attacker == @combatant1 ? @combatant2 : @combatant1
+        return if defender.nil? || !defender.statblock.is_alive?
         attack(attacker, defender)
-      end
-
-      def attack(attacker, defender)
-        return unless attacker.statblock.is_alive? && defender.statblock.is_alive?
-
-        attack_instance = attacker.attacks.first
-        return if attack_instance.nil?
-
-        attack_roll = calculate_attack_roll(attacker, attack_instance)
-        if is_hit?(attack_roll, defender)
-          damage = calculate_damage(attacker, attack_instance)
-          apply_damage(defender, damage)
-          puts "#{attacker.name} hits #{defender.name} for #{damage} damage!"
-          puts "#{defender.name} is defeated!" unless defender.statblock.is_alive?
-        else
-          puts "#{attacker.name} misses #{defender.name}!"
-        end
-      end
-
-      def calculate_attack_roll(attacker, attack)
-        attack.calculate_attack_roll(attacker.statblock)
-      end
-
-      def calculate_damage(attacker, attack)
-        attack.calculate_damage(attacker.statblock)
-      end
-
-      def is_hit?(attack_roll, defender)
-        attack_roll >= defender.statblock.armor_class
-      end
-
-      def apply_damage(defender, damage)
-        defender.statblock.take_damage(damage)
       end
 
       def is_over?
@@ -79,22 +53,17 @@ module Dnd5e
       def winner
         return @combatant1 unless @combatant2.statblock.is_alive?
         return @combatant2 unless @combatant1.statblock.is_alive?
-
         nil
       end
 
-      def current_combatant
-        @turn_order.first
-      end
-
-      def switch_turns
-        @turn_order.rotate!
-      end
-
-      private
-
-      def select_defender(attacker)
-        attacker == @combatant1 ? @combatant2 : @combatant1
+      def start
+        roll_initiative
+        sort_by_initiative
+        until is_over?
+          @turn_order.each do |combatant|
+            take_turn(combatant) if combatant.statblock.is_alive?
+          end
+        end
       end
     end
   end

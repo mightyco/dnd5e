@@ -8,11 +8,11 @@ module Dnd5e
     class TeamCombat < Combat
       attr_reader :teams, :result_handler
 
-      def initialize(teams:, result_handler: PrintingCombatResultHandler.new)
+      def initialize(teams:, result_handler: PrintingCombatResultHandler.new, logger: Logger.new($stdout))
         raise ArgumentError, "TeamCombat requires exactly two teams" unless teams.size == 2
         @teams = teams
         @result_handler = result_handler
-        super(combatant1: teams.first.members.first, combatant2: teams.last.members.first)
+        super(combatant1: teams.first.members.first, combatant2: teams.last.members.first, logger: logger)
       end
 
       def start
