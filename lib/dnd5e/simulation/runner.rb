@@ -29,9 +29,14 @@ module Dnd5e
         puts "Simulation Report"
         puts "-----------------"
         puts "Sample Results:"
-        sample_results = @result_handler.results.sample(5)
-        sample_results.each do |result|
-          puts "  Winner: #{result.winner.name}, Initiative Winner: #{result.initiative_winner.name}"
+        winners = {}
+        @result_handler.results.each do |result|
+          winners[result.winner.name] ||= []
+          winners[result.winner.name] << result
+        end
+        winners.each do |team_name, results|
+          sample_result = results.sample
+          puts "  Winner: #{sample_result.winner.name}, Initiative Winner: #{sample_result.initiative_winner.name}"
         end
         puts "-----------------"
         if @result_handler.is_a?(SimulationCombatResultHandler)

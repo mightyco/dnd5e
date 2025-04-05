@@ -22,6 +22,11 @@ module Dnd5e
 
       def report(num_simulations)
         report_string = ""
+        @battle_wins.each do |team_name, wins|
+          win_percentage = (wins.to_f / num_simulations * 100).round(1)
+          report_string += "#{team_name} won #{win_percentage}% (#{wins} of #{num_simulations}) of the battles\n"
+        end
+        report_string += "\n"
         @initiative_wins.each do |team_name, wins|
           initiative_win_percentage = (wins.to_f / num_simulations * 100).round(1)
           battle_win_percentage = 0

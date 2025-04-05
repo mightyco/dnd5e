@@ -9,8 +9,6 @@ require_relative "../lib/dnd5e/core/team"
 require_relative "../lib/dnd5e/simulation/simulation_combat_result_handler"
 require_relative "../lib/dnd5e/simulation/mock_battle_scenario"
 
-
-
 module Dnd5e
   module Core
     # Create some attacks
