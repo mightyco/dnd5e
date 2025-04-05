@@ -45,6 +45,21 @@ module Dnd5e
         damage_bonus = @attack.calculate_damage_bonus(@statblock)
         assert_equal 3, damage_bonus # 1 (extra_damage_bonus) + 2 (strength modifier)
       end
+
+      def test_initialize_with_range
+        attack = Attack.new(name: "Bow", damage_dice: Dice.new(1, 6), range: :ranged)
+        assert_equal :ranged, attack.range
+      end
+
+      def test_initialize_with_count
+        attack = Attack.new(name: "Multiattack", damage_dice: Dice.new(1, 4), count: 2)
+        assert_equal 2, attack.count
+      end
+
+      def test_initialize_with_relevant_stat
+        attack = Attack.new(name: "Dagger", damage_dice: Dice.new(1, 4), relevant_stat: :dexterity)
+        assert_equal :dexterity, attack.relevant_stat
+      end
     end
   end
 end
