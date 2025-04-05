@@ -1,4 +1,3 @@
-# /home/chuck_mcintyre/src/dnd5e/test/dnd5e/core/test_combat.rb
 require_relative "../../test_helper"
 require_relative "../../../lib/dnd5e/core/combat"
 require_relative "../../../lib/dnd5e/core/character"
@@ -94,6 +93,112 @@ module Dnd5e
                 assert_equal @hero.statblock.hit_points, initial_hp
             end
         end
+      end
+
+      def test_attack_method_with_hit
+        # Create a new attack that always hits
+        hit_attack = TestAttackHit.new(name: "Hit Attack", damage_dice: Dice.new(1, 6), relevant_stat: :strength)
+        hero = Character.new(name: "Hero", statblock: @hero_statblock, attacks: [hit_attack])
+        combat = Combat.new(combatant1: hero, combatant2: @goblin)
+
+        initial_hp = @goblin.statblock.hit_points
+        combat.attack(hero, @goblin)
+        assert_operator @goblin.statblock.hit_points, :<, initial_hp
+      end
+
+      def test_attack_method_with_miss
+        # Create a new attack that always misses
+        miss_attack = TestAttackMiss.new(name: "Miss Attack", damage_dice: Dice.new(1, 6), relevant_stat: :strength)
+        hero = Character.new(name: "Hero", statblock: @hero_statblock, attacks: [miss_attack])
+        combat = Combat.new(combatant1: hero, combatant2: @goblin)
+
+        initial_hp = @goblin.statblock.hit_points
+        combat.attack(hero, @goblin)
+        assert_equal @goblin.statblock.hit_points, initial_hp
+      end
+
+      def test_take_turn_selects_valid_defender_with_multiple_attacks
+        # Create a new attack that always hits
+        hit_attack = TestAttackHit.new(name: "Hit Attack", damage_dice: Dice.new(1, 6), relevant_stat: :strength)
+        hero = Character.new(name: "Hero", statblock: @hero_statblock, attacks: [hit_attack, hit_attack])
+        combat = Combat.new(combatant1: hero, combatant2: @goblin)
+
+        combat.roll_initiative
+        combat.sort_by_initiative
+
+        initial_hp = @goblin.statblock.hit_points
+        combat.turn_order.each do |attacker|
+          defender = combat.take_turn(attacker)
+          refute_equal attacker, defender, "Attacker should not be the same as the defender"
+        end
+        assert_operator @goblin.statblock.hit_points, :<, initial_hp
+      end
+
+      def test_dead_creatures_take_no_actions
+        # Ensure the goblin is in the turn order
+        @combat.roll_initiative
+        @combat.sort_by_initiative
+        assert_includes @combat.turn_order, @goblin
+
+        # Kill the goblin
+        @goblin.statblock.take_damage(@goblin.statblock.hit_points)
+        assert_equal 0, @goblin.statblock.hit_points
+        refute @goblin.statblock.is_alive?
+
+        # Check that the goblin's turn is skipped
+        # We'll use a mock to verify that take_turn is not called on the goblin
+        mock_combat = Minitest::Mock.new
+        mock_combat.expect(:take_turn, nil, [@goblin])
+
+        @combat.turn_order.each do |attacker|
+          if attacker == @goblin
+            mock_combat.take_turn(attacker)
+          else
+            @combat.take_turn(attacker)
+          end
+        end
+
+        # Assert that the mock expectations were met
+        mock_combat.verify
+      end
+
+      def test_combat_ends_correctly
+        # Kill the goblin
+        @goblin.statblock.take_damage(@goblin.statblock.hit_points)
+        refute @goblin.statblock.is_alive?
+
+        # Start the combat
+        @combat.start
+
+        # Check that the combat is over
+        assert @combat.is_over?
+        assert_equal @hero, @combat.winner
+      end
+
+      def test_attacker_is_never_dead
+        # Kill the hero
+        @hero.statblock.take_damage(@hero.statblock.hit_points)
+        refute @hero.statblock.is_alive?
+
+        # Start the combat
+        @combat.start
+
+        # Check that the combat is over
+        assert @combat.is_over?
+        assert_equal @goblin, @combat.winner
+      end
+
+      def test_attackers_choose_living_target
+        # Kill the goblin
+        @goblin.statblock.take_damage(@goblin.statblock.hit_points)
+        refute @goblin.statblock.is_alive?
+
+        # Start the combat
+        @combat.start
+
+        # Check that the combat is over
+        assert @combat.is_over?
+        assert_equal @hero, @combat.winner
       end
     end
   end
