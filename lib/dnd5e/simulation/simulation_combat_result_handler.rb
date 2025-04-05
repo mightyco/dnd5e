@@ -1,3 +1,5 @@
+require_relative "result"
+
 module Dnd5e
   module Simulation
     class SimulationCombatResultHandler
