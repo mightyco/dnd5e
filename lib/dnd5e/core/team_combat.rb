@@ -1,19 +1,21 @@
-module Dnd5e
-  require_relative "dice"
-  require_relative "combat"
+require_relative "dice"
+require_relative "combat"
+require_relative "printing_combat_result_handler"
 
+module Dnd5e
   module Core
     class TeamCombat < Combat
-      attr_reader :teams
+      attr_reader :teams, :result_handler
 
-      def initialize(teams:)
+      def initialize(teams:, result_handler: PrintingCombatResultHandler.new)
         raise ArgumentError, "TeamCombat requires exactly two teams" unless teams.size == 2
         @teams = teams
+        @result_handler = result_handler
         super(combatant1: teams.first.members.first, combatant2: teams.last.members.first)
       end
 
       def start
-        roll_initiative
+        initiative_winner = roll_initiative
         sort_by_initiative
         until is_over?
           @turn_order.each do |combatant|
@@ -21,7 +23,7 @@ module Dnd5e
           end
           end_round
         end
-        puts "The winner is #{winner.name}"
+        result_handler.handle_result(self, winner, initiative_winner)
       end
 
       def roll_initiative
@@ -32,21 +34,22 @@ module Dnd5e
             @turn_order << combatant
           end
         end
+        @teams.max_by { |team| team.members.max_by { |member| member.instance_variable_get(:@initiative) }.instance_variable_get(:@initiative) }
       end
 
       def take_turn(attacker)
         potential_defenders = @teams.reject { |team| team == attacker.team }.flat_map(&:alive_members)
         return if potential_defenders.empty?
-        defender = potential_defenders.first
+        defender = potential_defenders.sample
         attack(attacker, defender)
       end
 
       def is_over?
-        @teams.count { |team| team.any_members_alive? } <= 1
+        @teams.any? { |team| team.all_members_defeated? }
       end
 
       def winner
-        @teams.find { |team| team.any_members_alive? }
+        @teams.find { |team| !team.all_members_defeated? }
       end
 
       def end_round
