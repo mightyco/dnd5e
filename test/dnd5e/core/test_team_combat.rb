@@ -2,6 +2,7 @@ require_relative "../../test_helper"
 require_relative "../../../lib/dnd5e/core/team_combat"
 require_relative "../../../lib/dnd5e/core/team"
 require_relative "factories"
+require 'logger'
 
 module Dnd5e
   module Core
@@ -16,7 +17,11 @@ module Dnd5e
 
         @heroes = Team.new(name: "Heroes", members: [@hero1, @hero2])
         @goblins = Team.new(name: "Goblins", members: [@goblin1, @goblin2])
-        @combat = TeamCombat.new(teams: [@heroes, @goblins])
+
+        # Create a silent logger for tests
+        silent_logger = Logger.new(nil)
+        @result_handler = PrintingCombatResultHandler.new(logger: silent_logger)
+        @combat = TeamCombat.new(teams: [@heroes, @goblins], result_handler: @result_handler)
       end
 
       def test_combat_initialization

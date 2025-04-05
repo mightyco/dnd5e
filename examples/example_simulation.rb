@@ -8,6 +8,8 @@ require_relative "../lib/dnd5e/core/dice"
 require_relative "../lib/dnd5e/core/team"
 require_relative "../lib/dnd5e/simulation/simulation_combat_result_handler"
 require_relative "../lib/dnd5e/simulation/mock_battle_scenario"
+require_relative "../lib/dnd5e/core/printing_combat_result_handler"
+require 'logger'
 
 module Dnd5e
   module Core
@@ -29,6 +31,9 @@ module Dnd5e
     heroes = Team.new(name: "Heroes", members: [hero1, hero2])
     goblins = Team.new(name: "Goblins", members: [goblin1, goblin2])
     TEAMS = [heroes, goblins]
+
+    # Create a logger that outputs to stdout
+    logger = Logger.new($stdout)
 
     # Create a result handler
     RESULT_HANDLER = Simulation::SimulationCombatResultHandler.new

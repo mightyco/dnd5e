@@ -1,12 +1,24 @@
 require_relative "combat_result_handler"
+require 'logger'
 
 module Dnd5e
   module Core
     class PrintingCombatResultHandler
       include CombatResultHandler
 
+      attr_reader :logger
+
+      def initialize(logger: Logger.new($stdout))
+        @logger = logger
+        logger.formatter = proc do |severity, datetime, progname, msg|
+          "#{msg}\n"
+        end
+      end
+
       def handle_result(combat, winner, initiative_winner)
-        puts "The winner is #{winner.name}"
+        logger.info "Combat Over"
+        logger.info "Winner: #{winner.name}"
+        logger.info "Initiative Winner: #{initiative_winner.name}"
       end
     end
   end

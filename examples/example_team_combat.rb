@@ -6,6 +6,7 @@ require_relative "../lib/dnd5e/core/attack"
 require_relative "../lib/dnd5e/core/dice"
 require_relative "../lib/dnd5e/core/team"
 require_relative "../lib/dnd5e/core/printing_combat_result_handler"
+require 'logger'
 
 module Dnd5e
   module Core
@@ -27,8 +28,11 @@ module Dnd5e
     heroes = Team.new(name: "Heroes", members: [hero1, hero2])
     goblins = Team.new(name: "Goblins", members: [goblin1, goblin2])
 
-    # Create combat with the PrintingCombatResultHandler
-    combat = TeamCombat.new(teams: [heroes, goblins], result_handler: PrintingCombatResultHandler.new)
+    # Create a logger that outputs to stdout
+    logger = Logger.new($stdout)
+
+    # Create combat with the PrintingCombatResultHandler and the logger
+    combat = TeamCombat.new(teams: [heroes, goblins], result_handler: PrintingCombatResultHandler.new(logger: logger))
 
     # Start the battle
     combat.start

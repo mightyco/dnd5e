@@ -1,6 +1,7 @@
 require_relative "dice"
 require_relative "combat"
 require_relative "printing_combat_result_handler"
+require 'logger'
 
 module Dnd5e
   module Core
@@ -53,7 +54,7 @@ module Dnd5e
       end
 
       def end_round
-        puts "End of round"
+        result_handler.logger.info "End of round" if result_handler.respond_to?(:logger)
       end
     end
   end
