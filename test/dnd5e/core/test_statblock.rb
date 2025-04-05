@@ -20,6 +20,21 @@ module Dnd5e
         assert_equal 1, statblock.level
       end
 
+      def test_initalize_with_defaults
+        statblock = Statblock.new(name: "Test")
+        assert_equal "Test", statblock.name
+        assert_equal 10, statblock.strength
+        assert_equal 10, statblock.dexterity
+        assert_equal 10, statblock.constitution
+        assert_equal 10, statblock.intelligence
+        assert_equal 10, statblock.wisdom
+        assert_equal 10, statblock.charisma
+        assert_equal 1, statblock.level
+        assert_equal "d8", statblock.hit_die
+        assert_equal 8, statblock.hit_points
+        assert_equal 10, statblock.armor_class
+      end
+
       def test_ability_modifier
         statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8")
         assert_equal 0, statblock.ability_modifier(:strength)
