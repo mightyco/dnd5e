@@ -7,7 +7,7 @@ module Dnd5e
         end
 
         def self.create_hero_statblock
-          create(name: "Hero Statblock", strength: 16, dexterity: 14, constitution: 15, hit_die: "d10", level: 3)
+          create(name: "Hero Statblock", strength: 16, dexterity: 10, constitution: 15, hit_die: "d10", level: 3)
         end
 
         def self.create_goblin_statblock
@@ -25,7 +25,7 @@ module Dnd5e
         end
 
         def self.create_bite_attack
-          create(name: "Bite", damage_dice: Dice.new(1, 6), relevant_stat: :strength)
+          create(name: "Bite", damage_dice: Dice.new(1, 6), relevant_stat: :dexterity)
         end
       end
 

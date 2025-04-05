@@ -27,7 +27,9 @@ module Dnd5e
       end
 
       def sort_by_initiative
-        @turn_order.sort_by! { |combatant| -combatant.instance_variable_get(:@initiative) }
+        @turn_order.sort_by! do |combatant|
+          [-combatant.instance_variable_get(:@initiative), -combatant.statblock.ability_modifier(:dexterity)]
+        end
       end
 
       def take_turn(attacker)
