@@ -1,60 +1,41 @@
-require_relative "result"
 require_relative "../core/team_combat"
+require_relative "silent_combat_result_handler"
+require_relative "simulation_combat_result_handler"
 
 module Dnd5e
   module Simulation
     class Runner
-      attr_reader :battle_scenario, :num_simulations, :results
+      attr_reader :battle_scenario, :num_simulations, :results, :result_handler
 
-      def initialize(battle_scenario, num_simulations: 100)
+      def initialize(battle_scenario, num_simulations:, result_handler:, teams:)
         @battle_scenario = battle_scenario
         @num_simulations = num_simulations
         @results = []
-      end
-
-      def run
-        @num_simulations.times do
-          @results << run_battle
-        end
+        @result_handler = result_handler
+        @teams = teams
       end
 
       def run_battle
-        # Create a new instance of the battle scenario for each simulation
-        battle = @battle_scenario.new
+        scenario = @battle_scenario.new(@result_handler, teams: @teams)
+        scenario.start
+        @results << @result_handler.results.last
+      end
 
-        # Run the battle and get the result
-        battle.start
+      def run
+        @num_simulations.times { run_battle }
       end
 
       def generate_report
-        puts "Simulation Report:"
-        puts "-------------------"
-        puts "Number of Simulations: #{@num_simulations}"
-        puts ""
-
-        # Calculate win rates
-        team_wins = Hash.new(0)
-        @results.each do |result|
-          team_wins[result.winner.name] += 1
+        puts "Simulation Report"
+        puts "-----------------"
+        puts "Sample Results:"
+        sample_results = @result_handler.results.sample(5)
+        sample_results.each do |result|
+          puts "  Winner: #{result.winner.name}, Initiative Winner: #{result.initiative_winner.name}"
         end
-
-        puts "Win Rates:"
-        team_wins.each do |team_name, wins|
-          win_rate = (wins.to_f / @num_simulations * 100).round(2)
-          puts "#{team_name}: #{win_rate}% (#{wins} wins)"
-        end
-        puts ""
-
-        # Calculate initiative impact
-        initiative_wins = Hash.new(0)
-        @results.each do |result|
-          initiative_wins[result.initiative_winner.name] += 1 if result.winner == result.initiative_winner
-        end
-
-        puts "Initiative Impact:"
-        initiative_wins.each do |team_name, wins|
-          initiative_win_rate = (wins.to_f / @num_simulations * 100).round(2)
-          puts "#{team_name} won initiative and the battle: #{initiative_win_rate}% (#{wins} wins)"
+        puts "-----------------"
+        if @result_handler.is_a?(SimulationCombatResultHandler)
+          puts @result_handler.report(@num_simulations)
         end
       end
     end
