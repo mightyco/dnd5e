@@ -13,6 +13,7 @@ namespace :test do
     t.libs << "lib"
     t.warning = false
     t.test_globs = ["test/**/test_*.rb"]
+    t.verbose = false
   end
 
   desc "List available tests files and classes"
@@ -53,17 +54,7 @@ namespace :test do
     tests.sort.each { |test| puts "  - test_#{test}" }
   end
 
-  desc "Run tests with verbose output"
-  task :verbose do
-    ENV['VERBOSE'] = 'true'
-    Rake::Task["test:all"].invoke
-  end
-
-  desc "Run tests with default output"
-  task :default do
-    ENV['VERBOSE'] = 'failures'
-    Rake::Task["test:all"].invoke
-  end
+  task :default => "test:all"
 end
 
 task :default => [:install, :test]
