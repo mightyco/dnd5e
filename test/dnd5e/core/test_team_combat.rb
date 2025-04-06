@@ -19,9 +19,9 @@ module Dnd5e
         @goblins = Team.new(name: "Goblins", members: [@goblin1, @goblin2])
 
         # Create a logger for tests
-        # @logger = Logger.new(nil)
-        @logger = Logger.new($stdout)
-        @logger.level = Logger::DEBUG
+        @logger = Logger.new(nil)
+        # @logger = Logger.new($stdout)
+        # @logger.level = Logger::DEBUG
 
         @result_handler = PrintingCombatResultHandler.new(logger: @logger)
         @mock_dice_roller = MockDiceRoller.new([10, 10, 10, 10]) # Initiative rolls

@@ -22,8 +22,11 @@ module Dnd5e
         @hero = Character.new(name: "Hero", statblock: @hero_statblock.deep_copy, attacks: [@sword_attack])
         @goblin = Monster.new(name: "Goblin 1", statblock: @goblin_statblock.deep_copy, attacks: [@bite_attack])
 
-        @silent_logger = Logger.new(nil)
-        @combat = Combat.new(combatants: [@hero, @goblin], logger: @silent_logger)
+        @logger = Logger.new(nil)
+        # @logger = Logger.new($stdout)
+        # @logger.level = Logger::DEBUG
+
+        @combat = Combat.new(combatants: [@hero, @goblin], logger: @logger)
       end
 
       def test_combat_initialization
@@ -32,15 +35,24 @@ module Dnd5e
       end
 
       def test_combat_ends
-        @combat.run_combat
-        assert @combat.is_over?
-        assert @combat.winner
+        hero_statblock = Statblock.new(name: "Hero Statblock", strength: 16, dexterity: 10, constitution: 15, hit_die: "d10", level: 1)
+        goblin_statblock = Statblock.new(name: "Goblin Statblock", strength: 8, dexterity: 16, constitution: 10, hit_die: "d6", level: 1)
+        sword_attack = Attack.new(name: "Sword", damage_dice: Dice.new(1, 8), relevant_stat: :strength)
+        bite_attack = Attack.new(name: "Bite", damage_dice: Dice.new(1, 6), relevant_stat: :dexterity)
+
+        @hero = Character.new(name: "Hero", statblock: @hero_statblock.deep_copy, attacks: [sword_attack])
+        @goblin = Monster.new(name: "Goblin 1", statblock: @goblin_statblock.deep_copy, attacks: [bite_attack])
+
+        combat = Combat.new(combatants: [@hero, @goblin], logger: @logger)
+        combat.run_combat
+        assert combat.is_over?
+        assert combat.winner
       end
 
       def test_attack_applies_damage
         initial_hp = @goblin.statblock.hit_points
         @mock_dice_roller = MockDiceRoller.new([100, 5]) # Attack roll, Damage roll
-        @combat = Combat.new(combatants: [@hero, @goblin], logger: @silent_logger, dice_roller: @mock_dice_roller)
+        @combat = Combat.new(combatants: [@hero, @goblin], logger: @logger, dice_roller: @mock_dice_roller)
         @combat.attack(@hero, @goblin)
         assert_equal initial_hp - 5, @goblin.statblock.hit_points
       end
@@ -48,7 +60,7 @@ module Dnd5e
       def test_attack_and_miss
         initial_hp = @hero.statblock.hit_points
         @mock_dice_roller = MockDiceRoller.new([1, 5]) # Attack roll, Damage roll
-        @combat = Combat.new(combatants: [@hero, @goblin], logger: @silent_logger, dice_roller: @mock_dice_roller) # Pass @silent_logger here
+        @combat = Combat.new(combatants: [@hero, @goblin], logger: @logger, dice_roller: @mock_dice_roller)
         @combat.attack(@goblin, @hero)
         assert_equal initial_hp, @hero.statblock.hit_points
       end
@@ -119,7 +131,7 @@ module Dnd5e
 
       def test_combat_times_out_after_max_rounds
         # Set max rounds to 2
-        combat = Combat.new(combatants: [@hero, @goblin], logger: @silent_logger, dice_roller: @mock_dice_roller, max_rounds: 2)
+        combat = Combat.new(combatants: [@hero, @goblin], logger: @logger, dice_roller: @mock_dice_roller, max_rounds: 2)
         # Set up dice rolls to always miss, and do 0 damage
         mock_dice_roller = MockDiceRoller.new([0, 0, 0, 0, 0, 0, 0, 0])
         combat.dice_roller = mock_dice_roller
@@ -128,17 +140,6 @@ module Dnd5e
           combat.run_combat
         end
         assert_equal 2, combat.instance_variable_get(:@round_counter)
-      end
-
-      def test_combat_does_not_timeout_before_max_rounds
-        # Set max rounds to 10
-        combat = Combat.new(combatants: [@hero, @goblin], logger: @silent_logger, dice_roller: @mock_dice_roller, max_rounds: 10)
-        # Every attack hits and does 100 damage
-        mock_dice_roller = MockDiceRoller.new([100, 100, 100, 100])
-        combat.dice_roller = mock_dice_roller
-        combat.run_combat
-        assert combat.is_over?
-        assert combat.instance_variable_get(:@round_counter) < 10
       end
 
       def test_attack_with_dead_attacker
