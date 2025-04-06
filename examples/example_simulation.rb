@@ -18,8 +18,8 @@ module Dnd5e
     bite_attack = Attack.new(name: "Bite", damage_dice: Dice.new(1, 6), relevant_stat: :dexterity)
 
     # Create template statblocks
-    hero_template = Statblock.new(name: "Hero Template", strength: 16, dexterity: 10, constitution: 15, hit_die: "d10", level: 3)
-    goblin_template = Statblock.new(name: "Goblin Template", strength: 8, dexterity: 16, constitution: 10, hit_die: "d6", level: 1)
+    hero_template = Statblock.new(name: "Hero Template", strength: 16, dexterity: 10, constitution: 10, hit_die: "d10", level: 1)
+    goblin_template = Statblock.new(name: "Goblin Template", strength: 8, dexterity: 14, constitution: 10, hit_die: "d6", level: 1)
 
     # Create characters and monsters using deep copy
     hero1 = Character.new(name: "Hero 1", statblock: hero_template.deep_copy, attacks: [sword_attack])

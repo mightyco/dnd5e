@@ -57,6 +57,31 @@ module Dnd5e
         runner.run
         assert_output(/Simulation Report/) { runner.generate_report }
       end
+
+      def test_simulation_resets_between_runs
+        attempts = 100
+        # Create a new result handler for this test
+        result_handler = SimulationCombatResultHandler.new
+
+        # Create a new runner for this test
+        runner = Runner.new(
+          MockBattleScenario,
+          num_simulations: attempts,
+          result_handler: result_handler,
+          teams: @teams,
+          logger: @logger
+        )
+
+        # Run the simulation
+        runner.run
+
+        # Check if the results are different
+        assert_equal attempts, result_handler.results.size
+
+        # Check if there is a mix of winners
+        winners = result_handler.results.map(&:winner).uniq
+        assert_operator winners.size, :>=, 2, "Expected at least two different winners in #{attempts} simulations"
+      end
     end
   end
 end
