@@ -9,7 +9,7 @@ module Dnd5e
     class Runner
       attr_reader :battle_scenario, :num_simulations, :results, :result_handler
 
-      def initialize(battle_scenario, num_simulations:, result_handler:, teams:, logger: Logger.New($stdout))
+      def initialize(battle_scenario, num_simulations:, result_handler:, teams:, logger: Logger.new($stdout))
         @battle_scenario = battle_scenario
         @num_simulations = num_simulations
         @results = []
