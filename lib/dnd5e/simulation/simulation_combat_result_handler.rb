@@ -1,4 +1,7 @@
+require_relative "../core/team"
 require_relative "result"
+
+require 'logger'
 
 module Dnd5e
   module Simulation
