@@ -1,39 +1,35 @@
+require_relative "dice"
+require_relative "dice_roller"
+require 'logger'
+
 module Dnd5e
   module Core
     class Attack
-      attr_reader :name, :damage_dice, :attack_bonus, :damage_bonus, :range, :count
-      attr_reader :relevant_stat
+      attr_reader :name, :damage_dice, :relevant_stat, :logger, :dice_roller
 
-      def initialize(name:, damage_dice:, extra_attack_bonus: 0, extra_damage_bonus: 0, range: :melee, count: 1, relevant_stat: :strength)
+      def initialize(name:, damage_dice:, relevant_stat: :strength, logger: Logger.new($stdout), dice_roller: DiceRoller.new)
         @name = name
         @damage_dice = damage_dice
-        @attack_bonus = extra_attack_bonus
-        @damage_bonus = extra_damage_bonus
-        @range = range
-        @count = count
         @relevant_stat = relevant_stat
+        @logger = logger
+        @dice_roller = dice_roller
+        logger.formatter = proc do |severity, datetime, progname, msg|
+          "#{msg}\n"
+        end
       end
 
-      def calculate_attack_roll(statblock, roll: nil)
-        # Roll the attack die and add the attack bonus
-        attack_roll = roll || Dice.new(1, 20).roll.first
-        attack_roll + calculate_attack_bonus(statblock)
-      end
-
-      def calculate_damage(statblock)
-        # Roll the damage dice and add the damage bonus
-        damage_roll = @damage_dice.roll.sum
-        damage_roll + calculate_damage_bonus(statblock)
-      end
-
-      def calculate_attack_bonus(statblock)
-        # Calculate the attack bonus based on the statblock's stats
-        (@attack_bonus || 0) + statblock.ability_modifier(@relevant_stat) + statblock.proficiency_bonus
-      end
-
-      def calculate_damage_bonus(statblock)
-        # Calculate the damage bonus based on the statblock's stats
-        (@damage_bonus || 0) + statblock.ability_modifier(@relevant_stat)
+      def attack(attacker, defender)
+        attack_roll = @dice_roller.roll(Dice.new(1, 20, modifier: attacker.statblock.ability_modifier(@relevant_stat)))
+        if attack_roll >= defender.statblock.armor_class
+          damage = @dice_roller.roll(@damage_dice)
+          defender.statblock.take_damage(damage)
+          @logger.info "#{attacker.name} hits #{defender.name} for #{damage} damage!"
+          @logger.info "#{defender.name} is defeated!" unless defender.statblock.is_alive?
+          true
+        else
+          @logger.info "#{attacker.name} misses #{defender.name}!"
+          false
+        end
       end
     end
   end
