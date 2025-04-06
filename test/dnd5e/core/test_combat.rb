@@ -5,70 +5,52 @@ require_relative "../../../lib/dnd5e/core/monster"
 require_relative "../../../lib/dnd5e/core/statblock"
 require_relative "../../../lib/dnd5e/core/attack"
 require_relative "../../../lib/dnd5e/core/dice"
+require_relative "../../../lib/dnd5e/core/dice_roller"
+require 'logger'
 
 module Dnd5e
   module Core
-    class TestAttackHit < Attack
-      def calculate_attack_roll(statblock, roll: nil)
-        100
-      end
-    end
-
-    class TestAttackMiss < Attack
-      def calculate_attack_roll(statblock, roll: nil)
-        0
-      end
-    end
-
     class TestCombat < Minitest::Test
       def setup
-        @hero_statblock = Statblock.new(name: "Hero Statblock", strength: 16, dexterity: 14, constitution: 15, hit_die: "d10", level: 3)
-        @goblin_statblock = Statblock.new(name: "Goblin Statblock", strength: 8, dexterity: 14, constitution: 10, hit_die: "d6", level: 1)
-        @sword_attack = TestAttackHit.new(name: "Sword", damage_dice: Dice.new(1, 8), relevant_stat: :strength)
-        @bite_attack = TestAttackMiss.new(name: "Bite", damage_dice: Dice.new(1, 6), relevant_stat: :strength)
+        @hero_statblock = Statblock.new(name: "Hero Statblock", strength: 16, dexterity: 10, constitution: 15, hit_die: "d10", level: 1)
+        @goblin_statblock = Statblock.new(name: "Goblin Statblock", strength: 8, dexterity: 16, constitution: 10, hit_die: "d6", level: 1)
+        @mock_dice_roller1 = MockDiceRoller.new([100, 5]) # Attack roll, Damage roll
+        @mock_dice_roller2 = MockDiceRoller.new([0, 0]) # Attack roll, Damage roll
+        @sword_attack = Attack.new(name: "Sword", damage_dice: Dice.new(1, 8), relevant_stat: :strength, dice_roller: @mock_dice_roller1)
+        @bite_attack = Attack.new(name: "Bite", damage_dice: Dice.new(1, 6), relevant_stat: :strength, dice_roller: @mock_dice_roller2)
 
-        @hero = Character.new(name: "Hero", statblock: @hero_statblock, attacks: [@sword_attack])
-        @goblin = Monster.new(name: "Goblin 1", statblock: @goblin_statblock, attacks: [@bite_attack])
+        @hero = Character.new(name: "Hero", statblock: @hero_statblock.deep_copy, attacks: [@sword_attack])
+        @goblin = Monster.new(name: "Goblin 1", statblock: @goblin_statblock.deep_copy, attacks: [@bite_attack])
 
-        @combat = Combat.new(combatant1: @hero, combatant2: @goblin)
+        @silent_logger = Logger.new(nil)
+        @combat = Combat.new(combatants: [@hero, @goblin], logger: @silent_logger)
       end
 
       def test_combat_initialization
-        assert_equal @combat.combatant1, @hero
-        assert_equal @combat.combatant2, @goblin
-        assert_empty @combat.turn_order
+        assert_equal [@hero, @goblin], @combat.combatants
+        assert_instance_of TurnManager, @combat.turn_manager
       end
 
       def test_combat_ends
-        @combat.start
+        @combat.run_combat
         assert @combat.is_over?
-        # The hero only hits the goblin only misses
         assert_equal @hero.name, @combat.winner.name
       end
 
-      def test_roll_initiative
-        @combat.roll_initiative
-        assert_equal 2, @combat.turn_order.size
-        @combat.turn_order.each do |combatant|
-          assert combatant.instance_variable_get(:@initiative).is_a?(Integer)
-        end
-      end
-
-      def test_sort_by_initiative
-        @combat.roll_initiative
-        @combat.sort_by_initiative
-        assert_equal @combat.turn_order.sort_by { |combatant| -combatant.instance_variable_get(:@initiative) }, @combat.turn_order
-      end
-
-      def test_attack_hit_and_miss
-        @combat.roll_initiative
-        @combat.sort_by_initiative
+      def test_attack_applies_damage
         initial_hp = @goblin.statblock.hit_points
+        @mock_dice_roller = MockDiceRoller.new([100, 5]) # Attack roll, Damage roll
+        @combat = Combat.new(combatants: [@hero, @goblin], logger: @silent_logger, dice_roller: @mock_dice_roller)
         @combat.attack(@hero, @goblin)
-        assert_operator @goblin.statblock.hit_points, :<, initial_hp
+        assert_equal initial_hp - 5, @goblin.statblock.hit_points
+      end
+
+      def test_attack_and_miss
         initial_hp = @hero.statblock.hit_points
+        @mock_dice_roller = MockDiceRoller.new([1, 5]) # Attack roll, Damage roll
+        @combat = Combat.new(combatants: [@hero, @goblin], logger: @silent_logger, dice_roller: @mock_dice_roller) # Pass @silent_logger here
         @combat.attack(@goblin, @hero)
-        assert_equal @hero.statblock.hit_points, initial_hp
+        assert_equal initial_hp, @hero.statblock.hit_points
       end
 
       def test_is_over
@@ -82,93 +64,13 @@ module Dnd5e
         assert_equal @hero.name, @combat.winner.name
       end
 
-      def test_take_turn_selects_valid_defender
-        20.times do
-          @combat.roll_initiative
-          @combat.sort_by_initiative
-          @combat.turn_order.each do |attacker|
-            initial_hp = @hero.statblock.hit_points
-            defender = @combat.take_turn(attacker)
-            refute_equal attacker, defender, "Attacker should not be the same as the defender"
-            assert_equal @hero.statblock.hit_points, initial_hp
-          end
-        end
-      end
-
-      def test_attack_method_with_hit
-        # Create a new attack that always hits
-        hit_attack = TestAttackHit.new(name: "Hit Attack", damage_dice: Dice.new(1, 6), relevant_stat: :strength)
-        hero = Character.new(name: "Hero", statblock: @hero_statblock, attacks: [hit_attack])
-        combat = Combat.new(combatant1: hero, combatant2: @goblin)
-
-        initial_hp = @goblin.statblock.hit_points
-        combat.attack(hero, @goblin)
-        assert_operator @goblin.statblock.hit_points, :<, initial_hp
-      end
-
-      def test_attack_method_with_miss
-        # Create a new attack that always misses
-        miss_attack = TestAttackMiss.new(name: "Miss Attack", damage_dice: Dice.new(1, 6), relevant_stat: :strength)
-        hero = Character.new(name: "Hero", statblock: @hero_statblock, attacks: [miss_attack])
-        combat = Combat.new(combatant1: hero, combatant2: @goblin)
-
-        initial_hp = @goblin.statblock.hit_points
-        combat.attack(hero, @goblin)
-        assert_equal @goblin.statblock.hit_points, initial_hp
-      end
-
-      def test_take_turn_selects_valid_defender_with_multiple_attacks
-        # Create a new attack that always hits
-        hit_attack = TestAttackHit.new(name: "Hit Attack", damage_dice: Dice.new(1, 6), relevant_stat: :strength)
-        hero = Character.new(name: "Hero", statblock: @hero_statblock, attacks: [hit_attack, hit_attack])
-        combat = Combat.new(combatant1: hero, combatant2: @goblin)
-
-        combat.roll_initiative
-        combat.sort_by_initiative
-
-        initial_hp = @goblin.statblock.hit_points
-        combat.turn_order.each do |attacker|
-          defender = combat.take_turn(attacker)
-          refute_equal attacker, defender, "Attacker should not be the same as the defender"
-        end
-        assert_operator @goblin.statblock.hit_points, :<, initial_hp
-      end
-
-      def test_dead_creatures_take_no_actions
-        # Ensure the goblin is in the turn order
-        @combat.roll_initiative
-        @combat.sort_by_initiative
-        assert_includes @combat.turn_order, @goblin
-
-        # Kill the goblin
-        @goblin.statblock.take_damage(@goblin.statblock.hit_points)
-        assert_equal 0, @goblin.statblock.hit_points
-        refute @goblin.statblock.is_alive?
-
-        # Check that the goblin's turn is skipped
-        # We'll use a mock to verify that take_turn is not called on the goblin
-        mock_combat = Minitest::Mock.new
-        mock_combat.expect(:take_turn, nil, [@goblin])
-
-        @combat.turn_order.each do |attacker|
-          if attacker == @goblin
-            mock_combat.take_turn(attacker)
-          else
-            @combat.take_turn(attacker)
-          end
-        end
-
-        # Assert that the mock expectations were met
-        mock_combat.verify
-      end
-
       def test_combat_ends_correctly
         # Kill the goblin
         @goblin.statblock.take_damage(@goblin.statblock.hit_points)
         refute @goblin.statblock.is_alive?
 
         # Start the combat
-        @combat.start
+        @combat.run_combat
 
         # Check that the combat is over
         assert @combat.is_over?
@@ -181,7 +83,7 @@ module Dnd5e
         refute @hero.statblock.is_alive?
 
         # Start the combat
-        @combat.start
+        @combat.run_combat
 
         # Check that the combat is over
         assert @combat.is_over?
@@ -194,11 +96,77 @@ module Dnd5e
         refute @goblin.statblock.is_alive?
 
         # Start the combat
-        @combat.start
+        @combat.run_combat
 
         # Check that the combat is over
         assert @combat.is_over?
         assert_equal @hero, @combat.winner
+      end
+
+      def test_attack_on_invalid_target
+        assert @goblin.statblock.is_alive?
+        # Kill the goblin
+        @goblin.statblock.take_damage(@goblin.statblock.hit_points)
+        refute @goblin.statblock.is_alive?
+
+        # Attempt to attack the dead goblin
+        assert_raises(InvalidAttackError) do
+          @combat.attack(@hero, @goblin)
+        end
+      end
+
+      # New Tests Below
+
+      def test_combat_times_out_after_max_rounds
+        # Set max rounds to 2
+        combat = Combat.new(combatants: [@hero, @goblin], logger: @silent_logger, dice_roller: @mock_dice_roller, max_rounds: 2)
+        # Set up dice rolls to always miss, and do 0 damage
+        mock_dice_roller = MockDiceRoller.new([0, 0, 0, 0, 0, 0, 0, 0])
+        combat.dice_roller = mock_dice_roller
+        refute combat.is_over?
+        assert_raises(CombatTimeoutError) do
+          combat.run_combat
+        end
+        assert_equal 2, combat.instance_variable_get(:@round_counter)
+      end
+
+      def test_combat_does_not_timeout_before_max_rounds
+        # Set max rounds to 10
+        combat = Combat.new(combatants: [@hero, @goblin], logger: @silent_logger, dice_roller: @mock_dice_roller, max_rounds: 10)
+        # Every attack hits and does 100 damage
+        mock_dice_roller = MockDiceRoller.new([100, 100, 100, 100])
+        combat.dice_roller = mock_dice_roller
+        combat.run_combat
+        assert combat.is_over?
+        assert combat.instance_variable_get(:@round_counter) < 10
+      end
+
+      def test_attack_with_dead_attacker
+        # Kill the hero
+        @hero.statblock.take_damage(@hero.statblock.hit_points)
+        refute @hero.statblock.is_alive?
+
+        # Attempt to attack with the dead hero
+        assert_raises(InvalidAttackError) do
+          @combat.attack(@hero, @goblin)
+        end
+      end
+
+      def test_combat_with_no_valid_targets
+        # Kill both combatants
+        @hero.statblock.take_damage(@hero.statblock.hit_points)
+        @goblin.statblock.take_damage(@goblin.statblock.hit_points)
+        refute @hero.statblock.is_alive?
+        refute @goblin.statblock.is_alive?
+
+        # Run combat
+        @combat.run_combat
+
+        # Check that combat is over
+        assert @combat.is_over?
+        assert_raises(InvalidWinnerError) do
+          @combat.winner
+        end
       end
     end
   end
