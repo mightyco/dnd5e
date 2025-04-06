@@ -83,12 +83,13 @@ module Dnd5e
         @turn_manager.sort_by_initiative
         @round_counter = 1
         logger.info "Combat begins between #{@combatants.map(&:name).join(", ")}"
+        logger.debug "Round: #{@round_counter}"
         until is_over?
-          logger.debug "Round: #{@round_counter}"
           current_combatant = @turn_manager.next_turn
           take_turn(current_combatant) if current_combatant.statblock.is_alive? && !is_over?
           if @turn_manager.all_turns_complete?
             @round_counter += 1
+            logger.debug "Round: #{@round_counter}"
           end
           raise CombatTimeoutError, "Combat timed out after #{@max_rounds} rounds" unless @round_counter < @max_rounds
         end
