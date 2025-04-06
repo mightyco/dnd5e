@@ -10,13 +10,18 @@ require 'logger'
 
 module Dnd5e
   module Core
+    # --- Setup ---
+    # Create a logger that outputs to stdout
+    logger = Logger.new($stdout)
+    logger.level = Logger::INFO # Set the desired log level
+
     # Create some attacks
     sword_attack = Attack.new(name: "Sword", damage_dice: Dice.new(1, 8), relevant_stat: :strength)
     bite_attack = Attack.new(name: "Bite", damage_dice: Dice.new(1, 6), relevant_stat: :dexterity)
 
     # Create template statblocks
-    hero_template = Statblock.new(name: "Hero Template", strength: 16, dexterity: 10, constitution: 15, hit_die: "d10", level: 3)
-    goblin_template = Statblock.new(name: "Goblin Template", strength: 8, dexterity: 16, constitution: 10, hit_die: "d6", level: 1)
+    hero_template = Statblock.new(name: "Hero Template", strength: 16, dexterity: 14, constitution: 15, hit_die: "d10", level: 3)
+    goblin_template = Statblock.new(name: "Goblin Template", strength: 8, dexterity: 14, constitution: 10, hit_die: "d6", level: 1)
 
     # Create characters and monsters using deep copy
     hero1 = Character.new(name: "Hero 1", statblock: hero_template.deep_copy, attacks: [sword_attack])
@@ -28,13 +33,14 @@ module Dnd5e
     heroes = Team.new(name: "Heroes", members: [hero1, hero2])
     goblins = Team.new(name: "Goblins", members: [goblin1, goblin2])
 
-    # Create a logger that outputs to stdout
-    logger = Logger.new($stdout)
+    # Create a result handler
+    result_handler = PrintingCombatResultHandler.new(logger: logger)
 
-    # Create combat with the PrintingCombatResultHandler and the logger
-    combat = TeamCombat.new(teams: [heroes, goblins], result_handler: PrintingCombatResultHandler.new(logger: logger))
+    # --- Combat ---
+    # Create combat
+    combat = TeamCombat.new(teams: [heroes, goblins], result_handler: result_handler, logger: logger)
 
     # Start the battle
-    combat.start
+    combat.run_combat
   end
 end
