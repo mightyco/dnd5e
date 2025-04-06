@@ -2,21 +2,27 @@ require_relative "../core/team_combat"
 require_relative "silent_combat_result_handler"
 require_relative "simulation_combat_result_handler"
 
+require 'logger'
+
 module Dnd5e
   module Simulation
     class Runner
       attr_reader :battle_scenario, :num_simulations, :results, :result_handler
 
-      def initialize(battle_scenario, num_simulations:, result_handler:, teams:)
+      def initialize(battle_scenario, num_simulations:, result_handler:, teams:, logger: Logger.New($stdout))
         @battle_scenario = battle_scenario
         @num_simulations = num_simulations
         @results = []
         @result_handler = result_handler
         @teams = teams
+        @logger = logger
+        @logger.formatter = proc do |severity, datetime, progname, msg|
+          "#{msg}\n"
+        end
       end
 
       def run_battle
-        scenario = @battle_scenario.new(@result_handler, teams: @teams)
+        scenario = @battle_scenario.new(@result_handler, teams: @teams, logger: @logger)
         scenario.start
         @results << @result_handler.results.last
       end
