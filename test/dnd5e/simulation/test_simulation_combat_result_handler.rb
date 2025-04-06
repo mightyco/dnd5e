@@ -21,26 +21,44 @@ module Dnd5e
       end
 
       def test_handle_result
-        @combat.roll_initiative
-        @handler.handle_result(@combat, @heroes, @goblins)
+        @combat.run_combat
+        initiative_winner = @combat.turn_manager.turn_order.first.team
+        combat_winner = @combat.winner
+        @handler.handle_result(@combat, combat_winner, initiative_winner)
         assert_equal 1, @handler.results.size
-        assert_equal @heroes, @handler.results.first.winner
-        assert_equal @goblins, @handler.results.first.initiative_winner
-        assert_equal 1, @handler.initiative_wins[@goblins.name]
-        assert_equal 1, @handler.battle_wins[@heroes.name]
+        assert_equal combat_winner, @handler.results.first.winner
+        assert_equal initiative_winner, @handler.results.first.initiative_winner
+        assert_equal 1, @handler.initiative_wins[initiative_winner.name]
+        assert_equal 1, @handler.battle_wins[combat_winner.name]
       end
 
       def test_report
-        @combat.roll_initiative
-        @handler.handle_result(@combat, @heroes, @goblins)
-        @handler.handle_result(@combat, @goblins, @heroes)
-        @handler.handle_result(@combat, @heroes, @heroes)
-        @handler.handle_result(@combat, @goblins, @goblins)
-        @handler.handle_result(@combat, @heroes, @heroes)
+        # Run multiple combats to simulate different initiative outcomes
+        5.times do
+          # Create new combatants for each combat
+          hero1 = CharacterFactory.create_hero
+          hero2 = CharacterFactory.create_hero
+          goblin1 = MonsterFactory.create_goblin
+          goblin2 = MonsterFactory.create_goblin
+      
+          heroes = Core::Team.new(name: "Heroes", members: [hero1, hero2])
+          goblins = Core::Team.new(name: "Goblins", members: [goblin1, goblin2])
+          combat = Core::TeamCombat.new(teams: [heroes, goblins])
+          
+          # Run the combat
+          combat.run_combat
+          
+          # Record the result
+          initiative_winner = combat.turn_manager.turn_order.first.team
+          combat_winner = combat.winner
+          @handler.handle_result(combat, combat_winner, initiative_winner)
+        end
+        
         report = @handler.report(5)
         assert_match(/Heroes won initiative/, report)
         assert_match(/Goblins won initiative/, report)
       end
+
     end
   end
 end
