@@ -16,19 +16,15 @@ module Dnd5e
 
     # Example of creating a monster with attacks
     goblin_statblock = Statblock.new(name: "Goblin Stats", strength: 8, dexterity: 14, constitution: 10, hit_die: "d6", level: 1)
-    scimitar_attack = Attack.new(name: "Scimitar Slash", damage_dice: Dice.new(1, 6), relevant_stat: :strength)
+    scimitar_attack = Attack.new(name: "Scimitar Slash", damage_dice: Dice.new(1, 6), relevant_stat: :dexterity)
     goblin = Monster.new(name: "Goblin", statblock: goblin_statblock, attacks: [scimitar_attack])
 
+    logger = Logger.new($stdout)
+    longsword_attack.instance_variable_set(:@logger, logger)
+    greatsword_attack.instance_variable_set(:@logger, logger)
+
     # Example of using the attack
-    silent_logger = Logger.new(nil)
-    dice_roller = DiceRoller.new
-    longsword_attack.instance_variable_set(:@logger, silent_logger)
-    longsword_attack.instance_variable_set(:@dice_roller, dice_roller)
-    scimitar_attack.instance_variable_set(:@logger, silent_logger)
-    scimitar_attack.instance_variable_set(:@dice_roller, dice_roller)
-    puts "Aragorn attacks Goblin"
-    longsword_attack.attack(hero, goblin)
-    puts "Goblin attacks Aragorn"
-    scimitar_attack.attack(goblin, hero)
+    hero_attack = hero.attacks.sample
+    hero_attack.attack(hero, goblin)
   end
 end

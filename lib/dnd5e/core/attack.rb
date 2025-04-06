@@ -19,9 +19,9 @@ module Dnd5e
       end
 
       def attack(attacker, defender)
-        attack_roll = @dice_roller.roll(Dice.new(1, 20, modifier: attacker.statblock.ability_modifier(@relevant_stat)))
+        attack_roll = @dice_roller.roll_with_dice(Dice.new(1, 20, modifier: attacker.statblock.ability_modifier(@relevant_stat)))
         if attack_roll >= defender.statblock.armor_class
-          damage = @dice_roller.roll(@damage_dice)
+          damage = @dice_roller.roll_with_dice(@damage_dice)
           defender.statblock.take_damage(damage)
           @logger.info "#{attacker.name} hits #{defender.name} for #{damage} damage!"
           @logger.info "#{defender.name} is defeated!" unless defender.statblock.is_alive?
