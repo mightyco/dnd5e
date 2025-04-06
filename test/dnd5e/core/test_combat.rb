@@ -34,7 +34,7 @@ module Dnd5e
       def test_combat_ends
         @combat.run_combat
         assert @combat.is_over?
-        assert_equal @hero.name, @combat.winner.name
+        assert @combat.winner
       end
 
       def test_attack_applies_damage

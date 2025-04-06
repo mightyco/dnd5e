@@ -56,6 +56,9 @@ module Dnd5e
         @index += 1
         result.nil? ? 0 : result
       end
+
+      alias roll_with_sides roll
+      alias roll_with_dice roll
     end
   end
 end
