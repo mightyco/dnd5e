@@ -21,7 +21,7 @@ module Dnd5e
       end
 
       def test_handle_result
-        @combat.roll_initiative
+        @combat.run_combat
         @handler.handle_result(@combat, @heroes, @goblins)
         assert_equal 1, @handler.results.size
         assert_equal @heroes, @handler.results.first.winner
@@ -29,7 +29,7 @@ module Dnd5e
       end
 
       def test_results
-        @combat.roll_initiative
+        @combat.run_combat
         @handler.handle_result(@combat, @heroes, @goblins)
         assert_equal @handler.results, @handler.results
       end
