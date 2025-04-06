@@ -11,7 +11,7 @@ module Dnd5e
 
     class Combat
       attr_reader :combatants, :turn_manager, :logger, :dice_roller, :max_rounds
-      attr_writer :dice_roller # Add this line
+      attr_writer :dice_roller
 
       def initialize(combatants:, logger: Logger.new($stdout), dice_roller: DiceRoller.new, max_rounds: 1000)
         @combatants = combatants
