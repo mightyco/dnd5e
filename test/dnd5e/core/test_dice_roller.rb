@@ -5,47 +5,62 @@ require_relative "../../../lib/dnd5e/core/dice"
 module Dnd5e
   module Core
     class TestDiceRoller < Minitest::Test
-      def test_roll_with_dice
-        dice_roller = DiceRoller.new
-        dice = Dice.new(2, 6)
-        result = dice_roller.roll_with_dice(dice)
-        assert_operator result, :>=, 2
-        assert_operator result, :<=, 12
+      # Looping for Randomness
+      def test_roll_with_dice_multiple_times
+        100.times do # Run the test 100 times
+          dice_roller = DiceRoller.new
+          dice = Dice.new(2, 6)
+          result = dice_roller.roll_with_dice(dice)
+          assert_operator result, :>=, 2
+          assert_operator result, :<=, 12
+        end
       end
 
-      def test_roll_with_sides
-        dice_roller = DiceRoller.new
-        result = dice_roller.roll_with_sides(3, 4)
-        assert_operator result, :>=, 3
-        assert_operator result, :<=, 12
+      # Looping for Randomness
+      def test_roll_with_sides_multiple_times
+        100.times do # Run the test 100 times
+          dice_roller = DiceRoller.new
+          result = dice_roller.roll_with_sides(3, 4)
+          assert_operator result, :>=, 3
+          assert_operator result, :<=, 12
+        end
       end
 
-      def test_roll_valid_notation
-        dice_roller = DiceRoller.new
-        result = dice_roller.roll("d20")
-        assert_operator result, :>=, 1
-        assert_operator result, :<=, 20
+      # Parameterization and Edge Cases
+      def test_roll_valid_notation_parameterized
+        test_cases = [
+          { notation: "d20", min: 1, max: 20 },
+          { notation: "2d6", min: 2, max: 12 },
+          { notation: "1d4", min: 1, max: 4 },
+          { notation: "4d10", min: 4, max: 40 },
+          { notation: "1d1", min: 1, max: 1 }, # Edge case: minimum sides
+          { notation: "100d100", min: 100, max: 10000 }, # Edge case: large numbers
+        ]
 
-        result = dice_roller.roll("2d6")
-        assert_operator result, :>=, 2
-        assert_operator result, :<=, 12
-
-        result = dice_roller.roll("1d4")
-        assert_operator result, :>=, 1
-        assert_operator result, :<=, 4
-
-        result = dice_roller.roll("4d10")
-        assert_operator result, :>=, 4
-        assert_operator result, :<=, 40
+        test_cases.each do |test_case|
+          dice_roller = DiceRoller.new
+          result = dice_roller.roll(test_case[:notation])
+          assert_operator result, :>=, test_case[:min]
+          assert_operator result, :<=, test_case[:max]
+        end
       end
 
-      def test_roll_invalid_notation
-        dice_roller = DiceRoller.new
-        assert_raises(InvalidDiceNotationError) { dice_roller.roll("invalid") }
-        assert_raises(InvalidDiceNotationError) { dice_roller.roll("d") }
-        assert_raises(InvalidDiceNotationError) { dice_roller.roll("d0") }
-        assert_raises(InvalidDiceNotationError) { dice_roller.roll("0d20") }
-        assert_raises(InvalidDiceNotationError) { dice_roller.roll("2d") }
+      # Parameterization and Edge Cases
+      def test_roll_invalid_notation_parameterized
+        test_cases = [
+          "invalid",
+          "d",
+          "d0",
+          "0d20",
+          "2d",
+          "d-1", # Edge case: negative sides
+          "-1d20", # Edge case: negative dice
+        ]
+
+        test_cases.each do |test_case|
+          dice_roller = DiceRoller.new
+          assert_raises(InvalidDiceNotationError) { dice_roller.roll(test_case) }
+        end
       end
     end
 
