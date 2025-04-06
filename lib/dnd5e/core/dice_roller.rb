@@ -1,8 +1,47 @@
+require_relative "dice"
+
 module Dnd5e
   module Core
+    class InvalidDiceNotationError < StandardError; end
+
     class DiceRoller
-      def roll(dice)
-        dice.roll.sum
+      """Rolls dice and returns a sum."""
+
+      def roll(dice_notation)
+        # roll("1d20")
+        num_dice, sides = parse_dice_notation(dice_notation)
+        @dice = Dice.new(num_dice, sides)
+        do_roll
+      end
+
+      def roll_with_dice(dice)
+        @dice = dice
+        do_roll
+      end
+
+      def roll_with_sides(num_dice, sides)
+        @dice = Dice.new(num_dice, sides)
+        do_roll
+      end
+
+      private
+
+      def do_roll
+        @dice.roll
+        return @dice.rolls.sum
+      end
+
+      def parse_dice_notation(dice_notation)
+        match_data = dice_notation.match(/^(\d*)d(\d+)$/i)
+        raise InvalidDiceNotationError, "Invalid dice notation: #{dice_notation}" unless match_data
+
+        num_dice = match_data[1].empty? ? 1 : match_data[1].to_i
+        sides = match_data[2].to_i
+
+        raise InvalidDiceNotationError, "Number of dice must be greater than 0" unless num_dice > 0
+        raise InvalidDiceNotationError, "Number of sides must be greater than 0" unless sides > 0
+
+        [num_dice, sides]
       end
     end
 
@@ -11,11 +50,10 @@ module Dnd5e
         @rolls = rolls
         @index = 0
       end
-    
-      def roll(dice)
+
+      def roll(*args)
         result = @rolls[@index]
         @index += 1
-        # Return a default value if we run out of rolls
         result.nil? ? 0 : result
       end
     end
