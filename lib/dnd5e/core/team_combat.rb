@@ -8,39 +8,23 @@ module Dnd5e
     class TeamCombat < Combat
       attr_reader :teams, :result_handler
 
-      def initialize(teams:, result_handler: PrintingCombatResultHandler.new, logger: Logger.new($stdout))
+      def initialize(teams:, result_handler: PrintingCombatResultHandler.new, logger: Logger.new($stdout), dice_roller: DiceRoller.new)
         raise ArgumentError, "TeamCombat requires exactly two teams" unless teams.size == 2
         @teams = teams
         @result_handler = result_handler
-        super(combatant1: teams.first.members.first, combatant2: teams.last.members.first, logger: logger)
+        super(combatants: teams.first.members + teams.last.members, logger: logger, dice_roller: dice_roller)
       end
 
-      def start
-        initiative_winner = roll_initiative
-        sort_by_initiative
-        until is_over?
-          @turn_order.each do |combatant|
-            take_turn(combatant) if combatant.statblock.is_alive?
-          end
-          end_round
-        end
+      def run_combat
+        super()
+        initiative_winner = @turn_manager.turn_order.first.team
         result_handler.handle_result(self, winner, initiative_winner)
-      end
-
-      def roll_initiative
-        @teams.each do |team|
-          team.members.each do |combatant|
-            initiative_roll = Dice.new(1, 20, modifier: combatant.statblock.ability_modifier(:dexterity)).roll.first
-            combatant.instance_variable_set(:@initiative, initiative_roll)
-            @turn_order << combatant
-          end
-        end
-        @teams.max_by { |team| team.members.max_by { |member| member.instance_variable_get(:@initiative) }.instance_variable_get(:@initiative) }
       end
 
       def take_turn(attacker)
         potential_defenders = @teams.reject { |team| team == attacker.team }.flat_map(&:alive_members)
         return if potential_defenders.empty?
+
         defender = potential_defenders.sample
         attack(attacker, defender)
       end

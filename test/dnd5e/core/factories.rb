@@ -16,8 +16,8 @@ module Dnd5e
       end
 
       class AttackFactory
-        def self.create(name: "Attack", damage_dice:, extra_attack_bonus: 0, extra_damage_bonus: 0, range: :melee, count: 1, relevant_stat: :strength)
-          Attack.new(name: name, damage_dice: damage_dice, extra_attack_bonus: extra_attack_bonus, extra_damage_bonus: extra_damage_bonus, range: range, count: count, relevant_stat: relevant_stat)
+        def self.create(name: "Attack", damage_dice:, relevant_stat: :strength)
+          Attack.new(name: name, damage_dice: damage_dice, relevant_stat: relevant_stat)
         end
 
         def self.create_sword_attack
