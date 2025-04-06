@@ -9,7 +9,7 @@ module Dnd5e
       end
 
       def start
-        @combat.start
+        @combat.run_combat
       end
     end
   end
