@@ -19,9 +19,9 @@ module Dnd5e
         @goblins = Team.new(name: "Goblins", members: [@goblin1, @goblin2])
 
         # Create a logger for tests
-        @logger = Logger.new(nil)
-        # @logger = Logger.new($stdout)
-        # @logger.level = Logger::DEBUG
+        # @logger = Logger.new(nil)
+        @logger = Logger.new($stdout)
+        @logger.level = Logger::DEBUG
 
         @result_handler = PrintingCombatResultHandler.new(logger: @logger)
         @mock_dice_roller = MockDiceRoller.new([10, 10, 10, 10]) # Initiative rolls
@@ -76,28 +76,34 @@ module Dnd5e
         end
       end
 
-
       def test_run_combat_ends_correctly
-        hero_statblock = Statblock.new(name: "Hero Statblock", strength: 16, dexterity: 10, constitution: 15, hit_die: "d10", level: 1)
-        goblin_statblock = Statblock.new(name: "Goblin Statblock", strength: 8, dexterity: 16, constitution: 10, hit_die: "d6", level: 1)
-        mock_dice_roller1 = MockDiceRoller.new([100, 5]) # Attack roll, Damage roll
-        mock_dice_roller2 = MockDiceRoller.new([0, 0]) # Attack roll, Damage roll
-        sword_attack = Attack.new(name: "Sword", damage_dice: Dice.new(1, 8), relevant_stat: :strength, dice_roller: mock_dice_roller1)
-        bite_attack = Attack.new(name: "Bite", damage_dice: Dice.new(1, 6), relevant_stat: :strength, dice_roller: mock_dice_roller2)
-
-        hero1 = Character.new(name: "Hero 1", statblock: hero_statblock.deep_copy, attacks: [sword_attack])
-        hero2 = Character.new(name: "Hero 2", statblock: hero_statblock.deep_copy, attacks: [sword_attack])
-        goblin1 = Monster.new(name: "Goblin 1", statblock: goblin_statblock.deep_copy, attacks: [bite_attack])
-        goblin2 = Monster.new(name: "Goblin 2", statblock: goblin_statblock.deep_copy, attacks: [bite_attack])
-
-        heroes = Team.new(name: "Heroes", members: [hero1, hero2])
-        goblins = Team.new(name: "Goblins", members: [goblin1, goblin2])
-
-        combat = TeamCombat.new(teams: [heroes, goblins], result_handler: @result_handler, logger: @logger)
-        combat.run_combat
-        assert combat.is_over?
-        assert_equal heroes, combat.winner, "Heroes that always hit should always win"
+        100.times do
+          hero_statblock = Statblock.new(name: "Hero Statblock", strength: 16, dexterity: 10, constitution: 15, hit_die: "d10", level: 1)
+          goblin_statblock = Statblock.new(name: "Goblin Statblock", strength: 8, dexterity: 16, constitution: 10, hit_die: "d6", level: 1)
+          mock_dice_roller1 = MockDiceRoller.new(Array.new(100, 100) + Array.new(100, 100)) # Heroes always hit
+          mock_dice_roller2 = MockDiceRoller.new(Array.new(100, 0) + Array.new(100, 0)) # Monsters always miss
+          sword_attack = Attack.new(name: "Sword", damage_dice: Dice.new(1, 8), relevant_stat: :strength, dice_roller: mock_dice_roller1)
+          bite_attack = Attack.new(name: "Bite", damage_dice: Dice.new(1, 6), relevant_stat: :strength, dice_roller: mock_dice_roller2)
+        
+          hero1 = Character.new(name: "Hero 1", statblock: hero_statblock.deep_copy, attacks: [sword_attack])
+          hero2 = Character.new(name: "Hero 2", statblock: hero_statblock.deep_copy, attacks: [sword_attack])
+          goblin1 = Monster.new(name: "Goblin 1", statblock: goblin_statblock.deep_copy, attacks: [bite_attack])
+          goblin2 = Monster.new(name: "Goblin 2", statblock: goblin_statblock.deep_copy, attacks: [bite_attack])
+        
+          heroes = Team.new(name: "Heroes", members: [hero1, hero2])
+          goblins = Team.new(name: "Goblins", members: [goblin1, goblin2])
+        
+          # Create a MockDiceRoller for initiative rolls
+          initiative_roller = MockDiceRoller.new([10, 10, 10, 10])
+        
+          # Pass the initiative_roller to TeamCombat
+          combat = TeamCombat.new(teams: [heroes, goblins], result_handler: @result_handler, logger: @logger, dice_roller: initiative_roller)
+          combat.run_combat
+          assert combat.is_over?
+          assert_equal heroes, combat.winner, "Heroes that always hit should always win"
+        end
       end
+
     end
   end
 end

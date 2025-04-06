@@ -20,7 +20,7 @@ module Dnd5e
         @dice_roller = dice_roller
         @max_rounds = max_rounds
         @round_counter = 0
-        logger.formatter = proc do |severity, datetime, progname, msg|
+        @logger.formatter = proc do |severity, datetime, progname, msg|
           "#{msg}\n"
         end
       end
@@ -28,14 +28,16 @@ module Dnd5e
       def attack(attacker, defender)
         raise InvalidAttackError, "Cannot attack with a dead attacker" unless attacker.statblock.is_alive?
         raise InvalidAttackError, "Cannot attack a dead defender" unless defender.statblock.is_alive?
-
-        attack_roll = @dice_roller.roll_with_dice(Dice.new(1, 20, modifier: attacker.statblock.ability_modifier(attacker.attacks.first.relevant_stat)))
+      
+        attack_dice = Dice.new(1, 20, modifier: attacker.statblock.ability_modifier(attacker.attacks.first.relevant_stat))
+        attack_roll = attacker.attacks.first.dice_roller.roll_with_dice(attack_dice)
+        logger.debug("Attacker #{attacker.name} rolled an attack roll of #{attack_roll}")
         if defender.statblock.armor_class.nil?
           logger.warn "#{defender.name} has no armor class!"
           return false
         end
         if attack_roll >= defender.statblock.armor_class
-          damage = @dice_roller.roll_with_dice(attacker.attacks.first.damage_dice)
+          damage = attacker.attacks.first.dice_roller.roll_with_dice(attacker.attacks.first.damage_dice)
           defender.statblock.take_damage(damage)
           logger.info "#{attacker.name} hits #{defender.name} for #{damage} damage!"
           logger.info "#{defender.name} is defeated!" unless defender.statblock.is_alive?
