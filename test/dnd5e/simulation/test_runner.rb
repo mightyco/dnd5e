@@ -80,6 +80,49 @@ module Dnd5e
         winners = result_handler.results.map(&:winner).uniq
         assert_operator winners.size, :>=, 2, "Expected at least two different winners in #{attempts} simulations"
       end
+
+      def test_simulation_report_initiative_wins
+        attempts = 1000
+        result_handler = SimulationCombatResultHandler.new
+        runner = Runner.new(nil, num_simulations: attempts, result_handler: result_handler, teams: @teams, logger: @logger)
+        runner.run
+        report = result_handler.report(attempts)
+
+        # Check if the report contains the correct information
+        assert_match(/won \d+\.\d+% \(\d+ of #{attempts}\) of the battles/, report)
+        assert_match(/won initiative \d+\.\d+% \(\d+ of #{attempts}\) of the time overall/, report)
+        assert_match(/but \d+\.\d+% of the time that they won the battle \(\d+ of \d+\)/, report)
+
+        # Check if the numbers are consistent
+        heroes_wins_match = report.match(/Heroes won (\d+\.\d+)% \((\d+) of #{attempts}\) of the battles/)
+        goblins_wins_match = report.match(/Goblins won (\d+\.\d+)% \((\d+) of #{attempts}\) of the battles/)
+        heroes_initiative_wins_match = report.match(/Heroes won initiative (\d+\.\d+)% \(\d+ of #{attempts}\) of the time overall but (\d+\.\d+)% of the time that they won the battle \((\d+) of (\d+)\)/)
+        goblins_initiative_wins_match = report.match(/Goblins won initiative (\d+\.\d+)% \(\d+ of #{attempts}\) of the time overall but (\d+\.\d+)% of the time that they won the battle \((\d+) of (\d+)\)/)
+
+        puts report
+        refute_nil heroes_wins_match
+        refute_nil goblins_wins_match
+        refute_nil heroes_initiative_wins_match
+        refute_nil goblins_initiative_wins_match
+
+        heroes_wins_percentage = heroes_wins_match[1].to_f
+        heroes_wins_count = heroes_wins_match[2].to_i
+        goblins_wins_percentage = goblins_wins_match[1].to_f
+        goblins_wins_count = goblins_wins_match[2].to_i
+        heroes_initiative_wins_when_won_percentage = heroes_initiative_wins_match[2].to_f
+        heroes_initiative_wins_when_won_count = heroes_initiative_wins_match[3].to_i
+        heroes_wins_count_from_initiative = heroes_initiative_wins_match[4].to_i
+        goblins_initiative_wins_when_won_percentage = goblins_initiative_wins_match[2].to_f
+        goblins_initiative_wins_when_won_count = goblins_initiative_wins_match[3].to_i
+        goblins_wins_count_from_initiative = goblins_initiative_wins_match[4].to_i
+
+        assert_in_delta(heroes_wins_percentage, (heroes_wins_count.to_f / attempts * 100), 0.1)
+        assert_in_delta(goblins_wins_percentage, (goblins_wins_count.to_f / attempts * 100), 0.1)
+        assert_equal(heroes_wins_count, heroes_wins_count_from_initiative)
+        assert_equal(goblins_wins_count, goblins_wins_count_from_initiative)
+        assert_in_delta(heroes_initiative_wins_when_won_percentage, (heroes_initiative_wins_when_won_count.to_f / heroes_wins_count * 100), 0.1)
+        assert_in_delta(goblins_initiative_wins_when_won_percentage, (goblins_initiative_wins_when_won_count.to_f / goblins_wins_count * 100), 0.1)
+      end
     end
   end
 end
