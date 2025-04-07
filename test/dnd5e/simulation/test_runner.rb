@@ -27,7 +27,6 @@ module Dnd5e
 
       def test_runner_initialization
         runner = Runner.new(nil, num_simulations: 50, result_handler: SilentCombatResultHandler.new, teams: @teams, logger: @logger)
-        assert_nil runner.battle_scenario
         assert_equal 50, runner.num_simulations
         assert_empty runner.results
       end

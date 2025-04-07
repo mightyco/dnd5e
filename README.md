@@ -1,88 +1,58 @@
-# dnd5e
-D&D 5e Simulator
+# D&D 5e Combat Simulator
 
-## Purpose
-Test out different D&D 5E character concepts in battle simulations. 
+This project is a Ruby-based combat simulator for Dungeons & Dragons 5th Edition (D&D 5e). It allows you to simulate battles between teams of characters and monsters, providing insights into combat outcomes.
 
-## Roadmap
-1.  Build the engine
-1.  Create a UI Mock
-1.  Create a simulation
-1.  Provide a record and replay capability with exemplars
-1.  Provide the ability to rate concepts against many simulation runs
-1.  Provide a UI to allow others to use the concepts
+## Features
 
-## Contents
+*   **Character and Monster Creation:** Define characters and monsters with stat blocks (strength, dexterity, etc.), hit points, and attacks.
+*   **Team-Based Combat:** Create teams of characters and monsters to simulate battles.
+*   **Combat Simulation:** Run multiple simulations of battles to analyze the probability of different outcomes.
+*   **Reporting:** Generate reports summarizing the results of the simulations, including win rates and sample battle results.
+* **Test Suite:** A robust test suite to ensure the code is working correctly.
 
-```shell
-dnd5e_simulator/
-├── bin/                     # Executable scripts (e.g., to run the simulator)
-├── lib/                     # Core Ruby code (classes, modules, etc.)
-│   ├── dnd5e/               # Main namespace for the simulator
-│   │   ├── character/       # Classes related to characters (e.g., Character, Fighter, Wizard)
-│   │   ├── combat/          # Classes related to combat (e.g., Battle, Attack, Damage)
-│   │   ├── core/            # Core game mechanics (e.g., Dice, AbilityScore, SavingThrow)
-│   │   ├── rules/           # Classes related to rules (e.g., Rulebook, Feats, Spells)
-│   │   └── ...              # Other modules as needed
-│   └── dnd5e.rb             # Main entry point for the library
-├── test/                    # Unit and integration tests
-│   ├── dnd5e/               # Tests for the dnd5e namespace
-│   │   ├── character/       # Tests for character classes
-│   │   ├── combat/          # Tests for combat classes
-│   │   ├── core/            # Tests for core classes
-│   │   ├── rules/           # Tests for rules classes
-│   │   └── ...              # Other test files
-│   ├── test_helper.rb       # Helper file for test setup
-│   └── ...                  # Other test files
-├── data/                    # Data files (e.g., character sheets, monster stats, spell lists)
-├── docs/                    # Project documentation (e.g., API docs, design docs)
-├── examples/                # Example usage of the simulator
-├── Gemfile                  # Ruby gem dependencies
-├── Gemfile.lock             # Locked gem versions
-├── Rakefile                 # Rake tasks (e.g., running tests, generating docs)
-└── README.md                # Project description and instructions
-```## Getting Started
+## Getting Started
 
-### Prerequisites
+1.  **Prerequisites:**
+    *   Ruby (version X.X.X or higher)
+    *   Bundler (for managing dependencies)
 
-*   Ruby 3.2 or higher
-*   Bundler
+2.  **Installation:**
+    *   Clone the repository: `git clone <repository-url>`
+    *   Navigate to the project directory: `cd dnd5e`
+    *   Install dependencies: `bundle install`
 
-### Installation
+3.  **Running the Tests:**
+    *   `rake test`
 
-1.  Clone the repository:
+4. **Running the Simulation**
+    * See the `examples/` directory.
 
-    ```shell
-    git clone https://github.com/yourusername/dnd5e.git
-    cd dnd5e
-    ```
+## Core Concepts
 
-2.  Install dependencies:
+*   **Statblock:** Represents the core attributes of a character or monster (strength, dexterity, hit points, etc.).
+*   **Character:** A player character with a stat block and attacks.
+*   **Monster:** A non-player character with a stat block and attacks.
+*   **Team:** A group of characters or monsters that fight together.
+*   **Attack:** Represents an attack that a character or monster can perform.
+*   **Combat:** Manages the flow of a single battle between teams.
+*   **Runner:** Runs multiple combat simulations and aggregates the results.
+* **Result:** Represents the result of a single combat.
+* **Result Handler:** Handles the results of the combat.
 
-    ```shell
-    bundle install
-    ```
+## Contributing
 
-### Running Tests
+Contributions are welcome! Please feel free to submit pull requests or open issues.
 
-```shell
-bundle exec rake test
-```
+### Future Enhancements
 
-### Running the Simulator
+*   More complex character classes and abilities.
+*   More detailed combat logging.
+*   Support for different types of attacks and damage.
+*   A command-line interface (CLI) for running simulations.
+*   Provide a record and replay capability with exemplars
+*   Provide the ability to rate concepts against many simulation runs
+*   Provide a UI to allow others to use the concepts
 
-```shell
-bundle exec ruby bin/run_simulator.rb
-```
-
-### Contributing
-
-1.  Fork the repository.
-2.  Create a new branch for your feature or bug fix.
-3.  Make your changes and commit them.
-4.  Push your branch to your fork.
-5.  Submit a pull request.
-
-### License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
