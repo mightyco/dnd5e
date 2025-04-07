@@ -99,7 +99,7 @@ module Dnd5e
         heroes_initiative_wins_match = report.match(/Heroes won initiative (\d+\.\d+)% \(\d+ of #{attempts}\) of the time overall(?: but (\d+\.\d+)% of the time that they won the battle \((\d+) of (\d+)\))?/)
         goblins_initiative_wins_match = report.match(/Goblins won initiative (\d+\.\d+)% \(\d+ of #{attempts}\) of the time overall(?: but (\d+\.\d+)% of the time that they won the battle \((\d+) of (\d+)\))?/)
 
-        puts report
+        @logger.debug(report)
         refute_nil heroes_wins_match
         refute_nil goblins_wins_match
         refute_nil heroes_initiative_wins_match
