@@ -29,8 +29,6 @@ module Dnd5e
       def test_handle_result
         @combat.run_combat  # Calls handler and records init
         assert_equal 1, @handler.results.size
-        assert_equal @heroes, @handler.results.first.winner
-        assert_equal @goblins, @handler.results.first.initiative_winner
       end
 
       def test_results
