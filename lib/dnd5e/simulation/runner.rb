@@ -1,20 +1,19 @@
 require_relative "../core/team_combat"
 require_relative "silent_combat_result_handler"
 require_relative "simulation_combat_result_handler"
+require_relative "scenario"
 
 require 'logger'
 
 module Dnd5e
   module Simulation
     class Runner
-      attr_reader :battle_scenario, :num_simulations, :results, :result_handler, :teams
+      attr_reader :scenario, :results, :result_handler, :logger
 
-      def initialize(battle_scenario, num_simulations:, result_handler:, teams:, logger: Logger.new($stdout))
-        @battle_scenario = battle_scenario
-        @num_simulations = num_simulations
+      def initialize(scenario:, result_handler:, logger: Logger.new($stdout))
+        @scenario = scenario
         @results = []
         @result_handler = result_handler
-        @teams = teams
         @logger = logger
         @logger.formatter = proc do |severity, datetime, progname, msg|
           "#{msg}\n"
@@ -30,7 +29,7 @@ module Dnd5e
       end
 
       def run
-        @num_simulations.times { run_battle }
+        @scenario.num_simulations.times { run_battle }
       end
 
       def generate_report
@@ -48,7 +47,7 @@ module Dnd5e
         end
         puts "-----------------"
         if @result_handler.is_a?(SimulationCombatResultHandler)
-          puts @result_handler.report(@num_simulations)
+          puts @result_handler.report(@scenario.num_simulations)
         end
       end
 
@@ -56,7 +55,7 @@ module Dnd5e
 
       def create_teams
         # Create new instances of teams and their members
-        @teams.map do |team|
+        @scenario.teams.map do |team|
           new_members = team.members.map do |member|
             # Access statblock attributes correctly
             new_statblock = member.statblock.class.new(
@@ -76,7 +75,6 @@ module Dnd5e
           Core::Team.new(name: team.name, members: new_members)
         end
       end
-
     end
   end
 end

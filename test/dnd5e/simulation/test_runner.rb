@@ -3,6 +3,8 @@ require_relative "../../../lib/dnd5e/simulation/runner"
 require_relative "../../../lib/dnd5e/simulation/silent_combat_result_handler"
 require_relative "../../../lib/dnd5e/simulation/simulation_combat_result_handler"
 require_relative "../../../lib/dnd5e/core/team"
+require_relative "../../../lib/dnd5e/simulation/scenario"
+require_relative "../../../lib/dnd5e/simulation/scenario_builder"
 require_relative "../core/factories"
 
 require "logger"
@@ -20,28 +22,30 @@ module Dnd5e
 
         @heroes = Core::Team.new(name: "Heroes", members: [@hero1, @hero2])
         @goblins = Core::Team.new(name: "Goblins", members: [@goblin1, @goblin2])
-        @teams = [@heroes, @goblins]
+        @scenario = ScenarioBuilder.new(num_simulations: 1000).with_team(@heroes).with_team(@goblins).build
 
         @logger = Logger.new(nil)
       end
 
       def test_runner_initialization
-        runner = Runner.new(nil, num_simulations: 50, result_handler: SilentCombatResultHandler.new, teams: @teams, logger: @logger)
-        assert_equal 50, runner.num_simulations
+        runner = Runner.new(scenario: @scenario, result_handler: SilentCombatResultHandler.new, logger: @logger)
+        assert_equal 1000, runner.scenario.num_simulations
         assert_empty runner.results
       end
 
       def test_run_battle
+        scenario = ScenarioBuilder.new(num_simulations: 1).with_team(@heroes).with_team(@goblins).build
         result_handler = SilentCombatResultHandler.new
-        runner = Runner.new(nil, num_simulations: 1, result_handler: result_handler, teams: @teams, logger: @logger)
+        runner = Runner.new(scenario: scenario, result_handler: result_handler, logger: @logger)
         runner.run_battle
         assert_equal 1, runner.results.size
         assert_instance_of Result, runner.results.first
       end
 
       def test_run
+        scenario = ScenarioBuilder.new(num_simulations: 5).with_team(@heroes).with_team(@goblins).build
         result_handler = SilentCombatResultHandler.new
-        runner = Runner.new(nil, num_simulations: 5, result_handler: result_handler, teams: @teams, logger: @logger)
+        runner = Runner.new(scenario: scenario, result_handler: result_handler, logger: @logger)
         runner.run
         assert_equal 5, runner.results.size
         runner.results.each do |result|
@@ -50,8 +54,9 @@ module Dnd5e
       end
 
       def test_generate_report
+        scenario = ScenarioBuilder.new(num_simulations: 5).with_team(@heroes).with_team(@goblins).build
         result_handler = SimulationCombatResultHandler.new
-        runner = Runner.new(nil, num_simulations: 5, result_handler: result_handler, teams: @teams, logger: @logger)
+        runner = Runner.new(scenario: scenario, result_handler: result_handler, logger: @logger)
         runner.run
         assert_output(/Simulation Report/) { runner.generate_report }
       end
@@ -62,11 +67,10 @@ module Dnd5e
         result_handler = SimulationCombatResultHandler.new
 
         # Create a new runner for this test
+        scenario = ScenarioBuilder.new(num_simulations: attempts).with_team(@heroes).with_team(@goblins).build
         runner = Runner.new(
-          nil,
-          num_simulations: attempts,
+          scenario: scenario,
           result_handler: result_handler,
-          teams: @teams,
           logger: @logger
         )
 
@@ -84,7 +88,8 @@ module Dnd5e
       def test_simulation_report_initiative_wins
         attempts = 1000
         result_handler = SimulationCombatResultHandler.new
-        runner = Runner.new(nil, num_simulations: attempts, result_handler: result_handler, teams: @teams, logger: @logger)
+        scenario = ScenarioBuilder.new(num_simulations: attempts).with_team(@heroes).with_team(@goblins).build
+        runner = Runner.new(scenario: scenario, result_handler: result_handler, logger: @logger)
         runner.run
         report = result_handler.report(attempts)
 
