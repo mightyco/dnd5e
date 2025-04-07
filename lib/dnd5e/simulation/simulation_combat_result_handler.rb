@@ -1,19 +1,22 @@
 require_relative "../core/team"
 require_relative "result"
+require_relative "combat_result_handler"
 
 require 'logger'
 
 module Dnd5e
   module Simulation
-    class SimulationCombatResultHandler
-      attr_reader :results, :initiative_wins, :battle_wins
+    class SimulationCombatResultHandler < CombatResultHandler
+      attr_reader :results, :initiative_wins, :battle_wins, :logger
 
-      def initialize
+      def initialize(logger: Logger.new(nil))
+        super()
         @results = []
         @initiative_wins = Hash.new(0)
         @battle_wins = Hash.new(0)
         @initiative_battle_wins = Hash.new(0)
         @teams = []
+        @logger = logger
       end
 
       def handle_result(combat, winner, initiative_winner)
@@ -43,6 +46,7 @@ module Dnd5e
           end
           report_string += "#{team_name} won initiative #{initiative_win_percentage}% (#{wins} of #{num_simulations}) of the time overall but #{battle_win_percentage}% of the time that they won the battle (#{@initiative_battle_wins[team_name] || 0} of #{battle_wins_for_team})\n"
         end
+        logger.info report_string
         report_string
       end
     end

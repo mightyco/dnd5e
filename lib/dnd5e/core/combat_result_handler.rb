@@ -1,10 +1,9 @@
-# lib/dnd5e/core/combat_result_handler.rb
+require_relative "../combat_result_handler"
+
 module Dnd5e
   module Core
-    module CombatResultHandler
-      def handle_result(combat, winner, initiative_winner)
-        raise NotImplementedError, "Subclasses must implement handle_result"
-      end
+    class CombatResultHandler
+      include Dnd5e::CombatResultHandler
     end
   end
 end

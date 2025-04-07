@@ -3,12 +3,11 @@ require 'logger'
 
 module Dnd5e
   module Core
-    class PrintingCombatResultHandler
-      include CombatResultHandler
-
+    class PrintingCombatResultHandler < CombatResultHandler
       attr_reader :logger
 
       def initialize(logger: Logger.new($stdout))
+        super()
         @logger = logger
         logger.formatter = proc do |severity, datetime, progname, msg|
           "#{msg}\n"
