@@ -96,8 +96,8 @@ module Dnd5e
         # Check if the numbers are consistent
         heroes_wins_match = report.match(/Heroes won (\d+\.\d+)% \((\d+) of #{attempts}\) of the battles/)
         goblins_wins_match = report.match(/Goblins won (\d+\.\d+)% \((\d+) of #{attempts}\) of the battles/)
-        heroes_initiative_wins_match = report.match(/Heroes won initiative (\d+\.\d+)% \(\d+ of #{attempts}\) of the time overall but (\d+\.\d+)% of the time that they won the battle \((\d+) of (\d+)\)/)
-        goblins_initiative_wins_match = report.match(/Goblins won initiative (\d+\.\d+)% \(\d+ of #{attempts}\) of the time overall but (\d+\.\d+)% of the time that they won the battle \((\d+) of (\d+)\)/)
+        heroes_initiative_wins_match = report.match(/Heroes won initiative (\d+\.\d+)% \(\d+ of #{attempts}\) of the time overall(?: but (\d+\.\d+)% of the time that they won the battle \((\d+) of (\d+)\))?/)
+        goblins_initiative_wins_match = report.match(/Goblins won initiative (\d+\.\d+)% \(\d+ of #{attempts}\) of the time overall(?: but (\d+\.\d+)% of the time that they won the battle \((\d+) of (\d+)\))?/)
 
         puts report
         refute_nil heroes_wins_match
@@ -109,19 +109,33 @@ module Dnd5e
         heroes_wins_count = heroes_wins_match[2].to_i
         goblins_wins_percentage = goblins_wins_match[1].to_f
         goblins_wins_count = goblins_wins_match[2].to_i
-        heroes_initiative_wins_when_won_percentage = heroes_initiative_wins_match[2].to_f
-        heroes_initiative_wins_when_won_count = heroes_initiative_wins_match[3].to_i
-        heroes_wins_count_from_initiative = heroes_initiative_wins_match[4].to_i
-        goblins_initiative_wins_when_won_percentage = goblins_initiative_wins_match[2].to_f
-        goblins_initiative_wins_when_won_count = goblins_initiative_wins_match[3].to_i
-        goblins_wins_count_from_initiative = goblins_initiative_wins_match[4].to_i
+
+        heroes_initiative_wins_when_won_percentage = heroes_initiative_wins_match[2].to_f if heroes_initiative_wins_match[2]
+        heroes_initiative_wins_when_won_count = heroes_initiative_wins_match[3].to_i if heroes_initiative_wins_match[3]
+        heroes_wins_count_from_initiative = heroes_initiative_wins_match[4].to_i if heroes_initiative_wins_match[4]
+
+        goblins_initiative_wins_when_won_percentage = goblins_initiative_wins_match[2].to_f if goblins_initiative_wins_match[2]
+        goblins_initiative_wins_when_won_count = goblins_initiative_wins_match[3].to_i if goblins_initiative_wins_match[3]
+        goblins_wins_count_from_initiative = goblins_initiative_wins_match[4].to_i if goblins_initiative_wins_match[4]
 
         assert_in_delta(heroes_wins_percentage, (heroes_wins_count.to_f / attempts * 100), 0.1)
         assert_in_delta(goblins_wins_percentage, (goblins_wins_count.to_f / attempts * 100), 0.1)
-        assert_equal(heroes_wins_count, heroes_wins_count_from_initiative)
-        assert_equal(goblins_wins_count, goblins_wins_count_from_initiative)
-        assert_in_delta(heroes_initiative_wins_when_won_percentage, (heroes_initiative_wins_when_won_count.to_f / heroes_wins_count * 100), 0.1)
-        assert_in_delta(goblins_initiative_wins_when_won_percentage, (goblins_initiative_wins_when_won_count.to_f / goblins_wins_count * 100), 0.1)
+
+        if heroes_wins_count > 0
+          assert_equal(heroes_wins_count, heroes_wins_count_from_initiative)
+          assert_in_delta(heroes_initiative_wins_when_won_percentage, (heroes_initiative_wins_when_won_count.to_f / heroes_wins_count * 100), 0.1)
+        else
+          assert_nil(heroes_wins_count_from_initiative)
+          assert_nil(heroes_initiative_wins_when_won_percentage)
+        end
+
+        if goblins_wins_count > 0
+          assert_equal(goblins_wins_count, goblins_wins_count_from_initiative)
+          assert_in_delta(goblins_initiative_wins_when_won_percentage, (goblins_initiative_wins_when_won_count.to_f / goblins_wins_count * 100), 0.1)
+        else
+          assert_nil(goblins_wins_count_from_initiative)
+          assert_nil(goblins_initiative_wins_when_won_percentage)
+        end
       end
     end
   end
