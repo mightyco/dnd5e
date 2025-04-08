@@ -3,8 +3,8 @@ require_relative "../../../lib/dnd5e/core/attack"
 require_relative "../../../lib/dnd5e/core/statblock"
 require_relative "../../../lib/dnd5e/core/dice"
 require_relative "../../../lib/dnd5e/core/dice_roller"
-require_relative "../../../lib/dnd5e/core/character"
-require_relative "../../../lib/dnd5e/core/monster"
+require_relative "../../../lib/dnd5e/builders/character_builder"
+require_relative "../../../lib/dnd5e/builders/monster_builder"
 require 'logger'
 
 module Dnd5e
@@ -14,8 +14,14 @@ module Dnd5e
         @statblock = Statblock.new(name: "TestStatblock", strength: 14, dexterity: 12, constitution: 10, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 1)
         @mock_dice_roller = MockDiceRoller.new([100, 5]) # Attack roll, Damage roll
         @attack = Attack.new(name: "Sword", damage_dice: Dice.new(1, 8), relevant_stat: :strength, dice_roller: @mock_dice_roller)
-        @hero = Character.new(name: "Hero", statblock: @statblock.deep_copy, attacks: [@attack])
-        @goblin = Monster.new(name: "Goblin 1", statblock: @statblock.deep_copy, attacks: [@attack])
+        @hero = Builders::CharacterBuilder.new(name: "Hero")
+                                          .with_statblock(@statblock.deep_copy)
+                                          .with_attack(@attack)
+                                          .build
+        @goblin = Builders::MonsterBuilder.new(name: "Goblin 1")
+                                          .with_statblock(@statblock.deep_copy)
+                                          .with_attack(@attack)
+                                          .build
         @silent_logger = Logger.new(nil)
         @attack.instance_variable_set(:@logger, @silent_logger)
       end

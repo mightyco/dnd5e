@@ -1,11 +1,11 @@
 require_relative "../../test_helper"
 require_relative "../../../lib/dnd5e/core/combat"
-require_relative "../../../lib/dnd5e/core/character"
-require_relative "../../../lib/dnd5e/core/monster"
+require_relative "../../../lib/dnd5e/core/dice_roller"
+require_relative "../../../lib/dnd5e/builders/character_builder"
+require_relative "../../../lib/dnd5e/builders/monster_builder"
 require_relative "../../../lib/dnd5e/core/statblock"
 require_relative "../../../lib/dnd5e/core/attack"
 require_relative "../../../lib/dnd5e/core/dice"
-require_relative "../../../lib/dnd5e/core/dice_roller"
 require 'logger'
 
 module Dnd5e
@@ -19,8 +19,14 @@ module Dnd5e
         @sword_attack = Attack.new(name: "Sword", damage_dice: Dice.new(1, 8), relevant_stat: :strength, dice_roller: @mock_dice_roller1)
         @bite_attack = Attack.new(name: "Bite", damage_dice: Dice.new(1, 6), relevant_stat: :strength, dice_roller: @mock_dice_roller2)
 
-        @hero = Character.new(name: "Hero", statblock: @hero_statblock.deep_copy, attacks: [@sword_attack])
-        @goblin = Monster.new(name: "Goblin 1", statblock: @goblin_statblock.deep_copy, attacks: [@bite_attack])
+        @hero = Builders::CharacterBuilder.new(name: "Hero")
+                                          .with_statblock(@hero_statblock.deep_copy)
+                                          .with_attack(@sword_attack)
+                                          .build
+        @goblin = Builders::MonsterBuilder.new(name: "Goblin 1")
+                                          .with_statblock(@goblin_statblock.deep_copy)
+                                          .with_attack(@bite_attack)
+                                          .build
 
         @logger = Logger.new(nil)
         # @logger = Logger.new($stdout)
@@ -40,10 +46,16 @@ module Dnd5e
         sword_attack = Attack.new(name: "Sword", damage_dice: Dice.new(1, 8), relevant_stat: :strength)
         bite_attack = Attack.new(name: "Bite", damage_dice: Dice.new(1, 6), relevant_stat: :dexterity)
 
-        @hero = Character.new(name: "Hero", statblock: @hero_statblock.deep_copy, attacks: [sword_attack])
-        @goblin = Monster.new(name: "Goblin 1", statblock: @goblin_statblock.deep_copy, attacks: [bite_attack])
+        hero = Builders::CharacterBuilder.new(name: "Hero")
+                                          .with_statblock(hero_statblock.deep_copy)
+                                          .with_attack(sword_attack)
+                                          .build
+        goblin = Builders::MonsterBuilder.new(name: "Goblin 1")
+                                          .with_statblock(goblin_statblock.deep_copy)
+                                          .with_attack(bite_attack)
+                                          .build
 
-        combat = Combat.new(combatants: [@hero, @goblin], logger: @logger)
+        combat = Combat.new(combatants: [hero, goblin], logger: @logger)
         combat.run_combat
         assert combat.is_over?
         assert combat.winner

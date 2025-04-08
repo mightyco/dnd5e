@@ -1,9 +1,6 @@
 require_relative "../../test_helper"
 require_relative "../../../lib/dnd5e/core/turn_manager"
-require_relative "../../../lib/dnd5e/core/character"
-require_relative "../../../lib/dnd5e/core/statblock"
-require_relative "../../../lib/dnd5e/core/dice"
-require_relative "../../../lib/dnd5e/core/dice_roller"
+require_relative "../../../lib/dnd5e/builders/character_builder"
 
 module Dnd5e
   module Core
@@ -11,8 +8,12 @@ module Dnd5e
       def setup
         @statblock1 = Statblock.new(name: "Statblock 1", strength: 10, dexterity: 14, constitution: 12, hit_die: "d8", level: 1)
         @statblock2 = Statblock.new(name: "Statblock 2", strength: 12, dexterity: 16, constitution: 10, hit_die: "d6", level: 1)
-        @combatant1 = Character.new(name: "Combatant 1", statblock: @statblock1.deep_copy, attacks: [])
-        @combatant2 = Character.new(name: "Combatant 2", statblock: @statblock2.deep_copy, attacks: [])
+        @combatant1 = Builders::CharacterBuilder.new(name: "Combatant 1")
+                                                .with_statblock(@statblock1)
+                                                .build
+        @combatant2 = Builders::CharacterBuilder.new(name: "Combatant 2")
+                                                .with_statblock(@statblock2)
+                                                .build
         @combatants = [@combatant1, @combatant2]
 
         @logger = Logger.new($stdout)
@@ -91,7 +92,9 @@ module Dnd5e
       def test_add_combatant
         turn_manager = TurnManager.new(combatants: @combatants)
         new_statblock = Statblock.new(name: "New Statblock", strength: 10, dexterity: 10, constitution: 10, hit_die: "d6", level: 1)
-        new_combatant = Character.new(name: "New Combatant", statblock: new_statblock, attacks: [])
+        new_combatant = Builders::CharacterBuilder.new(name: "New Combatant")
+                                                  .with_statblock(new_statblock)
+                                                  .build
         turn_manager.add_combatant(new_combatant)
         assert_includes turn_manager.combatants, new_combatant
       end

@@ -1,18 +1,34 @@
-# /home/chuck_mcintyre/src/dnd5e/test/dnd5e/core/test_team.rb
 require_relative "../../test_helper"
 require_relative "../../../lib/dnd5e/core/team"
-require_relative "factories"
+require_relative "../../../lib/dnd5e/core/statblock"
+require_relative "../../../lib/dnd5e/builders/character_builder"
+require_relative "../../../lib/dnd5e/builders/monster_builder"
+require_relative "../../../lib/dnd5e/core/attack"
+require_relative "../../../lib/dnd5e/core/dice"
 
 module Dnd5e
   module Core
     class TestTeam < Minitest::Test
-      include Factories
-
       def setup
-        @hero = CharacterFactory.create_hero
-        @hero2 = CharacterFactory.create_hero
-        @goblin1 = MonsterFactory.create_goblin
-        @goblin2 = MonsterFactory.create_goblin
+        hero_statblock = Statblock.new(name: "Hero Statblock", strength: 16, dexterity: 10, constitution: 15, hit_die: "d10", level: 3)
+        sword_attack = Attack.new(name: "Sword", damage_dice: Dice.new(1, 8), relevant_stat: :strength)
+
+        @hero = Builders::CharacterBuilder.new(name: "Hero")
+                                          .with_statblock(hero_statblock.deep_copy)
+                                          .with_attack(sword_attack)
+                                          .build
+        @hero2 = Builders::CharacterBuilder.new(name: "Hero2")
+                                           .with_statblock(hero_statblock.deep_copy)
+                                           .with_attack(sword_attack)
+                                           .build
+        @goblin1 = Builders::MonsterBuilder.new(name: "Goblin1")
+                                            .with_statblock(Statblock.new(name: "Goblin Statblock", strength: 8, dexterity: 14, constitution: 10, hit_die: "d6", level: 1))
+                                            .with_attack(Attack.new(name: "Bite", damage_dice: Dice.new(1, 6), relevant_stat: :dexterity))
+                                            .build
+        @goblin2 = Builders::MonsterBuilder.new(name: "Goblin2")
+                                            .with_statblock(Statblock.new(name: "Goblin Statblock", strength: 8, dexterity: 14, constitution: 10, hit_die: "d6", level: 1))
+                                            .with_attack(Attack.new(name: "Bite", damage_dice: Dice.new(1, 6), relevant_stat: :dexterity))
+                                            .build
       end
 
       def test_team_initialization
