@@ -1,6 +1,7 @@
 require_relative "dice"
 require_relative "dice_roller"
 require_relative "turn_manager"
+require_relative "attack_resolver"
 require 'logger'
 
 module Dnd5e
@@ -11,7 +12,7 @@ module Dnd5e
 
     # Manages the flow of a combat encounter.
     class Combat
-      attr_reader :combatants, :turn_manager, :logger, :dice_roller, :max_rounds
+      attr_reader :combatants, :turn_manager, :logger, :dice_roller, :max_rounds, :attack_resolver
       attr_writer :dice_roller
 
       # Initializes a new Combat instance.
@@ -27,6 +28,7 @@ module Dnd5e
         @dice_roller = dice_roller
         @max_rounds = max_rounds
         @round_counter = 0
+        @attack_resolver = AttackResolver.new(logger: @logger)
         @logger.formatter = proc do |severity, datetime, progname, msg|
           "#{msg}\n"
         end
@@ -42,23 +44,7 @@ module Dnd5e
         raise InvalidAttackError, "Cannot attack with a dead attacker" unless attacker.statblock.is_alive?
         raise InvalidAttackError, "Cannot attack a dead defender" unless defender.statblock.is_alive?
 
-        attack_dice = Dice.new(1, 20, modifier: attacker.statblock.ability_modifier(attacker.attacks.first.relevant_stat))
-        attack_roll = attacker.attacks.first.dice_roller.roll_with_dice(attack_dice)
-        logger.debug("Attacker #{attacker.name} rolled an attack roll of #{attack_roll}")
-        if defender.statblock.armor_class.nil?
-          logger.warn "#{defender.name} has no armor class!"
-          return false
-        end
-        if attack_roll >= defender.statblock.armor_class
-          damage = attacker.attacks.first.dice_roller.roll_with_dice(attacker.attacks.first.damage_dice)
-          defender.statblock.take_damage(damage)
-          logger.info "#{attacker.name} hits #{defender.name} for #{damage} damage!"
-          logger.info "#{defender.name} is defeated!" unless defender.statblock.is_alive?
-          true
-        else
-          logger.info "#{attacker.name} misses #{defender.name}!"
-          false
-        end
+        @attack_resolver.resolve(attacker, defender, attacker.attacks.first)
       end
 
       # Takes a turn for a given attacker.

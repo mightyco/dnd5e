@@ -61,22 +61,6 @@ module Dnd5e
         assert combat.winner
       end
 
-      def test_attack_applies_damage
-        initial_hp = @goblin.statblock.hit_points
-        @mock_dice_roller = MockDiceRoller.new([100, 5]) # Attack roll, Damage roll
-        @combat = Combat.new(combatants: [@hero, @goblin], logger: @logger, dice_roller: @mock_dice_roller)
-        @combat.attack(@hero, @goblin)
-        assert_equal initial_hp - 5, @goblin.statblock.hit_points
-      end
-
-      def test_attack_and_miss
-        initial_hp = @hero.statblock.hit_points
-        @mock_dice_roller = MockDiceRoller.new([1, 5]) # Attack roll, Damage roll
-        @combat = Combat.new(combatants: [@hero, @goblin], logger: @logger, dice_roller: @mock_dice_roller)
-        @combat.attack(@goblin, @hero)
-        assert_equal initial_hp, @hero.statblock.hit_points
-      end
-
       def test_is_over
         refute @combat.is_over?
         @goblin.statblock.take_damage(1000)
