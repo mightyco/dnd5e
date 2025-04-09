@@ -3,6 +3,7 @@ require_relative "../../../lib/dnd5e/builders/character_builder"
 require_relative "../../../lib/dnd5e/core/character"
 require_relative "../../../lib/dnd5e/core/statblock"
 require_relative "../../../lib/dnd5e/core/attack"
+require_relative "../../../lib/dnd5e/core/dice"
 
 module Dnd5e
   module Builders
@@ -34,6 +35,12 @@ module Dnd5e
         assert_raises CharacterBuilder::InvalidCharacterError do
           CharacterBuilder.new(name: "Test Character").build
         end
+      end
+
+      def test_with_attack
+        character_builder = CharacterBuilder.new(name: "Test Character")
+        character_builder.with_attack(@attack)
+        assert_equal 1, character_builder.instance_variable_get(:@attacks).count
       end
     end
   end
