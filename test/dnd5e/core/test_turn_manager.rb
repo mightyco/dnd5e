@@ -103,6 +103,7 @@ module Dnd5e
         turn_manager = TurnManager.new(combatants: @combatants)
         turn_manager.remove_combatant(@combatant1)
         refute_includes turn_manager.combatants, @combatant1
+        assert_equal [@combatant2], turn_manager.combatants
       end
     end
   end
