@@ -9,10 +9,17 @@ module Dnd5e
     class InvalidWinnerError < StandardError; end
     class CombatTimeoutError < StandardError; end
 
+    # Manages the flow of a combat encounter.
     class Combat
       attr_reader :combatants, :turn_manager, :logger, :dice_roller, :max_rounds
       attr_writer :dice_roller
 
+      # Initializes a new Combat instance.
+      #
+      # @param combatants [Array<Combatant>] The combatants participating in the combat.
+      # @param logger [Logger] The logger to use for logging.
+      # @param dice_roller [DiceRoller] The dice roller to use for rolling dice.
+      # @param max_rounds [Integer] The maximum number of rounds the combat can last.
       def initialize(combatants:, logger: Logger.new($stdout), dice_roller: DiceRoller.new, max_rounds: 1000)
         @combatants = combatants
         @turn_manager = TurnManager.new(combatants: @combatants)
@@ -25,10 +32,16 @@ module Dnd5e
         end
       end
 
+      # Performs an attack from an attacker to a defender.
+      #
+      # @param attacker [Combatant] The attacking combatant.
+      # @param defender [Combatant] The defending combatant.
+      # @raise [InvalidAttackError] if the attacker or defender is dead.
+      # @return [Boolean] true if the attack hits, false otherwise.
       def attack(attacker, defender)
         raise InvalidAttackError, "Cannot attack with a dead attacker" unless attacker.statblock.is_alive?
         raise InvalidAttackError, "Cannot attack a dead defender" unless defender.statblock.is_alive?
-      
+
         attack_dice = Dice.new(1, 20, modifier: attacker.statblock.ability_modifier(attacker.attacks.first.relevant_stat))
         attack_roll = attacker.attacks.first.dice_roller.roll_with_dice(attack_dice)
         logger.debug("Attacker #{attacker.name} rolled an attack roll of #{attack_roll}")
@@ -48,8 +61,12 @@ module Dnd5e
         end
       end
 
+      # Takes a turn for a given attacker.
+      #
+      # @param attacker [Combatant] The combatant taking the turn.
+      # @return [Combatant, nil] The defender if the defender is alive, nil otherwise.
       def take_turn(attacker)
-        defender = (combatants - [attacker]).find { |c| c.statblock.is_alive? }
+        defender = find_valid_defender(attacker)
         if defender.nil?
           logger.info "No valid targets for #{attacker.name}, skipping turn"
           return false
@@ -63,11 +80,18 @@ module Dnd5e
         defender.statblock.is_alive? ? defender : nil
       end
 
+      # Checks if the combat is over.
+      #
+      # @return [Boolean] true if the combat is over, false otherwise.
       def is_over?
         return true if @combatants.any? { |c| !c.statblock.is_alive? }
         false
       end
 
+      # Determines the winner of the combat.
+      #
+      # @raise [InvalidWinnerError] if no winner can be determined.
+      # @return [Combatant] The winning combatant.
       def winner
         if @combatants.first.statblock.is_alive? && !@combatants.last.statblock.is_alive?
           return @combatants.first
@@ -78,6 +102,9 @@ module Dnd5e
         end
       end
 
+      # Runs the combat until it is over or times out.
+      #
+      # @raise [CombatTimeoutError] if the combat exceeds the maximum number of rounds.
       def run_combat
         @turn_manager.roll_initiative
         @turn_manager.sort_by_initiative
@@ -93,6 +120,16 @@ module Dnd5e
           end
           raise CombatTimeoutError, "Combat timed out after #{@max_rounds} rounds" unless @round_counter < @max_rounds
         end
+      end
+
+      private
+
+      # Finds a valid defender for the given attacker.
+      #
+      # @param attacker [Combatant] The attacking combatant.
+      # @return [Combatant, nil] A valid defender if one exists, nil otherwise.
+      def find_valid_defender(attacker)
+        (combatants - [attacker]).find { |c| c.statblock.is_alive? }
       end
     end
   end
