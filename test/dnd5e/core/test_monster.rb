@@ -17,6 +17,16 @@ module Dnd5e
         assert monster.statblock.respond_to?(:heal)
         assert monster.statblock.respond_to?(:level_up)
       end
+      def test_monster_uses_statblock_methods
+        statblock = Statblock.new(name: "TestStatblock", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8")
+        monster = Monster.new(name: "TestMonster", statblock: statblock)
+        monster.statblock.take_damage(5)
+        assert_equal 5, monster.statblock.hit_points
+        monster.statblock.heal(2)
+        assert_equal 7, monster.statblock.hit_points
+        monster.statblock.level_up
+        assert_equal 2, monster.statblock.level
+      end
     end
   end
 end

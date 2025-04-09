@@ -3,6 +3,7 @@ require_relative "../../../lib/dnd5e/builders/monster_builder"
 require_relative "../../../lib/dnd5e/core/monster"
 require_relative "../../../lib/dnd5e/core/statblock"
 require_relative "../../../lib/dnd5e/core/attack"
+require_relative "../../../lib/dnd5e/core/dice"
 
 module Dnd5e
   module Builders
@@ -34,6 +35,12 @@ module Dnd5e
         assert_raises MonsterBuilder::InvalidMonsterError do
           MonsterBuilder.new(name: "Test Monster").build
         end
+      end
+
+      def test_with_attack
+        monster_builder = MonsterBuilder.new(name: "Test Monster")
+        monster_builder.with_attack(@attack)
+        assert_equal 1, monster_builder.instance_variable_get(:@attacks).count
       end
     end
   end
