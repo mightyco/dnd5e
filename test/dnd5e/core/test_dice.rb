@@ -49,18 +49,6 @@ module Dnd5e
         assert_equal 6, dice.total
       end
 
-      def test_with_advantage_or_disadvantage_returns_correct_roll
-        dice = Dice.new(2, 20, rolls: [5, 15])
-        assert_equal 15, dice.advantage
-        assert_equal 5, dice.disadvantage
-      end
-
-      def test_with_advantage_or_disadvantage_raises_invalid_dice
-        dice = Dice.new(5, 20)
-        assert_raises(Dnd5e::Core::InvalidDiceCountError) { dice.advantage }
-        assert_raises(Dnd5e::Core::InvalidDiceCountError) { dice.disadvantage }
-      end
-
       def test_to_s_returns_correct_string_representation
         dice = Dice.new(1, 20)
         assert_equal "1d20", dice.to_s
@@ -91,16 +79,6 @@ module Dnd5e
 
         dice = Dice.new(1, 20, modifier: 0)
         assert_equal "1d20", dice.to_s
-      end
-
-      def test_with_advantage_or_disadvantage_with_modifier
-        dice = Dice.new(2, 20, rolls: [5, 15], modifier: 2)
-        assert_equal 17, dice.advantage
-        assert_equal 7, dice.disadvantage
-
-        dice = Dice.new(2, 20, rolls: [5, 15], modifier: -3)
-        assert_equal 12, dice.advantage
-        assert_equal 2, dice.disadvantage
       end
     end
   end

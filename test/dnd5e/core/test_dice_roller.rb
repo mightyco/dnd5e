@@ -35,6 +35,8 @@ module Dnd5e
           { notation: "4d10", min: 4, max: 40 },
           { notation: "1d1", min: 1, max: 1 }, # Edge case: minimum sides
           { notation: "100d100", min: 100, max: 10000 }, # Edge case: large numbers
+          { notation: "1d20+3", min: 4, max: 23 },
+          { notation: "2d6-2", min: 0, max: 10 },
         ]
 
         test_cases.each do |test_case|
@@ -55,11 +57,51 @@ module Dnd5e
           "2d",
           "d-1", # Edge case: negative sides
           "-1d20", # Edge case: negative dice
+          "1d20+",
+          "1d20-",
+          "1d20+a",
+          "1d20-a",
         ]
 
         test_cases.each do |test_case|
           dice_roller = DiceRoller.new
           assert_raises(InvalidDiceNotationError) { dice_roller.roll(test_case) }
+        end
+      end
+
+      def test_roll_with_advantage
+        100.times do
+          dice_roller = DiceRoller.new
+          result = dice_roller.roll_with_advantage(20)
+          assert_operator result, :>=, 1
+          assert_operator result, :<=, 20
+        end
+      end
+
+      def test_roll_with_disadvantage
+        100.times do
+          dice_roller = DiceRoller.new
+          result = dice_roller.roll_with_disadvantage(20)
+          assert_operator result, :>=, 1
+          assert_operator result, :<=, 20
+        end
+      end
+
+      def test_roll_with_advantage_with_modifier
+        100.times do
+          dice_roller = DiceRoller.new
+          result = dice_roller.roll_with_advantage(20, modifier: 3)
+          assert_operator result, :>=, 4
+          assert_operator result, :<=, 23
+        end
+      end
+
+      def test_roll_with_disadvantage_with_modifier
+        100.times do
+          dice_roller = DiceRoller.new
+          result = dice_roller.roll_with_disadvantage(20, modifier: -2)
+          assert_operator result, :>=, -1
+          assert_operator result, :<=, 18
         end
       end
     end
