@@ -78,6 +78,12 @@ module Dnd5e
         assert_equal 10, statblock.calculate_hit_points
         statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 2)
         assert_equal 17, statblock.calculate_hit_points
+        statblock = Statblock.new(
+          name: "Test", strength: 10, 
+          dexterity: 12, 
+          constitution: 10, 
+          intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d12", level: 3)
+        assert_equal 26, statblock.calculate_hit_points
       end
 
       def test_level_up
@@ -121,6 +127,23 @@ module Dnd5e
         assert_raises ArgumentError do
           statblock.heal(-5)
         end
+      end
+
+      def test_deep_copy
+        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 1)
+        copied_statblock = statblock.deep_copy
+        assert_equal statblock.name, copied_statblock.name
+        assert_equal statblock.strength, copied_statblock.strength
+        assert_equal statblock.dexterity, copied_statblock.dexterity
+        assert_equal statblock.constitution, copied_statblock.constitution
+        assert_equal statblock.intelligence, copied_statblock.intelligence
+        assert_equal statblock.wisdom, copied_statblock.wisdom
+        assert_equal statblock.charisma, copied_statblock.charisma
+        assert_equal statblock.hit_die, copied_statblock.hit_die
+        assert_equal statblock.level, copied_statblock.level
+        assert_equal statblock.hit_points, copied_statblock.hit_points
+        assert_equal statblock.armor_class, copied_statblock.armor_class
+        refute_equal statblock.object_id, copied_statblock.object_id
       end
     end
   end
