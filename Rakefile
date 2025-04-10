@@ -57,4 +57,33 @@ namespace :test do
   task :default => "test:all"
 end
 
-task :default => [:install, :test]
+# Documentation tasks
+namespace :doc do
+  # Default coverage threshold
+  COVERAGE_THRESHOLD = ENV.fetch('COVERAGE_THRESHOLD', 80).to_i
+
+  # Check RDoc coverage using rdoc -C
+  desc "Check RDoc coverage using rdoc -C"
+  task :check_coverage do
+    rdoc_output = `rdoc -C lib`
+    coverage_match = rdoc_output.match(/(\d+)% documented/)
+
+    if coverage_match
+      coverage = coverage_match[1].to_i
+      puts "RDoc coverage: #{coverage}%"
+
+      if coverage >= COVERAGE_THRESHOLD
+        puts "RDoc coverage meets the threshold of #{COVERAGE_THRESHOLD}%."
+      else
+        puts "RDoc coverage is below the threshold of #{COVERAGE_THRESHOLD}%."
+        exit 1
+      end
+    else
+      puts "Could not determine RDoc coverage."
+      puts rdoc_output
+      exit 1
+    end
+  end
+end
+
+task :default => [:install, :test, "doc:check_coverage"]

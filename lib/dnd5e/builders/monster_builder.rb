@@ -2,9 +2,7 @@ module Dnd5e
   module Builders
     # Builds a Monster object with a fluent interface.
     #
-    # This class provides a way to construct Monster objects step-by-step,
-    # allowing for a more readable and maintainable way to create complex
-    # monster configurations.
+    # @see Dnd5e::Builders
     class MonsterBuilder
       # Error raised when an invalid monster is built.
       class InvalidMonsterError < StandardError; end

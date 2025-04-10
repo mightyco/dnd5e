@@ -2,9 +2,7 @@ module Dnd5e
   module Builders
     # Builds a Team object with a fluent interface.
     #
-    # This class provides a way to construct Team objects step-by-step,
-    # allowing for a more readable and maintainable way to create complex
-    # team configurations.
+    # @see Dnd5e::Builders
     class TeamBuilder
       # Error raised when an invalid team is built.
       class InvalidTeamError < StandardError; end

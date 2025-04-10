@@ -2,9 +2,7 @@ module Dnd5e
   module Builders
     # Builds a Character object with a fluent interface.
     #
-    # This class provides a way to construct Character objects step-by-step,
-    # allowing for a more readable and maintainable way to create complex
-    # character configurations.
+    # @see Dnd5e::Builders
     class CharacterBuilder
       # Error raised when an invalid character is built.
       class InvalidCharacterError < StandardError; end
