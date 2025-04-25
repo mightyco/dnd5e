@@ -7,15 +7,14 @@ end
 
 task :test => "test:default"
 
-namespace :test do
-  Minitest::TestTask.create(:all) do |t|
-    t.libs << "test"
-    t.libs << "lib"
-    t.warning = false
-    t.test_globs = ["test/**/test_*.rb"]
-    t.verbose = false
-  end
+Minitest::TestTask.create(:all) do |t|
+  t.libs << "test"
+  t.libs << "lib"
+  t.warning = false
+  t.test_globs = ["test/**/test_*.rb"]
+end
 
+namespace :test do
   desc "List available tests files and classes"
   task :list do
     test_files = Dir["test/**/test_*.rb"]
@@ -54,7 +53,7 @@ namespace :test do
     tests.sort.each { |test| puts "  - test_#{test}" }
   end
 
-  task :default => "test:all"
+  task :default => :all
 end
 
 # Documentation tasks
@@ -86,4 +85,4 @@ namespace :doc do
   end
 end
 
-task :default => [:install, :test, "doc:check_coverage"]
+task :default => [:install, :all, "doc:check_coverage"]
