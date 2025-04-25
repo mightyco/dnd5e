@@ -2,6 +2,7 @@ require_relative "dice"
 require_relative "dice_roller"
 require_relative "turn_manager"
 require_relative "attack_resolver"
+require_relative "combat_attack_handler"
 require 'logger'
 
 module Dnd5e
@@ -12,7 +13,7 @@ module Dnd5e
 
     # Manages the flow of a combat encounter.
     class Combat
-      attr_reader :combatants, :turn_manager, :logger, :dice_roller, :max_rounds, :attack_resolver
+      attr_reader :combatants, :turn_manager, :logger, :dice_roller, :max_rounds, :combat_attack_handler
       attr_writer :dice_roller
 
       # Initializes a new Combat instance.
@@ -28,7 +29,7 @@ module Dnd5e
         @dice_roller = dice_roller
         @max_rounds = max_rounds
         @round_counter = 0
-        @attack_resolver = AttackResolver.new(logger: @logger)
+        @combat_attack_handler = CombatAttackHandler.new(logger: @logger)
         @logger.formatter = proc do |severity, datetime, progname, msg|
           "#{msg}\n"
         end
@@ -41,10 +42,7 @@ module Dnd5e
       # @raise [InvalidAttackError] if the attacker or defender is dead.
       # @return [Boolean] true if the attack hits, false otherwise.
       def attack(attacker, defender)
-        raise InvalidAttackError, "Cannot attack with a dead attacker" unless attacker.statblock.is_alive?
-        raise InvalidAttackError, "Cannot attack a dead defender" unless defender.statblock.is_alive?
-
-        @attack_resolver.resolve(attacker, defender, attacker.attacks.first)
+        @combat_attack_handler.attack(attacker, defender)
       end
 
       # Takes a turn for a given attacker.

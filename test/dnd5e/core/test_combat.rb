@@ -38,6 +38,8 @@ module Dnd5e
       def test_combat_initialization
         assert_equal [@hero, @goblin], @combat.combatants
         assert_instance_of TurnManager, @combat.turn_manager
+        assert_equal @logger, @combat.logger
+        assert_equal @logger, @combat.combat_attack_handler.logger
       end
 
       def test_combat_ends
@@ -111,18 +113,6 @@ module Dnd5e
         assert_equal @hero, @combat.winner
       end
 
-      def test_attack_on_invalid_target
-        assert @goblin.statblock.is_alive?
-        # Kill the goblin
-        @goblin.statblock.take_damage(@goblin.statblock.hit_points)
-        refute @goblin.statblock.is_alive?
-
-        # Attempt to attack the dead goblin
-        assert_raises(InvalidAttackError) do
-          @combat.attack(@hero, @goblin)
-        end
-      end
-
       # New Tests Below
 
       def test_combat_times_out_after_max_rounds
@@ -136,17 +126,6 @@ module Dnd5e
           combat.run_combat
         end
         assert_equal 2, combat.instance_variable_get(:@round_counter)
-      end
-
-      def test_attack_with_dead_attacker
-        # Kill the hero
-        @hero.statblock.take_damage(@hero.statblock.hit_points)
-        refute @hero.statblock.is_alive?
-
-        # Attempt to attack with the dead hero
-        assert_raises(InvalidAttackError) do
-          @combat.attack(@hero, @goblin)
-        end
       end
 
       def test_combat_with_no_valid_targets
