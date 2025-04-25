@@ -4,27 +4,40 @@ require_relative "../lib/dnd5e/core/monster"
 require_relative "../lib/dnd5e/core/statblock"
 require_relative "../lib/dnd5e/core/dice"
 require_relative "../lib/dnd5e/core/dice_roller"
+require_relative "../lib/dnd5e/core/attack_resolver"
 require 'logger'
 
 module Dnd5e
-  module Core
-    # Example of creating a character with attacks
-    longsword_attack = Attack.new(name: "Longsword Slash", damage_dice: Dice.new(1, 8), relevant_stat: :strength)
-    greatsword_attack = Attack.new(name: "Greatsword Slash", damage_dice: Dice.new(2, 6), relevant_stat: :strength)
-    character_statblock = Statblock.new(name: "Hero", strength: 16, level: 3)
-    hero = Character.new(name: "Aragorn", statblock: character_statblock, attacks: [longsword_attack, greatsword_attack])
+  module Examples
+    # Demonstrates creating characters and monsters with attacks, and resolving an attack.
+    class AttacksExample
+      def self.run
+        logger = Logger.new($stdout)
+        logger.formatter = proc do |severity, datetime, progname, msg|
+          "#{msg}\n"
+        end
+        dice_roller = Core::DiceRoller.new
+        attack_resolver = Core::AttackResolver.new(logger: logger)
 
-    # Example of creating a monster with attacks
-    goblin_statblock = Statblock.new(name: "Goblin Stats", strength: 8, dexterity: 14, constitution: 10, hit_die: "d6", level: 1)
-    scimitar_attack = Attack.new(name: "Scimitar Slash", damage_dice: Dice.new(1, 6), relevant_stat: :dexterity)
-    goblin = Monster.new(name: "Goblin", statblock: goblin_statblock, attacks: [scimitar_attack])
+        # Create attacks
+        longsword_attack = Core::Attack.new(name: "Longsword Slash", damage_dice: Core::Dice.new(1, 8), relevant_stat: :strength, dice_roller: dice_roller)
+        greatsword_attack = Core::Attack.new(name: "Greatsword Slash", damage_dice: Core::Dice.new(2, 6), relevant_stat: :strength, dice_roller: dice_roller)
+        scimitar_attack = Core::Attack.new(name: "Scimitar Slash", damage_dice: Core::Dice.new(1, 6), relevant_stat: :dexterity, dice_roller: dice_roller)
 
-    logger = Logger.new($stdout)
-    longsword_attack.instance_variable_set(:@logger, logger)
-    greatsword_attack.instance_variable_set(:@logger, logger)
+        # Create character
+        character_statblock = Core::Statblock.new(name: "Hero", strength: 16, level: 3)
+        hero = Core::Character.new(name: "Aragorn", statblock: character_statblock, attacks: [longsword_attack, greatsword_attack])
 
-    # Example of using the attack
-    hero_attack = hero.attacks.sample
-    hero_attack.attack(hero, goblin)
+        # Create monster
+        goblin_statblock = Core::Statblock.new(name: "Goblin Stats", strength: 8, dexterity: 14, constitution: 10, hit_die: "d6", level: 1)
+        goblin = Core::Monster.new(name: "Goblin", statblock: goblin_statblock, attacks: [scimitar_attack])
+
+        # Resolve an attack
+        logger.info "Resolving attack between #{hero.name} and #{goblin.name}"
+        attack_resolver.resolve(hero, goblin, hero.attacks.sample)
+      end
+    end
   end
 end
+
+Dnd5e::Examples::AttacksExample.run
