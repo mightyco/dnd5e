@@ -59,6 +59,9 @@ module Dnd5e
     end
 
     class MockDiceRoller < DiceRoller
+      attr_accessor :rolls
+      attr_writer :index
+
       def initialize(rolls)
         @rolls = rolls
         @index = 0

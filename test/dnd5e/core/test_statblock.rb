@@ -1,7 +1,6 @@
 # /home/chuck_mcintyre/src/dnd5e/test/dnd5e/core/test_statblock.rb
 require_relative "../../test_helper"
 require_relative "../../../lib/dnd5e/core/statblock"
-require 'minitest/mock'
 
 module Dnd5e
   module Core

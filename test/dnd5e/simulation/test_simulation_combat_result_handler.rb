@@ -42,17 +42,21 @@ module Dnd5e
         @logger = Logger.new(nil)
         @handler = SimulationCombatResultHandler.new
         @combat = Core::TeamCombat.new(teams: [@heroes, @goblins], result_handler: @handler, logger: @logger)
+        @combat.add_observer(@handler)
       end
 
       def test_handle_result
         @combat.run_combat
-        initiative_winner = @combat.turn_manager.turn_order.first.team
-        combat_winner = @combat.winner
+        
         assert_equal 1, @handler.results.size
-        assert_equal combat_winner, @handler.results.first.winner
-        assert_equal initiative_winner, @handler.results.first.initiative_winner
-        assert_equal 1, @handler.initiative_wins[initiative_winner.name]
-        assert_equal 1, @handler.battle_wins[combat_winner.name]
+        assert_equal @combat.winner, @handler.results.first.winner
+        
+        # Check that init winner is correct team
+        expected_init_winner_team = @combat.turn_manager.turn_order.first.team
+        assert_equal expected_init_winner_team.name, @handler.results.first.initiative_winner.name
+        
+        assert_equal 1, @handler.initiative_wins[expected_init_winner_team.name]
+        assert_equal 1, @handler.battle_wins[@combat.winner.name]
       end
 
       def test_report
@@ -79,14 +83,10 @@ module Dnd5e
           heroes = Core::Team.new(name: "Heroes", members: [hero1, hero2])
           goblins = Core::Team.new(name: "Goblins", members: [goblin1, goblin2])
           combat = Core::TeamCombat.new(teams: [heroes, goblins], result_handler: @handler, logger: @logger)
+          combat.add_observer(@handler)
           
           # Run the combat
           combat.run_combat
-          
-          # Record the result
-          initiative_winner = combat.turn_manager.turn_order.first.team
-          combat_winner = combat.winner
-          @handler.handle_result(combat, combat_winner, initiative_winner)
         end
         
         report = @handler.report(5)

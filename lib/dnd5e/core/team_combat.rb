@@ -7,20 +7,18 @@ module Dnd5e
   module Core
     # Manages a combat encounter between two teams.
     class TeamCombat < Combat
-      attr_reader :teams, :result_handler
+      attr_reader :teams
 
       # Initializes a new TeamCombat instance.
       #
       # @param teams [Array<Team>] The teams participating in the combat.
-      # @param result_handler [CombatResultHandler] The handler for combat results.
-      # @param logger [Logger] The logger to use for logging.
       # @param dice_roller [DiceRoller] The dice roller to use for rolling dice.
       # @raise [ArgumentError] if the number of teams is not exactly two.
-      def initialize(teams:, result_handler: PrintingCombatResultHandler.new, logger: Logger.new($stdout), dice_roller: DiceRoller.new)
+      def initialize(teams:, result_handler: nil, logger: nil, dice_roller: DiceRoller.new)
         raise ArgumentError, "TeamCombat requires exactly two teams" unless teams.size == 2
 
         @teams = teams
-        @result_handler = result_handler
+        # result_handler and logger are deprecated/ignored here, handled via observers
         super(combatants: teams.first.members + teams.last.members, logger: logger, dice_roller: dice_roller)
       end
 
@@ -29,8 +27,7 @@ module Dnd5e
       # @return [void]
       def run_combat
         super()
-        initiative_winner = @turn_manager.turn_order.first.team
-        result_handler.handle_result(self, winner, initiative_winner)
+        # Old result handling removed.
       end
 
       # Takes a turn for a given attacker, selecting a defender from the opposing team.
@@ -38,6 +35,7 @@ module Dnd5e
       # @param attacker [Combatant] The combatant taking the turn.
       # @return [Combatant, nil] The defender if one is selected, nil otherwise.
       def take_turn(attacker)
+        notify_observers(:turn_start, combatant: attacker)
         defender = find_valid_defender(attacker)
         return if defender.nil?
 
@@ -62,7 +60,7 @@ module Dnd5e
       #
       # @return [void]
       def end_round
-        result_handler.logger.info "End of round" if result_handler.respond_to?(:logger)
+        # Deprecated: logging handled by observers
       end
 
       private

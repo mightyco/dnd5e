@@ -14,6 +14,12 @@ module Dnd5e
         @logger = logger
       end
 
+      def update(event, data)
+        if event == :combat_end
+          handle_result(nil, data[:winner], data[:initiative_winner])
+        end
+      end
+
       def handle_result(combat, winner, initiative_winner)
         result = Result.new(winner: winner, initiative_winner: initiative_winner)
         @results << result

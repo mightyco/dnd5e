@@ -1,5 +1,4 @@
 require_relative "../../test_helper"
-require 'minitest/mock'
 
 module Dnd5e
   module Core

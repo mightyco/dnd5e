@@ -3,6 +3,7 @@ require_relative "dice_roller"
 require_relative "turn_manager"
 require_relative "attack_resolver"
 require_relative "combat_attack_handler"
+require_relative "publisher"
 require 'logger'
 
 module Dnd5e
@@ -13,26 +14,25 @@ module Dnd5e
 
     # Manages the flow of a combat encounter.
     class Combat
+      include Publisher
       attr_reader :combatants, :turn_manager, :logger, :dice_roller, :max_rounds, :combat_attack_handler
       attr_writer :dice_roller
 
       # Initializes a new Combat instance.
       #
       # @param combatants [Array<Combatant>] The combatants participating in the combat.
-      # @param logger [Logger] The logger to use for logging.
+      # @param logger [Logger] Deprecated: The logger to use for logging. Use observers instead.
       # @param dice_roller [DiceRoller] The dice roller to use for rolling dice.
       # @param max_rounds [Integer] The maximum number of rounds the combat can last.
-      def initialize(combatants:, logger: Logger.new($stdout), dice_roller: DiceRoller.new, max_rounds: 1000)
+      def initialize(combatants:, logger: nil, dice_roller: DiceRoller.new, max_rounds: 1000)
         @combatants = combatants
         @turn_manager = TurnManager.new(combatants: @combatants)
-        @logger = logger
+        @logger = logger || Logger.new(nil) # Use null logger if none provided
         @dice_roller = dice_roller
         @max_rounds = max_rounds
         @round_counter = 0
         @combat_attack_handler = CombatAttackHandler.new(logger: @logger)
-        @logger.formatter = proc do |severity, datetime, progname, msg|
-          "#{msg}\n"
-        end
+        # Formatter setup moved to CombatLogger or wherever logger is actually configured
       end
 
       # Performs an attack from an attacker to a defender.
@@ -42,6 +42,7 @@ module Dnd5e
       # @raise [InvalidAttackError] if the attacker or defender is dead.
       # @return [Boolean] true if the attack hits, false otherwise.
       def attack(attacker, defender)
+        notify_observers(:attack, attacker: attacker, defender: defender)
         @combat_attack_handler.attack(attacker, defender)
       end
 
@@ -50,6 +51,7 @@ module Dnd5e
       # @param attacker [Combatant] The combatant taking the turn.
       # @return [Combatant, nil] The defender if the defender is alive, nil otherwise.
       def take_turn(attacker)
+        notify_observers(:turn_start, combatant: attacker)
         defender = find_valid_defender(attacker)
         if defender.nil?
           logger.info "No valid targets for #{attacker.name}, skipping turn"
@@ -93,16 +95,23 @@ module Dnd5e
         @turn_manager.roll_initiative
         @turn_manager.sort_by_initiative
         @round_counter = 1
-        logger.info "Combat begins between #{@combatants.map(&:name).join(", ")}"
-        logger.debug "Round: #{@round_counter}"
+        notify_observers(:combat_start, combat: self, combatants: @combatants)
+        notify_observers(:round_start, round: @round_counter)
         until is_over?
           current_combatant = @turn_manager.next_turn
           take_turn(current_combatant) if current_combatant.statblock.is_alive? && !is_over?
           if @turn_manager.all_turns_complete?
+            notify_observers(:round_end, round: @round_counter)
             @round_counter += 1
-            logger.debug "Round: #{@round_counter}"
+            notify_observers(:round_start, round: @round_counter) unless is_over?
           end
           raise CombatTimeoutError, "Combat timed out after #{@max_rounds} rounds" unless @round_counter < @max_rounds
+        end
+        initiative_winner = @turn_manager.turn_order.first
+        begin
+          notify_observers(:combat_end, winner: winner, initiative_winner: initiative_winner)
+        rescue InvalidWinnerError
+          notify_observers(:combat_end, winner: nil, initiative_winner: initiative_winner)
         end
       end
 

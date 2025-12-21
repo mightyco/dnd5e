@@ -11,6 +11,18 @@ require 'logger'
 module Dnd5e
   module Core
     class TestCombat < Minitest::Test
+      class MockObserver
+        attr_reader :events
+
+        def initialize
+          @events = []
+        end
+
+        def update(event, data)
+          @events << { event: event, data: data }
+        end
+      end
+
       def setup
         @hero_statblock = Statblock.new(name: "Hero Statblock", strength: 16, dexterity: 10, constitution: 15, hit_die: "d10", level: 1)
         @goblin_statblock = Statblock.new(name: "Goblin Statblock", strength: 8, dexterity: 16, constitution: 10, hit_die: "d6", level: 1)
@@ -32,7 +44,9 @@ module Dnd5e
         # @logger = Logger.new($stdout)
         # @logger.level = Logger::DEBUG
 
+        @observer = MockObserver.new
         @combat = Combat.new(combatants: [@hero, @goblin], logger: @logger)
+        @combat.add_observer(@observer)
       end
 
       def test_combat_initialization
@@ -113,8 +127,6 @@ module Dnd5e
         assert_equal @hero, @combat.winner
       end
 
-      # New Tests Below
-
       def test_combat_times_out_after_max_rounds
         # Set max rounds to 2
         combat = Combat.new(combatants: [@hero, @goblin], logger: @logger, dice_roller: @mock_dice_roller, max_rounds: 2)
@@ -143,6 +155,28 @@ module Dnd5e
         assert_raises(InvalidWinnerError) do
           @combat.winner
         end
+      end
+
+      def test_combat_emits_events
+        # Reset setup for this test specifically
+        setup
+        # Set rolls for a hit: 15 to hit, 100 damage (lethal)
+        @mock_dice_roller1.rolls = [15, 100]
+        
+        # Kill the goblin so combat ends quickly after one attack or just let it play out?
+        # If I want to see multiple rounds, I need more dice. 
+        # But if I just want to see events, one round is enough.
+        # Let's ensure the goblin dies to make it short.
+        # @goblin.statblock.hit_points = 1 # Make him weak
+        # Actually statblock is deep copied, so I can just modify it.
+        # But wait, character builder builds new statblocks.
+        # Let's just mock dice to kill him.
+        
+        @combat.run_combat
+        
+        events = @observer.events.map { |e| e[:event] }
+        assert_includes events, :combat_start
+        # These might fail until I implement them, which is the point of TDD
       end
     end
   end

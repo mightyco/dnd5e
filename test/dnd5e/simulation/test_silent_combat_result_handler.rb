@@ -43,6 +43,7 @@ module Dnd5e
         @handler = SilentCombatResultHandler.new
 
         @combat = Core::TeamCombat.new(teams: [@heroes, @goblins], logger: @logger, result_handler: @handler)
+        @combat.add_observer(@handler)
       end
 
       def test_handle_result
