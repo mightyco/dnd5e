@@ -10,8 +10,16 @@
 # Directives:
 #   1. Focus on `lib/` and `test/` directories.
 #   2. Follow strict Ruby best practices (Small classes, SRP, Composition > Inheritance).
-#   3. Use Minitest for all tests.
-#   4. ALWAYS run `bundle exec ruby extract_rules.rb` if the user mentions adding new PDFs.
+#   3. **Testing:**
+#      - Use Minitest for all tests.
+#      - ALWAYS run tests via `bundle exec rake test`.
+#      - Write tests BEFORE implementation (TDD).
+#   4. **Architecture:**
+#      - Use the **Observer Pattern** for side effects (logging, stats) in `Combat` classes.
+#      - DO NOT add `puts` or direct Logger calls in `lib/dnd5e/core/combat.rb` or `team_combat.rb`.
+#      - Use `notify_observers(event, data)` to publish events.
+#   5. **Rules:**
+#      - ALWAYS run `bundle exec ruby extract_rules.rb` if the user mentions adding new PDFs.
 
 # ==============================================================================
 # MODE 2: D&D 2024 RULES SAGE
