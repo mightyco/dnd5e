@@ -13,12 +13,20 @@ require_relative "../lib/dnd5e/builders"
 
 require 'logger'
 
+require_relative "../lib/dnd5e/core/combat_logger"
+
 module Dnd5e
   module Examples
     class SimulationExample
       def self.run
-        # Create a logger (optional, mostly for errors or debug)
-        logger = Logger.new($stdout)
+        # Create a silent logger for the mass simulation
+        silent_logger = Logger.new(nil)
+        
+        # Create a verbose logger for the sample
+        verbose_logger = Logger.new($stdout)
+        verbose_logger.formatter = proc do |severity, datetime, progname, msg|
+          "#{msg}\n"
+        end
 
         # Create a statistics collector (Observer)
         stats = Core::CombatStatistics.new
@@ -41,6 +49,31 @@ module Dnd5e
         heroes = Core::Team.new(name: "Heroes", members: [hero1, hero2])
         goblins = Core::Team.new(name: "Goblins", members: [goblin1, goblin2])
 
+        # --- Run a Sample Battle (Verbose) ---
+        puts "=== Example Combat Log ==="
+        
+        # We need deep copies for the sample so we don't affect the templates for simulation (though templates are reused via Builder usually)
+        # Actually ScenarioBuilder creates new instances. 
+        # For this sample, we'll manually create a one-off combat.
+        
+        # Create fresh combatants for the sample
+        sample_hero1 = Core::Character.new(name: "Hero 1", statblock: hero_template.deep_copy, attacks: [sword_attack])
+        sample_hero2 = Core::Character.new(name: "Hero 2", statblock: hero_template.deep_copy, attacks: [sword_attack])
+        sample_goblin1 = Core::Monster.new(name: "Goblin 1", statblock: goblin_template.deep_copy, attacks: [bite_attack])
+        sample_goblin2 = Core::Monster.new(name: "Goblin 2", statblock: goblin_template.deep_copy, attacks: [bite_attack])
+        
+        sample_heroes = Core::Team.new(name: "Heroes", members: [sample_hero1, sample_hero2])
+        sample_goblins = Core::Team.new(name: "Goblins", members: [sample_goblin1, sample_goblin2])
+        
+        sample_combat = Core::TeamCombat.new(teams: [sample_heroes, sample_goblins], logger: verbose_logger)
+        sample_combat.add_observer(Core::CombatLogger.new(verbose_logger))
+        sample_combat.run_combat
+        
+        puts "=== End Example Log ===\n\n"
+
+        # --- Run Simulation (Silent) ---
+        puts "Running 1000 simulations..."
+
         # Create a scenario
         scenario = Simulation::ScenarioBuilder.new(num_simulations: 1000)
                                               .with_team(heroes)
@@ -52,7 +85,7 @@ module Dnd5e
         runner = Simulation::Runner.new(
           scenario: scenario,
           result_handler: stats,
-          logger: logger
+          logger: silent_logger
         )
 
         # Run the simulation
