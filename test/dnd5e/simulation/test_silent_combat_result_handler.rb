@@ -49,6 +49,14 @@ module Dnd5e
       def test_handle_result
         @combat.run_combat  # Calls handler and records init
         assert_equal 1, @handler.results.size
+        
+        result = @handler.results.first
+        # The initiative winner should be a Team, not a Combatant
+        assert_kind_of Core::Team, result.initiative_winner
+        
+        # Verify it matches the team of the combatant who went first
+        first_combatant = @combat.turn_manager.turn_order.first
+        assert_equal first_combatant.team, result.initiative_winner
       end
 
       def test_results

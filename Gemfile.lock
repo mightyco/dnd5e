@@ -1,13 +1,32 @@
 GEM
+  remote: https://rubygems.org/
   specs:
-    minitest (5.25.5)
+    Ascii85 (2.0.1)
+    afm (1.0.0)
+    bigdecimal (3.3.1)
+    hashery (2.1.2)
+    minitest (6.0.0)
+      prism (~> 1.5)
+    pdf-reader (2.15.0)
+      Ascii85 (>= 1.0, < 3.0, != 2.0.0)
+      afm (>= 0.2.1, < 2)
+      hashery (~> 2.0)
+      ruby-rc4
+      ttfunk
+    prism (1.7.0)
+    rake (13.3.0)
+    ruby-rc4 (0.1.5)
+    ttfunk (1.8.0)
+      bigdecimal (~> 3.1)
 
 PLATFORMS
+  arm64-darwin-24
   ruby
-  x86_64-linux
 
 DEPENDENCIES
   minitest
+  pdf-reader
+  rake
 
 BUNDLED WITH
-   2.6.7
+   2.7.2

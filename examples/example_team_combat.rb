@@ -5,7 +5,7 @@ require_relative "../lib/dnd5e/core/statblock"
 require_relative "../lib/dnd5e/core/attack"
 require_relative "../lib/dnd5e/core/dice"
 require_relative "../lib/dnd5e/core/team"
-require_relative "../lib/dnd5e/core/printing_combat_result_handler"
+require_relative "../lib/dnd5e/core/combat_logger"
 require 'logger'
 
 module Dnd5e
@@ -14,6 +14,9 @@ module Dnd5e
     # Create a logger that outputs to stdout
     logger = Logger.new($stdout)
     logger.level = Logger::INFO # Set the desired log level
+
+    # Create a CombatLogger observer
+    combat_logger = CombatLogger.new(logger)
 
     # Create some attacks
     sword_attack = Attack.new(name: "Sword", damage_dice: Dice.new(1, 8), relevant_stat: :strength)
@@ -33,12 +36,12 @@ module Dnd5e
     heroes = Team.new(name: "Heroes", members: [hero1, hero2])
     goblins = Team.new(name: "Goblins", members: [goblin1, goblin2])
 
-    # Create a result handler
-    result_handler = PrintingCombatResultHandler.new(logger: logger)
-
     # --- Combat ---
     # Create combat
-    combat = TeamCombat.new(teams: [heroes, goblins], result_handler: result_handler, logger: logger)
+    combat = TeamCombat.new(teams: [heroes, goblins], logger: logger)
+    
+    # Attach observer
+    combat.add_observer(combat_logger)
 
     # Start the battle
     combat.run_combat

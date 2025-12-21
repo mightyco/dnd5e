@@ -7,8 +7,7 @@ require_relative "../lib/dnd5e/core/statblock"
 require_relative "../lib/dnd5e/core/attack"
 require_relative "../lib/dnd5e/core/dice"
 require_relative "../lib/dnd5e/core/team"
-require_relative "../lib/dnd5e/simulation/simulation_combat_result_handler"
-require_relative "../lib/dnd5e/core/printing_combat_result_handler"
+require_relative "../lib/dnd5e/core/combat_statistics"
 require_relative "../lib/dnd5e/simulation/scenario"
 require_relative "../lib/dnd5e/builders"
 
@@ -18,11 +17,11 @@ module Dnd5e
   module Examples
     class SimulationExample
       def self.run
-        # Create a logger that outputs to stdout
+        # Create a logger (optional, mostly for errors or debug)
         logger = Logger.new($stdout)
 
-        # Create a result handler
-        result_handler = Simulation::SimulationCombatResultHandler.new(logger: logger)
+        # Create a statistics collector (Observer)
+        stats = Core::CombatStatistics.new
 
         # Create some attacks
         sword_attack = Core::Attack.new(name: "Sword", damage_dice: Core::Dice.new(1, 8), relevant_stat: :strength)
@@ -49,9 +48,10 @@ module Dnd5e
                                               .build
 
         # Create a simulation runner
+        # Pass the stats observer as the result_handler
         runner = Simulation::Runner.new(
           scenario: scenario,
-          result_handler: result_handler,
+          result_handler: stats,
           logger: logger
         )
 
