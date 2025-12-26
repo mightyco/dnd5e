@@ -45,4 +45,3 @@ module Dnd5e
     end
   end
 end
-

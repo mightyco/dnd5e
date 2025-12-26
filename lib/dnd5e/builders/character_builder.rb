@@ -2,6 +2,7 @@ require_relative "../core/character"
 require_relative "../core/statblock"
 require_relative "../core/attack"
 require_relative "../core/dice"
+require_relative "../core/armor"
 
 module Dnd5e
   module Builders
@@ -47,6 +48,9 @@ module Dnd5e
       def as_fighter(level: 1, abilities: {})
         abilities = { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 }.merge(abilities)
         
+        # Heavy Armor: Chain Mail (AC 16)
+        chain_mail = Core::Armor.new(name: "Chain Mail", base_ac: 16, type: :heavy, max_dex_bonus: 0, stealth_disadvantage: true)
+        
         @statblock = Core::Statblock.new(
           name: @name,
           strength: abilities[:strength],
@@ -57,7 +61,8 @@ module Dnd5e
           charisma: abilities[:charisma],
           hit_die: "d10",
           level: level,
-          saving_throw_proficiencies: [:strength, :constitution]
+          saving_throw_proficiencies: [:strength, :constitution],
+          equipped_armor: chain_mail
         )
         
         # Add basic equipment (Longsword) if not already added
@@ -82,6 +87,8 @@ module Dnd5e
       # @return [CharacterBuilder] The CharacterBuilder instance.
       def as_wizard(level: 1, abilities: {})
         abilities = { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 }.merge(abilities)
+        
+        # No Armor (Robes)
         
         @statblock = Core::Statblock.new(
           name: @name,

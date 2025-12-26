@@ -11,7 +11,7 @@ require_relative "../lib/dnd5e/core/dice"
 Dnd5e::Experiments::Experiment.new(name: "Fighter Scaling: Str vs Dex")
   .independent_variable(:level, values: 1..5)
   .independent_variable(:group_size, values: [1, 5])
-  .simulations_per_step(200) # Fast enough for a demo
+  .simulations_per_step(1000)
   .control_group do |params|
     # Strength Fighter Team
     level = params[:level]
@@ -50,4 +50,3 @@ Dnd5e::Experiments::Experiment.new(name: "Fighter Scaling: Str vs Dex")
     Dnd5e::Core::Team.new(name: "Dexterity Team", members: chars)
   end
   .run
-

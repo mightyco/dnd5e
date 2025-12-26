@@ -3,7 +3,7 @@ module Dnd5e
     # Represents a character's stat block in the D&D 5e system.
     class Statblock
       attr_reader :name, :hit_die, :level
-      attr_accessor :strength, :dexterity, :constitution, :intelligence, :wisdom, :charisma, :armor_class, :hit_points, :saving_throw_proficiencies
+      attr_accessor :strength, :dexterity, :constitution, :intelligence, :wisdom, :charisma, :hit_points, :saving_throw_proficiencies, :equipped_armor, :equipped_shield
 
       # Initializes a new Statblock.
       #
@@ -17,7 +17,9 @@ module Dnd5e
       # @param hit_die [String] The character's hit die (e.g., "d8").
       # @param level [Integer] The character's level.
       # @param saving_throw_proficiencies [Array<Symbol>] List of abilities the character has save proficiency in.
-      def initialize(name:, strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, hit_die: "d8", level: 1, saving_throw_proficiencies: [])
+      # @param equipped_armor [Armor, nil] The armor the character is wearing.
+      # @param equipped_shield [Armor, nil] The shield the character is holding.
+      def initialize(name:, strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, hit_die: "d8", level: 1, saving_throw_proficiencies: [], equipped_armor: nil, equipped_shield: nil)
         @name = name
         @strength = strength
         @dexterity = dexterity
@@ -28,9 +30,30 @@ module Dnd5e
         @hit_die = hit_die
         @level = level
         @saving_throw_proficiencies = saving_throw_proficiencies
-        @armor_class = 10 + ability_modifier(:dexterity) # Default AC calculation
+        @equipped_armor = equipped_armor
+        @equipped_shield = equipped_shield
         @hit_points = calculate_hit_points
       end
+
+      # Calculates the Armor Class (AC).
+      #
+      # @return [Integer] The calculated AC.
+      def armor_class
+        return @armor_class if defined?(@armor_class) && @armor_class # Manual override priority
+
+        base = if @equipped_armor
+                 @equipped_armor.calculate_ac(ability_modifier(:dexterity))
+               else
+                 10 + ability_modifier(:dexterity)
+               end
+        
+        base += @equipped_shield.base_ac if @equipped_shield
+        base
+      end
+      
+      # Deprecated accessor for backward compatibility if needed, but we want dynamic calc.
+      # If we allow setting AC manually (for monsters), we need to store an override.
+      attr_writer :armor_class
 
       # Calculates the ability modifier for a given ability.
       #
