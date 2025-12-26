@@ -6,8 +6,8 @@ module Dnd5e
     # Represents a character in the D&D 5e system.
     # A character has a name, a statblock, and a list of attacks.
     class Character
-      attr_reader :name, :statblock, :attacks
-      attr_accessor :team
+      attr_reader :name, :statblock
+      attr_accessor :team, :attacks
 
       # Initializes a new Character.
       #

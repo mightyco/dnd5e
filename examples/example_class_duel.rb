@@ -44,4 +44,3 @@ combat.add_observer(combat_logger)
 
 puts "Starting Fighter vs Wizard Duel..."
 combat.run_combat
-
