@@ -6,6 +6,7 @@ require_relative "../../../lib/dnd5e/core/attack"
 require_relative "../../../lib/dnd5e/core/dice"
 require_relative "../../../lib/dnd5e/simulation/runner"
 require_relative "../../../lib/dnd5e/simulation/silent_combat_result_handler"
+require_relative "../../../lib/dnd5e/simulation/scenario_builder"
 
 module Dnd5e
   module Integration

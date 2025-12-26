@@ -87,7 +87,8 @@ module Dnd5e
               wisdom: member.statblock.wisdom,
               charisma: member.statblock.charisma,
               hit_die: member.statblock.hit_die,
-              level: member.statblock.level
+              level: member.statblock.level,
+              saving_throw_proficiencies: member.statblock.saving_throw_proficiencies
             )
             new_statblock.hit_points = new_statblock.calculate_hit_points
             member.class.new(name: member.name, statblock: new_statblock, attacks: member.attacks)
