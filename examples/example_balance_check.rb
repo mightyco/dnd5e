@@ -45,7 +45,7 @@ end
 team_b = Dnd5e::Core::Team.new(name: "Blue Team", members: team_b_chars)
 
 # Build Scenario
-builder = Dnd5e::Simulation::ScenarioBuilder.new(num_simulations: 100) # Lower count for readable log
+builder = Dnd5e::Simulation::ScenarioBuilder.new(num_simulations: 1000) # Lower count for readable log
 builder.with_team(team_a)
 builder.with_team(team_b)
 scenario = builder.build
@@ -57,7 +57,7 @@ logger.formatter = proc do |severity, datetime, progname, msg|
 end
 handler = Dnd5e::Simulation::SimulationCombatResultHandler.new(logger: logger)
 
-puts "Running Balanced Simulation (100 runs)..."
+puts "Running Balanced Simulation (1000 runs)..."
 runner = Dnd5e::Simulation::Runner.new(scenario: scenario, result_handler: handler)
 runner.run
 runner.generate_report

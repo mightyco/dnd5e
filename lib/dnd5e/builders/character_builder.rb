@@ -1,3 +1,8 @@
+require_relative "../core/character"
+require_relative "../core/statblock"
+require_relative "../core/attack"
+require_relative "../core/dice"
+
 module Dnd5e
   module Builders
     # Builds a Character object with a fluent interface.
@@ -31,6 +36,81 @@ module Dnd5e
       # @return [CharacterBuilder] The CharacterBuilder instance.
       def with_attack(attack)
         @attacks << attack
+        self
+      end
+
+      # Builds the character as a Fighter.
+      #
+      # @param level [Integer] The level of the fighter.
+      # @param abilities [Hash] Ability scores (e.g., { strength: 16, dexterity: 12 }).
+      # @return [CharacterBuilder] The CharacterBuilder instance.
+      def as_fighter(level: 1, abilities: {})
+        abilities = { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 }.merge(abilities)
+        
+        @statblock = Core::Statblock.new(
+          name: @name,
+          strength: abilities[:strength],
+          dexterity: abilities[:dexterity],
+          constitution: abilities[:constitution],
+          intelligence: abilities[:intelligence],
+          wisdom: abilities[:wisdom],
+          charisma: abilities[:charisma],
+          hit_die: "d10",
+          level: level,
+          saving_throw_proficiencies: [:strength, :constitution]
+        )
+        
+        # Add basic equipment (Longsword) if not already added
+        # This is a bit simplistic, usually builders are more granular.
+        # But per requirements "Implement Fighter Level 1 features (Hit Die, Saves, Equipment)"
+        
+        unless @attacks.any? { |a| a.name == "Longsword" }
+          longsword = Core::Attack.new(name: "Longsword", damage_dice: Core::Dice.new(1, 8), relevant_stat: :strength)
+          with_attack(longsword)
+        end
+        
+        # Fighter features like Fighting Style could modify stats here.
+        # For now, we stick to the basics.
+        
+        self
+      end
+
+      # Builds the character as a Wizard.
+      #
+      # @param level [Integer] The level of the wizard.
+      # @param abilities [Hash] Ability scores (e.g., { intelligence: 16, dexterity: 12 }).
+      # @return [CharacterBuilder] The CharacterBuilder instance.
+      def as_wizard(level: 1, abilities: {})
+        abilities = { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 }.merge(abilities)
+        
+        @statblock = Core::Statblock.new(
+          name: @name,
+          strength: abilities[:strength],
+          dexterity: abilities[:dexterity],
+          constitution: abilities[:constitution],
+          intelligence: abilities[:intelligence],
+          wisdom: abilities[:wisdom],
+          charisma: abilities[:charisma],
+          hit_die: "d6",
+          level: level,
+          saving_throw_proficiencies: [:intelligence, :wisdom]
+        )
+        
+        # Add basic equipment (Staff)
+        unless @attacks.any? { |a| a.name == "Quarterstaff" }
+          staff = Core::Attack.new(name: "Quarterstaff", damage_dice: Core::Dice.new(1, 6), relevant_stat: :strength)
+          with_attack(staff)
+        end
+        
+        # Add Firebolt cantrip
+        firebolt = Core::Attack.new(
+          name: "Firebolt", 
+          damage_dice: Core::Dice.new(1, 10), 
+          relevant_stat: :intelligence, 
+          type: :attack # Ranged Spell Attack
+        )
+        with_attack(firebolt)
+        
         self
       end
 

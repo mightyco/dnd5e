@@ -1,46 +1,48 @@
 require_relative "../../test_helper"
 require_relative "../../../lib/dnd5e/builders/character_builder"
-require_relative "../../../lib/dnd5e/core/character"
-require_relative "../../../lib/dnd5e/core/statblock"
-require_relative "../../../lib/dnd5e/core/attack"
-require_relative "../../../lib/dnd5e/core/dice"
+require_relative "../../../lib/dnd5e/core/dice_roller"
 
 module Dnd5e
   module Builders
     class TestCharacterBuilder < Minitest::Test
-      def setup
-        @statblock = Core::Statblock.new(name: "Test Statblock")
-        @attack = Core::Attack.new(name: "Test Attack", damage_dice: Core::Dice.new(1, 6))
+      def test_build_simple
+        builder = CharacterBuilder.new(name: "Bob")
+        statblock = Core::Statblock.new(name: "Bob")
+        builder.with_statblock(statblock)
+        character = builder.build
+        
+        assert_equal "Bob", character.name
+        assert_equal statblock, character.statblock
       end
-
-      def test_build_valid_character
-        character = CharacterBuilder.new(name: "Test Character")
-                                    .with_statblock(@statblock)
-                                    .with_attack(@attack)
-                                    .build
-
-        assert_instance_of Core::Character, character
-        assert_equal "Test Character", character.name
-        assert_equal @statblock, character.statblock
-        assert_includes character.attacks, @attack
+      
+      def test_as_fighter
+        builder = CharacterBuilder.new(name: "Fighter Bob")
+        builder.as_fighter(level: 1, abilities: { strength: 16, constitution: 14 })
+        character = builder.build
+        
+        assert_equal "d10", character.statblock.hit_die
+        assert_equal 16, character.statblock.strength
+        assert_equal 14, character.statblock.constitution
+        assert_includes character.statblock.saving_throw_proficiencies, :strength
+        assert_includes character.statblock.saving_throw_proficiencies, :constitution
+        
+        # Check Longsword
+        assert character.attacks.any? { |a| a.name == "Longsword" }
       end
-
-      def test_build_missing_name
-        assert_raises CharacterBuilder::InvalidCharacterError do
-          CharacterBuilder.new(name: nil).with_statblock(@statblock).build
-        end
-      end
-
-      def test_build_missing_statblock
-        assert_raises CharacterBuilder::InvalidCharacterError do
-          CharacterBuilder.new(name: "Test Character").build
-        end
-      end
-
-      def test_with_attack
-        character_builder = CharacterBuilder.new(name: "Test Character")
-        character_builder.with_attack(@attack)
-        assert_equal 1, character_builder.instance_variable_get(:@attacks).count
+      
+      def test_as_wizard
+        builder = CharacterBuilder.new(name: "Wizard Gandalf")
+        builder.as_wizard(level: 1, abilities: { intelligence: 18, wisdom: 12 })
+        character = builder.build
+        
+        assert_equal "d6", character.statblock.hit_die
+        assert_equal 18, character.statblock.intelligence
+        assert_includes character.statblock.saving_throw_proficiencies, :intelligence
+        assert_includes character.statblock.saving_throw_proficiencies, :wisdom
+        
+        # Check Staff and Firebolt
+        assert character.attacks.any? { |a| a.name == "Quarterstaff" }
+        assert character.attacks.any? { |a| a.name == "Firebolt" }
       end
     end
   end

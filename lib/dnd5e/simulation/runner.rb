@@ -67,7 +67,9 @@ module Dnd5e
         if @result_handler.respond_to?(:generate_report)
            puts @result_handler.generate_report(@scenario.num_simulations)
         elsif @result_handler.respond_to?(:report)
-           puts @result_handler.report(@scenario.num_simulations)
+           # The handler's report method logs to its own logger AND returns the string.
+           # We avoid 'puts' here to prevent duplicate output since the handler logs it.
+           @result_handler.report(@scenario.num_simulations)
         end
       end
 

@@ -110,7 +110,15 @@ module Dnd5e
       # @return [Integer] The character's proficiency bonus.
       # @raise [RuntimeError] if the level is invalid.
       def proficiency_bonus
-        case @level
+        self.class.calculate_proficiency_bonus(@level)
+      end
+
+      # Calculates proficiency bonus for a given level.
+      #
+      # @param level [Integer] Character level (1-20).
+      # @return [Integer] Proficiency bonus.
+      def self.calculate_proficiency_bonus(level)
+        case level
         when 1..4
           2
         when 5..8
@@ -122,7 +130,7 @@ module Dnd5e
         when 17..20
           6
         else
-          raise "Invalid level"
+          raise "Invalid level: #{level}"
         end
       end
 
