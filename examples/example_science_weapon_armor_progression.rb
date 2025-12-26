@@ -99,3 +99,23 @@ Dnd5e::Experiments::Experiment.new(name: "3. Dex Shield vs Dex Skirmisher")
   .control_group { |p| Dnd5e::Core::Team.new(name: "Dex Shield", members: [create_dex_shield(p[:level])]) }
   .test_group { |p| Dnd5e::Core::Team.new(name: "Dex Skirm", members: [create_dex_skirmisher(p[:level])]) }
   .run
+
+puts "\n"
+
+# --- Experiment 4: Str Greatsword vs Dex Shield ---
+Dnd5e::Experiments::Experiment.new(name: "4. Str Greatsword vs Dex Shield")
+  .independent_variable(:level, values: 1..10)
+  .simulations_per_step(500)
+  .control_group { |p| Dnd5e::Core::Team.new(name: "Str GW", members: [create_str_greatsword(p[:level])]) }
+  .test_group { |p| Dnd5e::Core::Team.new(name: "Dex Shield", members: [create_dex_shield(p[:level])]) }
+  .run
+
+puts "\n"
+
+# --- Experiment 5: Str Greatsword vs Dex Skirmisher ---
+Dnd5e::Experiments::Experiment.new(name: "5. Str Greatsword vs Dex Skirmisher")
+  .independent_variable(:level, values: 1..10)
+  .simulations_per_step(500)
+  .control_group { |p| Dnd5e::Core::Team.new(name: "Str GW", members: [create_str_greatsword(p[:level])]) }
+  .test_group { |p| Dnd5e::Core::Team.new(name: "Dex Skirm", members: [create_dex_skirmisher(p[:level])]) }
+  .run

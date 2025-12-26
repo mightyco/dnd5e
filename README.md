@@ -56,3 +56,36 @@ Contributions are welcome! Please feel free to submit pull requests or open issu
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+
+## Project Roadmap
+
+1.  **Core Combat Engine** (Completed)
+    *   [x] Dice Rolling
+    *   [x] Attack Resolution (AC, Hit Points)
+    *   [x] Turn Management (Initiative)
+    *   [x] Team-based Combat
+
+2.  **Magic & Saving Throws** (Completed)
+    *   [x] Saving Throw Logic (DC vs Save Mod)
+    *   [x] Spell Attacks (Fireball)
+
+3.  **Character Building & Equipment** (Completed)
+    *   [x] Builder Pattern for Characters
+    *   [x] Class Archetypes (Fighter, Wizard)
+    *   [x] Armor (Light/Medium/Heavy) & Shields
+    *   [x] Weapons (Greatsword vs Longsword)
+
+4.  **Scientific Experiments** (In Progress)
+    *   [x] Experiment Engine
+    *   [x] Str vs Dex Scaling
+    *   [x] Gear Progression Analysis
+
+5.  **Advanced Mechanics** (Next)
+    *   [ ] Advantage / Disadvantage
+    *   [ ] Skills (Athletics/Acrobatics)
+    *   [ ] Conditions (Prone, Grappled)
+    *   [ ] Feats (GWM, Sentinel)
+
+6.  **Reporting**
+    *   [ ] CSV/JSON Export
+    *   [ ] Detailed Metrics (DPR, Survival Rate)
