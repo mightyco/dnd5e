@@ -57,8 +57,9 @@ module Dnd5e
         turn_manager.roll_initiative
         turn_manager.sort_by_initiative
         first_combatant = turn_manager.turn_order.first
-        last_combatant = turn_manager.turn_order.last
-        assert_equal last_combatant, turn_manager.next_turn
+        # With new logic: next_turn returns current index (0), then increments.
+        # So first call returns first combatant.
+        assert_equal first_combatant, turn_manager.next_turn
       end
 
       def test_next_turn_cycles
@@ -67,9 +68,13 @@ module Dnd5e
         turn_manager.sort_by_initiative
         first_combatant = turn_manager.turn_order.first
         second_combatant = turn_manager.turn_order.last
-        assert_equal second_combatant, turn_manager.next_turn
+        
+        # 1st call -> index 0 (first)
         assert_equal first_combatant, turn_manager.next_turn
+        # 2nd call -> index 1 (second)
         assert_equal second_combatant, turn_manager.next_turn
+        # 3rd call -> index 0 (first) again
+        assert_equal first_combatant, turn_manager.next_turn
       end
 
       def test_all_turns_complete

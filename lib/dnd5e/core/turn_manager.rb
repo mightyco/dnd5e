@@ -41,8 +41,14 @@ module Dnd5e
       def next_turn
         raise NoCombatantsError, "No combatants in the turn manager" if @combatants.empty?
 
+        if @turn_order.empty?
+           # Should have sorted by now, but just in case
+           sort_by_initiative
+        end
+
+        combatant = @turn_order[@current_turn_index]
         @current_turn_index = (@current_turn_index + 1) % @turn_order.size
-        @turn_order[@current_turn_index]
+        combatant
       end
 
       # Checks if all turns have been completed.

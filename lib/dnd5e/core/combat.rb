@@ -97,8 +97,14 @@ module Dnd5e
         notify_observers(:combat_start, combat: self, combatants: @combatants)
         notify_observers(:round_start, round: @round_counter)
         until is_over?
+          # The current logic might be double-dipping the first turn if next_turn resets immediately?
+          # @turn_manager.next_turn cycles index. 
+          # Let's verify loop logic.
+          
           current_combatant = @turn_manager.next_turn
           take_turn(current_combatant) if current_combatant.statblock.is_alive? && !is_over?
+          
+          # Check for end of round
           if @turn_manager.all_turns_complete?
             notify_observers(:round_end, round: @round_counter)
             @round_counter += 1
@@ -106,6 +112,11 @@ module Dnd5e
           end
           raise CombatTimeoutError, "Combat timed out after #{@max_rounds} rounds" unless @round_counter < @max_rounds
         end
+        
+        # The issue is likely that initiative winner is determined by @turn_manager.turn_order.first
+        # But if the sorting is stable, high Dex goes first.
+        # This seems correct.
+        
         initiative_winner = @turn_manager.turn_order.first
         begin
           notify_observers(:combat_end, winner: winner, initiative_winner: initiative_winner)
