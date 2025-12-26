@@ -47,13 +47,13 @@ module Dnd5e
       end
 
       def test_combat_initialization
-        combat = TeamCombat.new(teams: [@heroes, @goblins], result_handler: @result_handler, logger: @logger, dice_roller: @mock_dice_roller)
+        combat = TeamCombat.new(teams: [@heroes, @goblins], dice_roller: @mock_dice_roller)
         assert_equal [@heroes, @goblins], combat.teams
         assert_instance_of TurnManager, combat.turn_manager
       end
 
       def test_take_turn_selects_valid_defender
-        combat = TeamCombat.new(teams: [@heroes, @goblins], result_handler: @result_handler, logger: @logger, dice_roller: @mock_dice_roller)
+        combat = TeamCombat.new(teams: [@heroes, @goblins], dice_roller: @mock_dice_roller)
         combat.turn_manager.turn_order.each do |attacker|
           defender = combat.take_turn(attacker)
           next if defender.nil?
@@ -62,7 +62,7 @@ module Dnd5e
       end
 
       def test_is_over
-        combat = TeamCombat.new(teams: [@heroes, @goblins], result_handler: @result_handler, logger: @logger, dice_roller: @mock_dice_roller)
+        combat = TeamCombat.new(teams: [@heroes, @goblins], dice_roller: @mock_dice_roller)
         refute combat.is_over?
         @goblin1.statblock.take_damage(@goblin1.statblock.hit_points)
         @goblin2.statblock.take_damage(@goblin2.statblock.hit_points)
@@ -70,14 +70,14 @@ module Dnd5e
       end
 
       def test_winner
-        combat = TeamCombat.new(teams: [@heroes, @goblins], result_handler: @result_handler, logger: @logger, dice_roller: @mock_dice_roller)
+        combat = TeamCombat.new(teams: [@heroes, @goblins], dice_roller: @mock_dice_roller)
         @goblin1.statblock.take_damage(@goblin1.statblock.hit_points)
         @goblin2.statblock.take_damage(@goblin2.statblock.hit_points)
         assert_equal @heroes, combat.winner
       end
 
       def test_take_turn_does_not_select_same_team
-        combat = TeamCombat.new(teams: [@heroes, @goblins], result_handler: @result_handler, logger: @logger, dice_roller: @mock_dice_roller)
+        combat = TeamCombat.new(teams: [@heroes, @goblins], dice_roller: @mock_dice_roller)
         # Iterate through each combatant in the turn order
         combat.turn_manager.turn_order.each do |attacker|
           # Get the potential defenders for the current attacker
@@ -116,7 +116,7 @@ module Dnd5e
           initiative_roller = MockDiceRoller.new([10, 10, 10, 10])
         
           # Pass the initiative_roller to TeamCombat
-          combat = TeamCombat.new(teams: [heroes, goblins], result_handler: @result_handler, logger: @logger, dice_roller: initiative_roller)
+          combat = TeamCombat.new(teams: [heroes, goblins], dice_roller: initiative_roller)
           combat.run_combat
           assert combat.is_over?
           assert_equal heroes, combat.winner, "Heroes that always hit should always win"

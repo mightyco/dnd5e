@@ -1,0 +1,13 @@
+# Valid commit types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test
+<type>(optional scope): <description>
+
+# Describe what behavior changes.
+# Describe the rationale behind this change, or link to a ticket.
+# See https://go/good-git-commits for how to write good commits
+
+**Testing Strategy**
+
+# Help reviewers understand why this is safe to deploy.
+# IF YOU CHOSE NOT TO MANUALLY OR UNIT TEST, EXPLAIN WHY.
+
+# ------------------------------

@@ -41,7 +41,7 @@ module Dnd5e
 
         @logger = Logger.new(nil)
         @handler = SimulationCombatResultHandler.new
-        @combat = Core::TeamCombat.new(teams: [@heroes, @goblins], result_handler: @handler, logger: @logger)
+        @combat = Core::TeamCombat.new(teams: [@heroes, @goblins])
         @combat.add_observer(@handler)
       end
 
@@ -82,7 +82,7 @@ module Dnd5e
       
           heroes = Core::Team.new(name: "Heroes", members: [hero1, hero2])
           goblins = Core::Team.new(name: "Goblins", members: [goblin1, goblin2])
-          combat = Core::TeamCombat.new(teams: [heroes, goblins], result_handler: @handler, logger: @logger)
+          combat = Core::TeamCombat.new(teams: [heroes, goblins])
           combat.add_observer(@handler)
           
           # Run the combat

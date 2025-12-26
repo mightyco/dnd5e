@@ -15,24 +15,21 @@ module Dnd5e
     # Manages the flow of a combat encounter.
     class Combat
       include Publisher
-      attr_reader :combatants, :turn_manager, :logger, :dice_roller, :max_rounds, :combat_attack_handler
+      attr_reader :combatants, :turn_manager, :dice_roller, :max_rounds, :combat_attack_handler
       attr_writer :dice_roller
 
       # Initializes a new Combat instance.
       #
       # @param combatants [Array<Combatant>] The combatants participating in the combat.
-      # @param logger [Logger] Deprecated: The logger to use for logging. Use observers instead.
       # @param dice_roller [DiceRoller] The dice roller to use for rolling dice.
       # @param max_rounds [Integer] The maximum number of rounds the combat can last.
-      def initialize(combatants:, logger: nil, dice_roller: DiceRoller.new, max_rounds: 1000)
+      def initialize(combatants:, dice_roller: DiceRoller.new, max_rounds: 1000)
         @combatants = combatants
         @turn_manager = TurnManager.new(combatants: @combatants)
-        @logger = logger || Logger.new(nil) # Use null logger if none provided
         @dice_roller = dice_roller
         @max_rounds = max_rounds
         @round_counter = 0
-        @combat_attack_handler = CombatAttackHandler.new(logger: @logger)
-        # Formatter setup moved to CombatLogger or wherever logger is actually configured
+        @combat_attack_handler = CombatAttackHandler.new(logger: Logger.new(nil)) # Use silent logger
       end
 
       # Performs an attack from an attacker to a defender.
@@ -54,14 +51,14 @@ module Dnd5e
         notify_observers(:turn_start, combatant: attacker)
         defender = find_valid_defender(attacker)
         if defender.nil?
-          logger.info "No valid targets for #{attacker.name}, skipping turn"
+          # logger.info "No valid targets for #{attacker.name}, skipping turn" # Deprecated
           return false
         end
 
         begin
           attack(attacker, defender)
         rescue InvalidAttackError => e
-          logger.info "Skipping turn: #{e.message}"
+          # logger.info "Skipping turn: #{e.message}" # Deprecated
         end
         defender.statblock.is_alive? ? defender : nil
       end

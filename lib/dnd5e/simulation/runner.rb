@@ -27,7 +27,7 @@ module Dnd5e
         # But wait, create_teams creates new TeamCombat.
         # We need to attach the result_handler (which should be an observer) to the new TeamCombat.
         
-        scenario = Core::TeamCombat.new(teams: new_teams, result_handler: @result_handler, logger: @logger)
+        scenario = Core::TeamCombat.new(teams: new_teams)
         if @result_handler.respond_to?(:update)
           scenario.add_observer(@result_handler)
         end

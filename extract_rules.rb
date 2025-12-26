@@ -27,3 +27,6 @@ Dir.glob("#{RULES_DIR}/*.pdf").each do |pdf_path|
 end
 
 puts "Done! You can now use the .txt files for rules references."
+
+
+

@@ -45,15 +45,17 @@ module Dnd5e
         # @logger.level = Logger::DEBUG
 
         @observer = MockObserver.new
-        @combat = Combat.new(combatants: [@hero, @goblin], logger: @logger)
+        @combat = Combat.new(combatants: [@hero, @goblin])
         @combat.add_observer(@observer)
       end
 
       def test_combat_initialization
         assert_equal [@hero, @goblin], @combat.combatants
         assert_instance_of TurnManager, @combat.turn_manager
-        assert_equal @logger, @combat.logger
-        assert_equal @logger, @combat.combat_attack_handler.logger
+        # Logger is no longer publicly exposed and defaults to nil inside Combat if not provided
+        # But we pass nil in setup, so it becomes Logger.new(nil) internally.
+        # However, we can check combat_attack_handler.logger
+        assert_instance_of Logger, @combat.combat_attack_handler.logger
       end
 
       def test_combat_ends
@@ -71,7 +73,7 @@ module Dnd5e
                                           .with_attack(bite_attack)
                                           .build
 
-        combat = Combat.new(combatants: [hero, goblin], logger: @logger)
+        combat = Combat.new(combatants: [hero, goblin])
         combat.run_combat
         assert combat.is_over?
         assert combat.winner
@@ -129,7 +131,7 @@ module Dnd5e
 
       def test_combat_times_out_after_max_rounds
         # Set max rounds to 2
-        combat = Combat.new(combatants: [@hero, @goblin], logger: @logger, dice_roller: @mock_dice_roller, max_rounds: 2)
+        combat = Combat.new(combatants: [@hero, @goblin], dice_roller: @mock_dice_roller, max_rounds: 2)
         # Set up dice rolls to always miss, and do 0 damage
         mock_dice_roller = MockDiceRoller.new([0, 0, 0, 0, 0, 0, 0, 0])
         combat.dice_roller = mock_dice_roller
