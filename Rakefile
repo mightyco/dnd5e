@@ -5,6 +5,15 @@ task :install do
   sh "bundle install"
 end
 
+desc "Run all examples"
+task :examples do
+  Dir.glob("examples/**/*.rb").each do |file|
+    puts "Running #{file}..."
+    system("ruby #{file}") || raise("Example #{file} failed!")
+    puts "---------------------------------------------------"
+  end
+end
+
 task :test => "test:default"
 
 Minitest::TestTask.create(:all) do |t|

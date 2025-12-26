@@ -1,4 +1,3 @@
-# /home/chuck_mcintyre/src/dnd5e/test/dnd5e/core/test_statblock.rb
 require_relative "../../test_helper"
 require_relative "../../../lib/dnd5e/core/statblock"
 
@@ -143,6 +142,25 @@ module Dnd5e
         assert_equal statblock.hit_points, copied_statblock.hit_points
         assert_equal statblock.armor_class, copied_statblock.armor_class
         refute_equal statblock.object_id, copied_statblock.object_id
+      end
+
+      def test_saving_throws
+        statblock = Statblock.new(
+          name: "Test", 
+          dexterity: 14, # +2
+          intelligence: 10, # +0
+          level: 1, 
+          saving_throw_proficiencies: [:dexterity]
+        )
+        # Prof (+2) + Mod (+2) = 4
+        assert_equal 4, statblock.save_modifier(:dexterity)
+        
+        # Prof (+2) + Mod (0) = 0? No, not proficient.
+        # Mod (0) = 0
+        assert_equal 0, statblock.save_modifier(:intelligence)
+
+        assert statblock.proficient_in_save?(:dexterity)
+        refute statblock.proficient_in_save?(:intelligence)
       end
     end
   end

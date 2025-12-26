@@ -49,7 +49,6 @@ module Dnd5e
 
         # Create a simulation runner
         # Pass the stats observer as the result_handler
-        # Note: result_handler is deprecated in Combat constructor, but Runner handles attaching it as an observer
         runner = Simulation::Runner.new(
           scenario: scenario,
           result_handler: stats,

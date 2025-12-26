@@ -3,7 +3,7 @@ module Dnd5e
     # Represents a character's stat block in the D&D 5e system.
     class Statblock
       attr_reader :name, :hit_die, :level
-      attr_accessor :strength, :dexterity, :constitution, :intelligence, :wisdom, :charisma, :armor_class, :hit_points
+      attr_accessor :strength, :dexterity, :constitution, :intelligence, :wisdom, :charisma, :armor_class, :hit_points, :saving_throw_proficiencies
 
       # Initializes a new Statblock.
       #
@@ -16,7 +16,8 @@ module Dnd5e
       # @param charisma [Integer] The character's charisma score.
       # @param hit_die [String] The character's hit die (e.g., "d8").
       # @param level [Integer] The character's level.
-      def initialize(name:, strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, hit_die: "d8", level: 1)
+      # @param saving_throw_proficiencies [Array<Symbol>] List of abilities the character has save proficiency in.
+      def initialize(name:, strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, hit_die: "d8", level: 1, saving_throw_proficiencies: [])
         @name = name
         @strength = strength
         @dexterity = dexterity
@@ -26,6 +27,7 @@ module Dnd5e
         @charisma = charisma
         @hit_die = hit_die
         @level = level
+        @saving_throw_proficiencies = saving_throw_proficiencies
         @armor_class = 10 + ability_modifier(:dexterity) # Default AC calculation
         @hit_points = calculate_hit_points
       end
@@ -40,6 +42,24 @@ module Dnd5e
         raise ArgumentError, "Invalid ability: #{ability}" unless score
 
         (score - 10) / 2
+      end
+
+      # Checks if the character is proficient in a saving throw.
+      #
+      # @param ability [Symbol] The ability to check.
+      # @return [Boolean] True if proficient, false otherwise.
+      def proficient_in_save?(ability)
+        @saving_throw_proficiencies.include?(ability)
+      end
+
+      # Calculates the saving throw modifier for a given ability.
+      #
+      # @param ability [Symbol] The ability to calculate the modifier for.
+      # @return [Integer] The saving throw modifier.
+      def save_modifier(ability)
+        mod = ability_modifier(ability)
+        mod += proficiency_bonus if proficient_in_save?(ability)
+        mod
       end
 
       # Reduces the character's hit points by the given damage.

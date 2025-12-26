@@ -26,7 +26,8 @@ module Dnd5e
       end
 
       def test_attack_with_valid_attacker_and_defender
-        assert_equal true, @attack_handler.attack(@character1, @character2)
+        result = @attack_handler.attack(@character1, @character2)
+        assert result.success
         assert_equal 5, @character2.statblock.hit_points
       end
 
@@ -45,7 +46,8 @@ module Dnd5e
         @attack = Attack.new(name: "Sword", damage_dice: Dice.new(1, 8), relevant_stat: :strength, dice_roller: @dice_roller)
         @character1 = Character.new(name: "Character 1", statblock: @statblock1, attacks: [@attack])
         @attack_handler = CombatAttackHandler.new(logger: @logger)
-        assert_equal false, @attack_handler.attack(@character1, @character2)
+        result = @attack_handler.attack(@character1, @character2)
+        refute result.success
         assert_equal 10, @character2.statblock.hit_points
       end
 

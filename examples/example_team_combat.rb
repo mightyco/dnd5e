@@ -38,7 +38,7 @@ module Dnd5e
 
     # --- Combat ---
     # Create combat
-    combat = TeamCombat.new(teams: [heroes, goblins], logger: logger)
+    combat = TeamCombat.new(teams: [heroes, goblins])
     
     # Attach observer
     combat.add_observer(combat_logger)
