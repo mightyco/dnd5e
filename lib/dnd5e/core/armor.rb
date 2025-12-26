@@ -23,17 +23,16 @@ module Dnd5e
       def calculate_ac(dex_modifier)
         return @base_ac if @type == :shield # Shields handled separately usually, but for base logic
 
+        # Heavy armor rule: Dexterity modifier doesn't affect AC (neither bonus nor penalty)
+        return @base_ac if @type == :heavy
+
         bonus = dex_modifier
         if @max_dex_bonus
           bonus = [dex_modifier, @max_dex_bonus].min
         end
-        # Heavy armor usually has max_dex_bonus = 0, but strictly it ignores neg mods too?
-        # 5e Rules: Heavy Armor doesn't let you use Dex mod (pos or neg). 
-        # So max_dex_bonus should be 0 for heavy.
         
         @base_ac + bonus
       end
     end
   end
 end
-
