@@ -70,23 +70,31 @@ module Dnd5e
       # Checks if the combat is over.
       #
       # @return [Boolean] true if the combat is over, false otherwise.
-      def is_over?
+      def over?
         return true if @combatants.any? { |c| !c.statblock.is_alive? }
 
         false
       end
+      
+      # Deprecated alias for backward compatibility
+      alias is_over? over?
 
       # Determines the winner of the combat.
       #
       # @raise [InvalidWinnerError] if no winner can be determined.
       # @return [Combatant] The winning combatant.
       def winner
-        if @combatants.first.statblock.is_alive? && !@combatants.last.statblock.is_alive?
-          @combatants.first
-        elsif @combatants.last.statblock.is_alive? && !@combatants.first.statblock.is_alive?
-          @combatants.last
+        alive_combatants = @combatants.select { |c| c.statblock.is_alive? }
+        
+        if alive_combatants.size == 1
+          alive_combatants.first
+        elsif alive_combatants.empty?
+           raise InvalidWinnerError, 'No winner found (all dead)'
         else
-          raise InvalidWinnerError, 'No winner found'
+           # If multiple alive, no winner yet or stalemate?
+           # Original logic assumed only 2 combatants or last standing.
+           # If we support teams, this logic is flawed here, but let's stick to simple "Last Man Standing".
+           raise InvalidWinnerError, 'Combat not over (multiple alive)'
         end
       end
 
@@ -110,7 +118,7 @@ module Dnd5e
       end
 
       def run_rounds
-        until is_over?
+        until over?
           process_turn
           check_round_end
           check_timeout
@@ -119,7 +127,7 @@ module Dnd5e
 
       def process_turn
         current_combatant = @turn_manager.next_turn
-        return unless current_combatant.statblock.is_alive? && !is_over?
+        return unless current_combatant.statblock.is_alive? && !over?
 
         take_turn(current_combatant)
       end
@@ -129,7 +137,7 @@ module Dnd5e
 
         notify_observers(:round_end, round: @round_counter)
         @round_counter += 1
-        notify_observers(:round_start, round: @round_counter) unless is_over?
+        notify_observers(:round_start, round: @round_counter) unless over?
       end
 
       def check_timeout

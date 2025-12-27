@@ -7,6 +7,11 @@ task :install do
   sh 'bundle install'
 end
 
+desc 'Run RuboCop linting'
+task :lint do
+  sh 'rubocop'
+end
+
 desc 'Run all examples'
 task :examples do
   Dir.glob('examples/**/*.rb').each do |file|
@@ -96,4 +101,4 @@ namespace :doc do
   end
 end
 
-task default: [:install, :all, 'doc:check_coverage']
+task default: [:install, :lint, :all, 'doc:check_coverage']

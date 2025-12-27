@@ -6,4 +6,5 @@ group :development, :test do
   gem 'minitest'
   gem 'pdf-reader'
   gem 'rake'
+  gem 'rubocop', require: false
 end
