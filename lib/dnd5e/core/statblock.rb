@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 module Dnd5e
   module Core
     # Represents a character's stat block in the D&D 5e system.
     class Statblock
       attr_reader :name, :hit_die, :level
-      attr_accessor :strength, :dexterity, :constitution, :intelligence, :wisdom, :charisma, :hit_points, :saving_throw_proficiencies, :equipped_armor, :equipped_shield
+      attr_accessor :strength, :dexterity, :constitution, :intelligence, :wisdom, :charisma, :hit_points,
+                    :saving_throw_proficiencies, :equipped_armor, :equipped_shield
 
       # Initializes a new Statblock.
       #
@@ -19,7 +22,8 @@ module Dnd5e
       # @param saving_throw_proficiencies [Array<Symbol>] List of abilities the character has save proficiency in.
       # @param equipped_armor [Armor, nil] The armor the character is wearing.
       # @param equipped_shield [Armor, nil] The shield the character is holding.
-      def initialize(name:, strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, hit_die: "d8", level: 1, saving_throw_proficiencies: [], equipped_armor: nil, equipped_shield: nil)
+      def initialize(name:, strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10,
+                     hit_die: 'd8', level: 1, saving_throw_proficiencies: [], equipped_armor: nil, equipped_shield: nil)
         @name = name
         @strength = strength
         @dexterity = dexterity
@@ -46,11 +50,11 @@ module Dnd5e
                else
                  10 + ability_modifier(:dexterity)
                end
-        
+
         base += @equipped_shield.base_ac if @equipped_shield
         base
       end
-      
+
       # Deprecated accessor for backward compatibility if needed, but we want dynamic calc.
       # If we allow setting AC manually (for monsters), we need to store an override.
       attr_writer :armor_class
@@ -90,7 +94,8 @@ module Dnd5e
       # @param damage [Integer] The amount of damage to take.
       # @raise [ArgumentError] if the damage is negative.
       def take_damage(damage)
-        raise ArgumentError, "Damage must be non-negative" if damage < 0
+        raise ArgumentError, 'Damage must be non-negative' if damage.negative?
+
         @hit_points = [0, @hit_points - damage].max
       end
 
@@ -99,7 +104,8 @@ module Dnd5e
       # @param amount [Integer] The amount to heal.
       # @raise [ArgumentError] if the healing amount is negative.
       def heal(amount)
-        raise ArgumentError, "Healing amount must be non-negative" if amount < 0
+        raise ArgumentError, 'Healing amount must be non-negative' if amount.negative?
+
         @hit_points = [calculate_hit_points, @hit_points + amount].min
       end
 
@@ -107,14 +113,14 @@ module Dnd5e
       #
       # @return [Boolean] True if the character is alive, false otherwise.
       def is_alive?
-        @hit_points > 0
+        @hit_points.positive?
       end
 
       # Calculates the character's hit points based on their level and constitution.
       #
       # @return [Integer] The character's hit points.
       def calculate_hit_points
-        hit_die_sides = @hit_die.sub("d", "").to_i
+        hit_die_sides = @hit_die.sub('d', '').to_i
         base_hp = hit_die_sides + ability_modifier(:constitution)
         return base_hp if @level == 1
 

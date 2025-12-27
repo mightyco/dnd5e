@@ -1,4 +1,6 @@
-require_relative "../../test_helper"
+# frozen_string_literal: true
+
+require_relative '../../test_helper'
 
 module Dnd5e
   module Core
@@ -50,13 +52,13 @@ module Dnd5e
 
       def test_to_s_returns_correct_string_representation
         dice = Dice.new(1, 20)
-        assert_equal "1d20", dice.to_s
+        assert_equal '1d20', dice.to_s
         dice = Dice.new(3, 6)
-        assert_equal "3d6", dice.to_s
+        assert_equal '3d6', dice.to_s
       end
 
       def test_initialize_with_invalid_rolls
-        assert_raises(Dnd5e::Core::InvalidRollsError) { Dice.new(2, 6, rolls: "not an array") }
+        assert_raises(Dnd5e::Core::InvalidRollsError) { Dice.new(2, 6, rolls: 'not an array') }
         assert_raises(Dnd5e::Core::InvalidRollsError) { Dice.new(2, 6, rolls: [0, 1]) }
         assert_raises(Dnd5e::Core::InvalidRollsError) { Dice.new(2, 6, rolls: [7, 1]) }
       end
@@ -71,13 +73,13 @@ module Dnd5e
 
       def test_to_s_with_modifier
         dice = Dice.new(2, 6, modifier: 3)
-        assert_equal "2d6+3", dice.to_s
+        assert_equal '2d6+3', dice.to_s
 
         dice = Dice.new(3, 4, modifier: -2)
-        assert_equal "3d4-2", dice.to_s
+        assert_equal '3d4-2', dice.to_s
 
         dice = Dice.new(1, 20, modifier: 0)
-        assert_equal "1d20", dice.to_s
+        assert_equal '1d20', dice.to_s
       end
     end
   end

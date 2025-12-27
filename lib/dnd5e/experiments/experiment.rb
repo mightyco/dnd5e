@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Dnd5e
   module Experiments
     class Experiment
@@ -39,7 +41,7 @@ module Dnd5e
       end
 
       def run
-        require_relative "runner"
+        require_relative 'runner'
         Runner.new(self).run
       end
     end

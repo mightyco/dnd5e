@@ -1,6 +1,8 @@
-require_relative "../core/team"
-require_relative "result"
-require_relative "combat_result_handler"
+# frozen_string_literal: true
+
+require_relative '../core/team'
+require_relative 'result'
+require_relative 'combat_result_handler'
 
 require 'logger'
 
@@ -21,13 +23,13 @@ module Dnd5e
 
       def update(event, data)
         if event == :combat_start
-           if data[:combat] && data[:combat].respond_to?(:teams)
-             @teams = data[:combat].teams
-             @combatant_team_map = {}
-             @teams.each do |team|
-               team.members.each { |m| @combatant_team_map[m.name] = team }
-             end
-           end
+          if data[:combat].respond_to?(:teams)
+            @teams = data[:combat].teams
+            @combatant_team_map = {}
+            @teams.each do |team|
+              team.members.each { |m| @combatant_team_map[m.name] = team }
+            end
+          end
         elsif event == :combat_end
           initiative_winner = data[:initiative_winner]
           if @combatant_team_map && initiative_winner.respond_to?(:name) && @combatant_team_map[initiative_winner.name]
@@ -37,11 +39,11 @@ module Dnd5e
         end
       end
 
-      def handle_result(combat, winner, initiative_winner)
+      def handle_result(_combat, winner, initiative_winner)
         # combat parameter is deprecated/unused now if coming from observer
-        # @teams = combat.teams unless @teams.any? 
+        # @teams = combat.teams unless @teams.any?
         # We need a way to track teams if they are not passed.
-        
+
         result = Result.new(winner: winner, initiative_winner: initiative_winner)
         @results << result
         @initiative_wins[initiative_winner.name] += 1
@@ -50,7 +52,7 @@ module Dnd5e
       end
 
       def report(num_simulations)
-        report_string = ""
+        report_string = ''
         # Ensure all teams are reported, even if they have 0 wins
         @teams.each do |team|
           wins = @battle_wins[team.name] || 0
@@ -62,7 +64,7 @@ module Dnd5e
           initiative_win_percentage = (wins.to_f / num_simulations * 100).round(1)
           battle_wins_for_team = @battle_wins[team_name] || 0
           battle_win_percentage = 0
-          if battle_wins_for_team > 0
+          if battle_wins_for_team.positive?
             battle_win_percentage = (@initiative_battle_wins[team_name].to_f / battle_wins_for_team * 100).round(1)
           end
           report_string += "#{team_name} won initiative #{initiative_win_percentage}% (#{wins} of #{num_simulations}) of the time overall but #{battle_win_percentage}% of the time that they won the battle (#{@initiative_battle_wins[team_name] || 0} of #{battle_wins_for_team})\n"

@@ -1,5 +1,7 @@
-require_relative "dice"
-require_relative "dice_roller"
+# frozen_string_literal: true
+
+require_relative 'dice'
+require_relative 'dice_roller'
 
 module Dnd5e
   module Core
@@ -25,13 +27,16 @@ module Dnd5e
       # Rolls initiative for each combatant.
       def roll_initiative
         @combatants.each do |combatant|
-          combatant.instance_variable_set(:@initiative, @dice_roller.roll("1d20") + combatant.statblock.ability_modifier(:dexterity))
+          combatant.instance_variable_set(:@initiative,
+                                          @dice_roller.roll('1d20') + combatant.statblock.ability_modifier(:dexterity))
         end
       end
 
       # Sorts the combatants by initiative.
       def sort_by_initiative
-        @turn_order = @combatants.sort_by { |combatant| [-combatant.instance_variable_get(:@initiative), -combatant.statblock.ability_modifier(:dexterity)] }
+        @turn_order = @combatants.sort_by do |combatant|
+          [-combatant.instance_variable_get(:@initiative), -combatant.statblock.ability_modifier(:dexterity)]
+        end
       end
 
       # Returns the next combatant in the turn order.
@@ -39,11 +44,11 @@ module Dnd5e
       # @return [Character, Monster] The next combatant.
       # @raise [NoCombatantsError] if there are no combatants.
       def next_turn
-        raise NoCombatantsError, "No combatants in the turn manager" if @combatants.empty?
+        raise NoCombatantsError, 'No combatants in the turn manager' if @combatants.empty?
 
         if @turn_order.empty?
-           # Should have sorted by now, but just in case
-           sort_by_initiative
+          # Should have sorted by now, but just in case
+          sort_by_initiative
         end
 
         combatant = @turn_order[@current_turn_index]
@@ -55,7 +60,7 @@ module Dnd5e
       #
       # @return [Boolean] True if all turns are complete, false otherwise.
       def all_turns_complete?
-        @current_turn_index == 0 && @turn_order.size > 0
+        @current_turn_index.zero? && @turn_order.size.positive?
       end
 
       # Adds a combatant to the turn manager.

@@ -1,5 +1,7 @@
-require_relative "statblock"
-require_relative "attack"
+# frozen_string_literal: true
+
+require_relative 'statblock'
+require_relative 'attack'
 
 module Dnd5e
   module Core

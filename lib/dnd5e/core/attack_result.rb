@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 module Dnd5e
   module Core
     # Represents the result of an attack or action resolution.
     class AttackResult
-      attr_reader :attacker, :defender, :attack, :success, :damage, :type, 
+      attr_reader :attacker, :defender, :attack, :success, :damage, :type,
                   :attack_roll, :target_ac, :save_roll, :save_dc, :is_dead
 
       # @param attacker [Character] The attacker.
@@ -16,7 +18,7 @@ module Dnd5e
       # @param save_roll [Integer, nil] The save roll total (if applicable).
       # @param save_dc [Integer, nil] The save DC (if applicable).
       # @param is_dead [Boolean] Whether the defender died from this attack.
-      def initialize(attacker:, defender:, attack:, success:, damage:, type:, 
+      def initialize(attacker:, defender:, attack:, success:, damage:, type:,
                      attack_roll: nil, target_ac: nil, save_roll: nil, save_dc: nil, is_dead: false)
         @attacker = attacker
         @defender = defender
@@ -30,7 +32,7 @@ module Dnd5e
         @save_dc = save_dc
         @is_dead = is_dead
       end
-      
+
       def hit?
         @success
       end

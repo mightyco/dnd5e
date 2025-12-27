@@ -1,17 +1,21 @@
-require_relative "../../test_helper"
-require_relative "../../../lib/dnd5e/core/turn_manager"
-require_relative "../../../lib/dnd5e/builders/character_builder"
+# frozen_string_literal: true
+
+require_relative '../../test_helper'
+require_relative '../../../lib/dnd5e/core/turn_manager'
+require_relative '../../../lib/dnd5e/builders/character_builder'
 
 module Dnd5e
   module Core
     class TestTurnManager < Minitest::Test
       def setup
-        @statblock1 = Statblock.new(name: "Statblock 1", strength: 10, dexterity: 14, constitution: 12, hit_die: "d8", level: 1)
-        @statblock2 = Statblock.new(name: "Statblock 2", strength: 12, dexterity: 16, constitution: 10, hit_die: "d6", level: 1)
-        @combatant1 = Builders::CharacterBuilder.new(name: "Combatant 1")
+        @statblock1 = Statblock.new(name: 'Statblock 1', strength: 10, dexterity: 14, constitution: 12, hit_die: 'd8',
+                                    level: 1)
+        @statblock2 = Statblock.new(name: 'Statblock 2', strength: 12, dexterity: 16, constitution: 10, hit_die: 'd6',
+                                    level: 1)
+        @combatant1 = Builders::CharacterBuilder.new(name: 'Combatant 1')
                                                 .with_statblock(@statblock1)
                                                 .build
-        @combatant2 = Builders::CharacterBuilder.new(name: "Combatant 2")
+        @combatant2 = Builders::CharacterBuilder.new(name: 'Combatant 2')
                                                 .with_statblock(@statblock2)
                                                 .build
         @combatants = [@combatant1, @combatant2]
@@ -32,8 +36,10 @@ module Dnd5e
         turn_manager.roll_initiative
         turn_manager.sort_by_initiative
         assert_equal 2, turn_manager.turn_order.size
-        assert_equal 10 + @combatant1.statblock.ability_modifier(:dexterity), @combatant1.instance_variable_get(:@initiative)
-        assert_equal 15 + @combatant2.statblock.ability_modifier(:dexterity), @combatant2.instance_variable_get(:@initiative)
+        assert_equal 10 + @combatant1.statblock.ability_modifier(:dexterity),
+                     @combatant1.instance_variable_get(:@initiative)
+        assert_equal 15 + @combatant2.statblock.ability_modifier(:dexterity),
+                     @combatant2.instance_variable_get(:@initiative)
       end
 
       def test_sort_by_initiative
@@ -68,7 +74,7 @@ module Dnd5e
         turn_manager.sort_by_initiative
         first_combatant = turn_manager.turn_order.first
         second_combatant = turn_manager.turn_order.last
-        
+
         # 1st call -> index 0 (first)
         assert_equal first_combatant, turn_manager.next_turn
         # 2nd call -> index 1 (second)
@@ -96,8 +102,9 @@ module Dnd5e
 
       def test_add_combatant
         turn_manager = TurnManager.new(combatants: @combatants)
-        new_statblock = Statblock.new(name: "New Statblock", strength: 10, dexterity: 10, constitution: 10, hit_die: "d6", level: 1)
-        new_combatant = Builders::CharacterBuilder.new(name: "New Combatant")
+        new_statblock = Statblock.new(name: 'New Statblock', strength: 10, dexterity: 10, constitution: 10,
+                                      hit_die: 'd6', level: 1)
+        new_combatant = Builders::CharacterBuilder.new(name: 'New Combatant')
                                                   .with_statblock(new_statblock)
                                                   .build
         turn_manager.add_combatant(new_combatant)

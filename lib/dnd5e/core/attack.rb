@@ -1,11 +1,14 @@
-require_relative "dice"
-require_relative "dice_roller"
+# frozen_string_literal: true
+
+require_relative 'dice'
+require_relative 'dice_roller'
 
 module Dnd5e
   module Core
     # Represents an attack or action in the D&D 5e system.
     class Attack
-      attr_reader :name, :damage_dice, :relevant_stat, :dice_roller, :type, :save_ability, :dc_stat, :fixed_dc, :half_damage_on_save
+      attr_reader :name, :damage_dice, :relevant_stat, :dice_roller, :type, :save_ability, :dc_stat, :fixed_dc,
+                  :half_damage_on_save
 
       # Initializes a new Attack.
       #
@@ -18,7 +21,8 @@ module Dnd5e
       # @param dc_stat [Symbol] The stat used to calculate DC (if type is :save). Defaults to relevant_stat.
       # @param fixed_dc [Integer, nil] A fixed DC value, overriding dynamic calculation.
       # @param half_damage_on_save [Boolean] Whether the target takes half damage on a successful save.
-      def initialize(name:, damage_dice:, relevant_stat: :strength, dice_roller: DiceRoller.new, type: :attack, save_ability: nil, dc_stat: nil, fixed_dc: nil, half_damage_on_save: false)
+      def initialize(name:, damage_dice:, relevant_stat: :strength, dice_roller: DiceRoller.new, type: :attack,
+                     save_ability: nil, dc_stat: nil, fixed_dc: nil, half_damage_on_save: false)
         @name = name
         @damage_dice = damage_dice
         @relevant_stat = relevant_stat

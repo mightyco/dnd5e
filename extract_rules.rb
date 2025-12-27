@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'pdf-reader'
 require 'fileutils'
 
@@ -10,9 +12,9 @@ end
 
 Dir.glob("#{RULES_DIR}/*.pdf").each do |pdf_path|
   txt_path = pdf_path.sub('.pdf', '.txt')
-  
+
   puts "Processing #{pdf_path}..."
-  
+
   begin
     reader = PDF::Reader.new(pdf_path)
     File.open(txt_path, 'w') do |file|
@@ -26,7 +28,4 @@ Dir.glob("#{RULES_DIR}/*.pdf").each do |pdf_path|
   end
 end
 
-puts "Done! You can now use the .txt files for rules references."
-
-
-
+puts 'Done! You can now use the .txt files for rules references.'

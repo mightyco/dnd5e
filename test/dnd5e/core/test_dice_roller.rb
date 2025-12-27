@@ -1,6 +1,8 @@
-require_relative "../../test_helper"
-require_relative "../../../lib/dnd5e/core/dice_roller"
-require_relative "../../../lib/dnd5e/core/dice"
+# frozen_string_literal: true
+
+require_relative '../../test_helper'
+require_relative '../../../lib/dnd5e/core/dice_roller'
+require_relative '../../../lib/dnd5e/core/dice'
 
 module Dnd5e
   module Core
@@ -29,14 +31,14 @@ module Dnd5e
       # Parameterization and Edge Cases
       def test_roll_valid_notation_parameterized
         test_cases = [
-          { notation: "d20", min: 1, max: 20 },
-          { notation: "2d6", min: 2, max: 12 },
-          { notation: "1d4", min: 1, max: 4 },
-          { notation: "4d10", min: 4, max: 40 },
-          { notation: "1d1", min: 1, max: 1 }, # Edge case: minimum sides
-          { notation: "100d100", min: 100, max: 10000 }, # Edge case: large numbers
-          { notation: "1d20+3", min: 4, max: 23 },
-          { notation: "2d6-2", min: 0, max: 10 },
+          { notation: 'd20', min: 1, max: 20 },
+          { notation: '2d6', min: 2, max: 12 },
+          { notation: '1d4', min: 1, max: 4 },
+          { notation: '4d10', min: 4, max: 40 },
+          { notation: '1d1', min: 1, max: 1 }, # Edge case: minimum sides
+          { notation: '100d100', min: 100, max: 10_000 }, # Edge case: large numbers
+          { notation: '1d20+3', min: 4, max: 23 },
+          { notation: '2d6-2', min: 0, max: 10 }
         ]
 
         test_cases.each do |test_case|
@@ -50,17 +52,17 @@ module Dnd5e
       # Parameterization and Edge Cases
       def test_roll_invalid_notation_parameterized
         test_cases = [
-          "invalid",
-          "d",
-          "d0",
-          "0d20",
-          "2d",
-          "d-1", # Edge case: negative sides
-          "-1d20", # Edge case: negative dice
-          "1d20+",
-          "1d20-",
-          "1d20+a",
-          "1d20-a",
+          'invalid',
+          'd',
+          'd0',
+          '0d20',
+          '2d',
+          'd-1', # Edge case: negative sides
+          '-1d20', # Edge case: negative dice
+          '1d20+',
+          '1d20-',
+          '1d20+a',
+          '1d20-a'
         ]
 
         test_cases.each do |test_case|

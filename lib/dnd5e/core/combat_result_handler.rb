@@ -1,4 +1,6 @@
-require_relative "../combat_result_handler"
+# frozen_string_literal: true
+
+require_relative '../combat_result_handler'
 
 module Dnd5e
   module Core

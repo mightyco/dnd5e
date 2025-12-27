@@ -1,12 +1,15 @@
-require_relative "../../test_helper"
-require_relative "../../../lib/dnd5e/core/statblock"
+# frozen_string_literal: true
+
+require_relative '../../test_helper'
+require_relative '../../../lib/dnd5e/core/statblock'
 
 module Dnd5e
   module Core
     class TestStatblock < Minitest::Test
       def test_initialize
-        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8")
-        assert_equal "Test", statblock.name
+        statblock = Statblock.new(name: 'Test', strength: 10, dexterity: 12, constitution: 14, intelligence: 8,
+                                  wisdom: 16, charisma: 18, hit_die: 'd8')
+        assert_equal 'Test', statblock.name
         assert_equal 10, statblock.strength
         assert_equal 12, statblock.dexterity
         assert_equal 14, statblock.constitution
@@ -19,8 +22,8 @@ module Dnd5e
       end
 
       def test_initalize_with_defaults
-        statblock = Statblock.new(name: "Test")
-        assert_equal "Test", statblock.name
+        statblock = Statblock.new(name: 'Test')
+        assert_equal 'Test', statblock.name
         assert_equal 10, statblock.strength
         assert_equal 10, statblock.dexterity
         assert_equal 10, statblock.constitution
@@ -28,26 +31,29 @@ module Dnd5e
         assert_equal 10, statblock.wisdom
         assert_equal 10, statblock.charisma
         assert_equal 1, statblock.level
-        assert_equal "d8", statblock.hit_die
+        assert_equal 'd8', statblock.hit_die
         assert_equal 8, statblock.hit_points
         assert_equal 10, statblock.armor_class
       end
 
       def test_ability_modifier
-        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8")
+        statblock = Statblock.new(name: 'Test', strength: 10, dexterity: 12, constitution: 14, intelligence: 8,
+                                  wisdom: 16, charisma: 18, hit_die: 'd8')
         assert_equal 0, statblock.ability_modifier(:strength)
         assert_equal 1, statblock.ability_modifier(:dexterity)
         assert_equal 2, statblock.ability_modifier(:constitution)
-        assert_equal -1, statblock.ability_modifier(:intelligence)
+        assert_equal(-1, statblock.ability_modifier(:intelligence))
         assert_equal 3, statblock.ability_modifier(:wisdom)
         assert_equal 4, statblock.ability_modifier(:charisma)
 
-        statblock = Statblock.new(name: "Test2", strength: 10, dexterity: 12, constitution: 14, intelligence: 9, wisdom: 16, charisma: 18, hit_die: "d8")
-        assert_equal -1, statblock.ability_modifier(:intelligence)
+        statblock = Statblock.new(name: 'Test2', strength: 10, dexterity: 12, constitution: 14, intelligence: 9,
+                                  wisdom: 16, charisma: 18, hit_die: 'd8')
+        assert_equal(-1, statblock.ability_modifier(:intelligence))
       end
 
       def test_is_alive
-        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 9, wisdom: 16, charisma: 18, hit_die: "d8")
+        statblock = Statblock.new(name: 'Test', strength: 10, dexterity: 12, constitution: 14, intelligence: 9,
+                                  wisdom: 16, charisma: 18, hit_die: 'd8')
         assert statblock.is_alive?
         statblock.take_damage(statblock.hit_points)
         assert_equal 0, statblock.hit_points
@@ -55,7 +61,8 @@ module Dnd5e
       end
 
       def test_take_damage
-        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8")
+        statblock = Statblock.new(name: 'Test', strength: 10, dexterity: 12, constitution: 14, intelligence: 8,
+                                  wisdom: 16, charisma: 18, hit_die: 'd8')
         statblock.take_damage(5)
         assert_equal 5, statblock.hit_points
         statblock.take_damage(10)
@@ -63,7 +70,8 @@ module Dnd5e
       end
 
       def test_heal
-        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8")
+        statblock = Statblock.new(name: 'Test', strength: 10, dexterity: 12, constitution: 14, intelligence: 8,
+                                  wisdom: 16, charisma: 18, hit_die: 'd8')
         statblock.take_damage(10)
         statblock.heal(5)
         assert_equal 5, statblock.hit_points
@@ -72,20 +80,24 @@ module Dnd5e
       end
 
       def test_calculate_hit_points
-        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 1)
+        statblock = Statblock.new(name: 'Test', strength: 10, dexterity: 12, constitution: 14, intelligence: 8,
+                                  wisdom: 16, charisma: 18, hit_die: 'd8', level: 1)
         assert_equal 10, statblock.calculate_hit_points
-        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 2)
+        statblock = Statblock.new(name: 'Test', strength: 10, dexterity: 12, constitution: 14, intelligence: 8,
+                                  wisdom: 16, charisma: 18, hit_die: 'd8', level: 2)
         assert_equal 17, statblock.calculate_hit_points
         statblock = Statblock.new(
-          name: "Test", strength: 10, 
-          dexterity: 12, 
-          constitution: 10, 
-          intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d12", level: 3)
+          name: 'Test', strength: 10,
+          dexterity: 12,
+          constitution: 10,
+          intelligence: 8, wisdom: 16, charisma: 18, hit_die: 'd12', level: 3
+        )
         assert_equal 26, statblock.calculate_hit_points
       end
 
       def test_level_up
-        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 2)
+        statblock = Statblock.new(name: 'Test', strength: 10, dexterity: 12, constitution: 14, intelligence: 8,
+                                  wisdom: 16, charisma: 18, hit_die: 'd8', level: 2)
         statblock.take_damage(10)
         assert_equal 7, statblock.hit_points
         statblock.level_up
@@ -94,41 +106,47 @@ module Dnd5e
       end
 
       def test_proficiency_bonus
-        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 1)
+        statblock = Statblock.new(name: 'Test', strength: 10, dexterity: 12, constitution: 14, intelligence: 8,
+                                  wisdom: 16, charisma: 18, hit_die: 'd8', level: 1)
         assert_equal 2, statblock.proficiency_bonus
-        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 5)
+        statblock = Statblock.new(name: 'Test', strength: 10, dexterity: 12, constitution: 14, intelligence: 8,
+                                  wisdom: 16, charisma: 18, hit_die: 'd8', level: 5)
         assert_equal 3, statblock.proficiency_bonus
-        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 9)
+        statblock = Statblock.new(name: 'Test', strength: 10, dexterity: 12, constitution: 14, intelligence: 8,
+                                  wisdom: 16, charisma: 18, hit_die: 'd8', level: 9)
         assert_equal 4, statblock.proficiency_bonus
-        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 13)
+        statblock = Statblock.new(name: 'Test', strength: 10, dexterity: 12, constitution: 14, intelligence: 8,
+                                  wisdom: 16, charisma: 18, hit_die: 'd8', level: 13)
         assert_equal 5, statblock.proficiency_bonus
-        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 17)
+        statblock = Statblock.new(name: 'Test', strength: 10, dexterity: 12, constitution: 14, intelligence: 8,
+                                  wisdom: 16, charisma: 18, hit_die: 'd8', level: 17)
         assert_equal 6, statblock.proficiency_bonus
       end
 
       def test_ability_modifier_invalid_ability
-        statblock = Statblock.new(name: "Test")
+        statblock = Statblock.new(name: 'Test')
         assert_raises ArgumentError do
           statblock.ability_modifier(:invalid_ability)
         end
       end
 
       def test_take_damage_negative_damage
-        statblock = Statblock.new(name: "Test")
+        statblock = Statblock.new(name: 'Test')
         assert_raises ArgumentError do
           statblock.take_damage(-5)
         end
       end
 
       def test_heal_negative_amount
-        statblock = Statblock.new(name: "Test")
+        statblock = Statblock.new(name: 'Test')
         assert_raises ArgumentError do
           statblock.heal(-5)
         end
       end
 
       def test_deep_copy
-        statblock = Statblock.new(name: "Test", strength: 10, dexterity: 12, constitution: 14, intelligence: 8, wisdom: 16, charisma: 18, hit_die: "d8", level: 1)
+        statblock = Statblock.new(name: 'Test', strength: 10, dexterity: 12, constitution: 14, intelligence: 8,
+                                  wisdom: 16, charisma: 18, hit_die: 'd8', level: 1)
         copied_statblock = statblock.deep_copy
         assert_equal statblock.name, copied_statblock.name
         assert_equal statblock.strength, copied_statblock.strength
@@ -146,15 +164,15 @@ module Dnd5e
 
       def test_saving_throws
         statblock = Statblock.new(
-          name: "Test", 
+          name: 'Test',
           dexterity: 14, # +2
           intelligence: 10, # +0
-          level: 1, 
+          level: 1,
           saving_throw_proficiencies: [:dexterity]
         )
         # Prof (+2) + Mod (+2) = 4
         assert_equal 4, statblock.save_modifier(:dexterity)
-        
+
         # Prof (+2) + Mod (0) = 0? No, not proficient.
         # Mod (0) = 0
         assert_equal 0, statblock.save_modifier(:intelligence)

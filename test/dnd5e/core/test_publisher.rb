@@ -1,5 +1,7 @@
-require_relative "../../test_helper"
-require_relative "../../../lib/dnd5e/core/publisher"
+# frozen_string_literal: true
+
+require_relative '../../test_helper'
+require_relative '../../../lib/dnd5e/core/publisher'
 
 module Dnd5e
   module Core
@@ -27,10 +29,10 @@ module Dnd5e
 
       def test_add_observer
         @subject.add_observer(@observer)
-        @subject.notify_observers(:test_event, { foo: "bar" })
+        @subject.notify_observers(:test_event, { foo: 'bar' })
         assert_equal 1, @observer.events.length
         assert_equal :test_event, @observer.events.first[:event]
-        assert_equal "bar", @observer.events.first[:data][:foo]
+        assert_equal 'bar', @observer.events.first[:data][:foo]
       end
 
       def test_remove_observer
@@ -45,7 +47,7 @@ module Dnd5e
         @subject.add_observer(@observer)
         @subject.add_observer(observer2)
         @subject.notify_observers(:broadcast)
-        
+
         assert_equal 1, @observer.events.length
         assert_equal 1, observer2.events.length
       end

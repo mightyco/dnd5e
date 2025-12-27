@@ -1,9 +1,11 @@
-require_relative "dice"
-require_relative "dice_roller"
-require_relative "turn_manager"
-require_relative "attack_resolver"
-require_relative "combat_attack_handler"
-require_relative "publisher"
+# frozen_string_literal: true
+
+require_relative 'dice'
+require_relative 'dice_roller'
+require_relative 'turn_manager'
+require_relative 'attack_resolver'
+require_relative 'combat_attack_handler'
+require_relative 'publisher'
 require 'logger'
 
 module Dnd5e
@@ -15,8 +17,8 @@ module Dnd5e
     # Manages the flow of a combat encounter.
     class Combat
       include Publisher
-      attr_reader :combatants, :turn_manager, :dice_roller, :max_rounds, :combat_attack_handler
-      attr_writer :dice_roller
+      attr_accessor :dice_roller
+      attr_reader :combatants, :turn_manager, :max_rounds, :combat_attack_handler
 
       # Initializes a new Combat instance.
       #
@@ -59,7 +61,7 @@ module Dnd5e
 
         begin
           attack(attacker, defender)
-        rescue InvalidAttackError => e
+        rescue InvalidAttackError
           # logger.info "Skipping turn: #{e.message}" # Deprecated
         end
         defender.statblock.is_alive? ? defender : nil
@@ -70,6 +72,7 @@ module Dnd5e
       # @return [Boolean] true if the combat is over, false otherwise.
       def is_over?
         return true if @combatants.any? { |c| !c.statblock.is_alive? }
+
         false
       end
 
@@ -79,11 +82,11 @@ module Dnd5e
       # @return [Combatant] The winning combatant.
       def winner
         if @combatants.first.statblock.is_alive? && !@combatants.last.statblock.is_alive?
-          return @combatants.first
+          @combatants.first
         elsif @combatants.last.statblock.is_alive? && !@combatants.first.statblock.is_alive?
-          return @combatants.last
+          @combatants.last
         else
-          raise InvalidWinnerError, "No winner found"
+          raise InvalidWinnerError, 'No winner found'
         end
       end
 
@@ -91,32 +94,51 @@ module Dnd5e
       #
       # @raise [CombatTimeoutError] if the combat exceeds the maximum number of rounds.
       def run_combat
+        prepare_combat
+        run_rounds
+        conclude_combat
+      end
+
+      private
+
+      def prepare_combat
         @turn_manager.roll_initiative
         @turn_manager.sort_by_initiative
         @round_counter = 1
         notify_observers(:combat_start, combat: self, combatants: @combatants)
         notify_observers(:round_start, round: @round_counter)
+      end
+
+      def run_rounds
         until is_over?
-          # The current logic might be double-dipping the first turn if next_turn resets immediately?
-          # @turn_manager.next_turn cycles index. 
-          # Let's verify loop logic.
-          
-          current_combatant = @turn_manager.next_turn
-          take_turn(current_combatant) if current_combatant.statblock.is_alive? && !is_over?
-          
-          # Check for end of round
-          if @turn_manager.all_turns_complete?
-            notify_observers(:round_end, round: @round_counter)
-            @round_counter += 1
-            notify_observers(:round_start, round: @round_counter) unless is_over?
-          end
-          raise CombatTimeoutError, "Combat timed out after #{@max_rounds} rounds" unless @round_counter < @max_rounds
+          process_turn
+          check_round_end
+          check_timeout
         end
-        
-        # The issue is likely that initiative winner is determined by @turn_manager.turn_order.first
-        # But if the sorting is stable, high Dex goes first.
-        # This seems correct.
-        
+      end
+
+      def process_turn
+        current_combatant = @turn_manager.next_turn
+        return unless current_combatant.statblock.is_alive? && !is_over?
+
+        take_turn(current_combatant)
+      end
+
+      def check_round_end
+        return unless @turn_manager.all_turns_complete?
+
+        notify_observers(:round_end, round: @round_counter)
+        @round_counter += 1
+        notify_observers(:round_start, round: @round_counter) unless is_over?
+      end
+
+      def check_timeout
+        return if @round_counter < @max_rounds
+
+        raise CombatTimeoutError, "Combat timed out after #{@max_rounds} rounds"
+      end
+
+      def conclude_combat
         initiative_winner = @turn_manager.turn_order.first
         begin
           notify_observers(:combat_end, winner: winner, initiative_winner: initiative_winner)
@@ -124,8 +146,6 @@ module Dnd5e
           notify_observers(:combat_end, winner: nil, initiative_winner: initiative_winner)
         end
       end
-
-      private
 
       # Finds a valid defender for the given attacker.
       #

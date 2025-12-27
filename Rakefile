@@ -1,32 +1,34 @@
+# frozen_string_literal: true
+
 require 'rake/testtask'
-require "minitest/test_task"
+require 'minitest/test_task'
 
 task :install do
-  sh "bundle install"
+  sh 'bundle install'
 end
 
-desc "Run all examples"
+desc 'Run all examples'
 task :examples do
-  Dir.glob("examples/**/*.rb").each do |file|
+  Dir.glob('examples/**/*.rb').each do |file|
     puts "Running #{file}..."
     system("ruby #{file}") || raise("Example #{file} failed!")
-    puts "---------------------------------------------------"
+    puts '---------------------------------------------------'
   end
 end
 
-task :test => "test:default"
+task test: 'test:default'
 
 Minitest::TestTask.create(:all) do |t|
-  t.libs << "test"
-  t.libs << "lib"
+  t.libs << 'test'
+  t.libs << 'lib'
   t.warning = false
-  t.test_globs = ["test/**/test_*.rb"]
+  t.test_globs = ['test/**/test_*.rb']
 end
 
 namespace :test do
-  desc "List available tests files and classes"
+  desc 'List available tests files and classes'
   task :list do
-    test_files = Dir["test/**/test_*.rb"]
+    test_files = Dir['test/**/test_*.rb']
     test_classes = {}
     test_files.each do |file|
       content = File.read(file)
@@ -38,15 +40,15 @@ namespace :test do
         end
       end
     end
-    puts "Available Tests"
+    puts 'Available Tests'
     test_classes.keys.sort.each { |f| puts "  - #{f} : #{test_classes[f].join(',')}" }
   end
 
-  desc "List available tests in a file"
-  task :tests, [:file] do |t, args|
+  desc 'List available tests in a file'
+  task :tests, [:file] do |_t, args|
     file = args[:file]
     unless file
-      puts "Usage: rake test:list_tests[test/path/to/test_file.rb]"
+      puts 'Usage: rake test:list_tests[test/path/to/test_file.rb]'
       exit 1
     end
     unless File.exist?(file)
@@ -62,7 +64,7 @@ namespace :test do
     tests.sort.each { |test| puts "  - test_#{test}" }
   end
 
-  task :default => :all
+  task default: :all
 end
 
 # Documentation tasks
@@ -71,7 +73,7 @@ namespace :doc do
   COVERAGE_THRESHOLD = ENV.fetch('COVERAGE_THRESHOLD', 80).to_i
 
   # Check RDoc coverage using rdoc -C
-  desc "Check RDoc coverage using rdoc -C"
+  desc 'Check RDoc coverage using rdoc -C'
   task :check_coverage do
     rdoc_output = `rdoc -C lib`
     coverage_match = rdoc_output.match(/(\d+)% documented/)
@@ -87,11 +89,11 @@ namespace :doc do
         exit 1
       end
     else
-      puts "Could not determine RDoc coverage."
+      puts 'Could not determine RDoc coverage.'
       puts rdoc_output
       exit 1
     end
   end
 end
 
-task :default => [:install, :all, "doc:check_coverage"]
+task default: [:install, :all, 'doc:check_coverage']

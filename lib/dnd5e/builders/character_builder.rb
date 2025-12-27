@@ -1,8 +1,10 @@
-require_relative "../core/character"
-require_relative "../core/statblock"
-require_relative "../core/attack"
-require_relative "../core/dice"
-require_relative "../core/armor"
+# frozen_string_literal: true
+
+require_relative '../core/character'
+require_relative '../core/statblock'
+require_relative '../core/attack'
+require_relative '../core/dice'
+require_relative '../core/armor'
 
 module Dnd5e
   module Builders
@@ -46,37 +48,9 @@ module Dnd5e
       # @param abilities [Hash] Ability scores (e.g., { strength: 16, dexterity: 12 }).
       # @return [CharacterBuilder] The CharacterBuilder instance.
       def as_fighter(level: 1, abilities: {})
-        abilities = { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 }.merge(abilities)
-        
-        # Heavy Armor: Chain Mail (AC 16)
-        chain_mail = Core::Armor.new(name: "Chain Mail", base_ac: 16, type: :heavy, max_dex_bonus: 0, stealth_disadvantage: true)
-        
-        @statblock = Core::Statblock.new(
-          name: @name,
-          strength: abilities[:strength],
-          dexterity: abilities[:dexterity],
-          constitution: abilities[:constitution],
-          intelligence: abilities[:intelligence],
-          wisdom: abilities[:wisdom],
-          charisma: abilities[:charisma],
-          hit_die: "d10",
-          level: level,
-          saving_throw_proficiencies: [:strength, :constitution],
-          equipped_armor: chain_mail
-        )
-        
-        # Add basic equipment (Longsword) if not already added
-        # This is a bit simplistic, usually builders are more granular.
-        # But per requirements "Implement Fighter Level 1 features (Hit Die, Saves, Equipment)"
-        
-        unless @attacks.any? { |a| a.name == "Longsword" }
-          longsword = Core::Attack.new(name: "Longsword", damage_dice: Core::Dice.new(1, 8), relevant_stat: :strength)
-          with_attack(longsword)
-        end
-        
-        # Fighter features like Fighting Style could modify stats here.
-        # For now, we stick to the basics.
-        
+        abilities = merge_abilities(abilities)
+        @statblock = build_fighter_statblock(level, abilities)
+        add_fighter_equipment
         self
       end
 
@@ -86,38 +60,9 @@ module Dnd5e
       # @param abilities [Hash] Ability scores (e.g., { intelligence: 16, dexterity: 12 }).
       # @return [CharacterBuilder] The CharacterBuilder instance.
       def as_wizard(level: 1, abilities: {})
-        abilities = { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 }.merge(abilities)
-        
-        # No Armor (Robes)
-        
-        @statblock = Core::Statblock.new(
-          name: @name,
-          strength: abilities[:strength],
-          dexterity: abilities[:dexterity],
-          constitution: abilities[:constitution],
-          intelligence: abilities[:intelligence],
-          wisdom: abilities[:wisdom],
-          charisma: abilities[:charisma],
-          hit_die: "d6",
-          level: level,
-          saving_throw_proficiencies: [:intelligence, :wisdom]
-        )
-        
-        # Add basic equipment (Staff)
-        unless @attacks.any? { |a| a.name == "Quarterstaff" }
-          staff = Core::Attack.new(name: "Quarterstaff", damage_dice: Core::Dice.new(1, 6), relevant_stat: :strength)
-          with_attack(staff)
-        end
-        
-        # Add Firebolt cantrip
-        firebolt = Core::Attack.new(
-          name: "Firebolt", 
-          damage_dice: Core::Dice.new(1, 10), 
-          relevant_stat: :intelligence, 
-          type: :attack # Ranged Spell Attack
-        )
-        with_attack(firebolt)
-        
+        abilities = merge_abilities(abilities)
+        @statblock = build_wizard_statblock(level, abilities)
+        add_wizard_equipment
         self
       end
 
@@ -126,10 +71,55 @@ module Dnd5e
       # @return [Character] The built character.
       # @raise [InvalidCharacterError] if the character is invalid.
       def build
-        raise InvalidCharacterError, "Character must have a name" if @name.nil? || @name.empty?
-        raise InvalidCharacterError, "Character must have a statblock" if @statblock.nil?
+        raise InvalidCharacterError, 'Character must have a name' if @name.nil? || @name.empty?
+        raise InvalidCharacterError, 'Character must have a statblock' if @statblock.nil?
 
         Core::Character.new(name: @name, statblock: @statblock, attacks: @attacks)
+      end
+
+      private
+
+      def merge_abilities(abilities)
+        { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 }.merge(abilities)
+      end
+
+      def build_fighter_statblock(level, abilities)
+        chain_mail = Core::Armor.new(name: 'Chain Mail', base_ac: 16, type: :heavy, max_dex_bonus: 0,
+                                     stealth_disadvantage: true)
+        Core::Statblock.new(
+          name: @name,
+          strength: abilities[:strength], dexterity: abilities[:dexterity], constitution: abilities[:constitution],
+          intelligence: abilities[:intelligence], wisdom: abilities[:wisdom], charisma: abilities[:charisma],
+          hit_die: 'd10', level: level, saving_throw_proficiencies: %i[strength constitution],
+          equipped_armor: chain_mail
+        )
+      end
+
+      def add_fighter_equipment
+        return if @attacks.any? { |a| a.name == 'Longsword' }
+
+        longsword = Core::Attack.new(name: 'Longsword', damage_dice: Core::Dice.new(1, 8), relevant_stat: :strength)
+        with_attack(longsword)
+      end
+
+      def build_wizard_statblock(level, abilities)
+        Core::Statblock.new(
+          name: @name,
+          strength: abilities[:strength], dexterity: abilities[:dexterity], constitution: abilities[:constitution],
+          intelligence: abilities[:intelligence], wisdom: abilities[:wisdom], charisma: abilities[:charisma],
+          hit_die: 'd6', level: level, saving_throw_proficiencies: %i[intelligence wisdom]
+        )
+      end
+
+      def add_wizard_equipment
+        unless @attacks.any? { |a| a.name == 'Quarterstaff' }
+          staff = Core::Attack.new(name: 'Quarterstaff', damage_dice: Core::Dice.new(1, 6), relevant_stat: :strength)
+          with_attack(staff)
+        end
+
+        firebolt = Core::Attack.new(name: 'Firebolt', damage_dice: Core::Dice.new(1, 10), relevant_stat: :intelligence,
+                                    type: :attack)
+        with_attack(firebolt)
       end
     end
   end

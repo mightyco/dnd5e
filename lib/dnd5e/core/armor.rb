@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 module Dnd5e
   module Core
     class Armor
       attr_reader :name, :base_ac, :type, :max_dex_bonus, :stealth_disadvantage
 
-      TYPES = [:light, :medium, :heavy, :shield]
+      TYPES = %i[light medium heavy shield].freeze
 
       # @param name [String] Name of the armor (e.g., "Chain Mail")
       # @param base_ac [Integer] Base AC value
@@ -11,8 +13,8 @@ module Dnd5e
       # @param max_dex_bonus [Integer, nil] Maximum Dex modifier to apply (nil for unlimited, 0 for none)
       # @param stealth_disadvantage [Boolean] Whether armor imposes stealth disadvantage
       def initialize(name:, base_ac:, type:, max_dex_bonus: nil, stealth_disadvantage: false)
-        raise ArgumentError, "Invalid armor type" unless TYPES.include?(type)
-        
+        raise ArgumentError, 'Invalid armor type' unless TYPES.include?(type)
+
         @name = name
         @base_ac = base_ac
         @type = type
@@ -27,10 +29,8 @@ module Dnd5e
         return @base_ac if @type == :heavy
 
         bonus = dex_modifier
-        if @max_dex_bonus
-          bonus = [dex_modifier, @max_dex_bonus].min
-        end
-        
+        bonus = [dex_modifier, @max_dex_bonus].min if @max_dex_bonus
+
         @base_ac + bonus
       end
     end

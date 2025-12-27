@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 module Dnd5e
-  require_relative "dice"
+  require_relative 'dice'
   module Core
     # Represents a team of characters or monsters in the D&D 5e system.
     class Team

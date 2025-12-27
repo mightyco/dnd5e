@@ -1,4 +1,6 @@
-require_relative "attack_resolver"
+# frozen_string_literal: true
+
+require_relative 'attack_resolver'
 
 module Dnd5e
   module Core
@@ -14,9 +16,9 @@ module Dnd5e
       # @param logger [Logger] The logger to use for logging.
       def initialize(logger: Logger.new($stdout), attack_resolver: nil)
         @logger = logger
-        if attack_resolver.nil?
-          @attack_resolver = AttackResolver.new(logger: @logger)
-        end
+        return unless attack_resolver.nil?
+
+        @attack_resolver = AttackResolver.new(logger: @logger)
       end
 
       # Performs an attack from an attacker to a defender.
@@ -26,8 +28,8 @@ module Dnd5e
       # @raise [InvalidAttackError] if the attacker or defender is dead.
       # @return [Boolean] true if the attack hits, false otherwise.
       def attack(attacker, defender)
-        raise InvalidAttackError, "Cannot attack with a dead attacker" unless attacker.statblock.is_alive?
-        raise InvalidAttackError, "Cannot attack a dead defender" unless defender.statblock.is_alive?
+        raise InvalidAttackError, 'Cannot attack with a dead attacker' unless attacker.statblock.is_alive?
+        raise InvalidAttackError, 'Cannot attack a dead defender' unless defender.statblock.is_alive?
 
         @attack_resolver.resolve(attacker, defender, attacker.attacks.first)
       end

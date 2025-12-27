@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # lib/dnd5e/core/dice.rb
 module Dnd5e
   module Core
@@ -29,8 +31,9 @@ module Dnd5e
       # @raise [InvalidDiceSidesError] if sides is not greater than 0.
       # @raise [InvalidRollsError] if rolls is not an array or contains invalid values.
       def initialize(count, sides, rolls: nil, modifier: 0)
-        raise InvalidDiceCountError, "Dice count must be greater than 0" unless count > 0
-        raise InvalidDiceSidesError, "Dice sides must be greater than 0" unless sides > 0
+        raise InvalidDiceCountError, 'Dice count must be greater than 0' unless count.positive?
+        raise InvalidDiceSidesError, 'Dice sides must be greater than 0' unless sides.positive?
+
         validate_rolls(rolls, sides) if rolls
 
         @count = count
@@ -62,7 +65,7 @@ module Dnd5e
       # @return [String] A string in the format "NdS+M" (e.g., "2d6+3").
       def to_s
         modifier_str = @modifier.positive? ? "+#{@modifier}" : @modifier.to_s
-        modifier_str = "" if @modifier == 0
+        modifier_str = '' if @modifier.zero?
         "#{@count}d#{@sides}#{modifier_str}"
       end
 
@@ -74,12 +77,10 @@ module Dnd5e
       # @param sides [Integer] The number of sides on each die.
       # @raise [InvalidRollsError] if rolls is not an array or contains invalid values.
       def validate_rolls(rolls, sides)
-        unless rolls.is_a?(Array)
-          raise InvalidRollsError, "Rolls must be an array"
-        end
-        if rolls.any? { |roll| roll < 1 || roll > sides }
-          raise InvalidRollsError, "Rolls must be between 1 and #{sides}"
-        end
+        raise InvalidRollsError, 'Rolls must be an array' unless rolls.is_a?(Array)
+        return unless rolls.any? { |roll| roll < 1 || roll > sides }
+
+        raise InvalidRollsError, "Rolls must be between 1 and #{sides}"
       end
     end
   end

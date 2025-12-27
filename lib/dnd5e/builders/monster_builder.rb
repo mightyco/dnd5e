@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Dnd5e
   module Builders
     # Builds a Monster object with a fluent interface.
@@ -39,8 +41,8 @@ module Dnd5e
       # @return [Monster] The built monster.
       # @raise [InvalidMonsterError] if the monster is invalid.
       def build
-        raise InvalidMonsterError, "Monster must have a name" if @name.nil? || @name.empty?
-        raise InvalidMonsterError, "Monster must have a statblock" if @statblock.nil?
+        raise InvalidMonsterError, 'Monster must have a name' if @name.nil? || @name.empty?
+        raise InvalidMonsterError, 'Monster must have a statblock' if @statblock.nil?
 
         Core::Monster.new(name: @name, statblock: @statblock, attacks: @attacks)
       end

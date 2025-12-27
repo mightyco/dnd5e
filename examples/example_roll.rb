@@ -1,4 +1,6 @@
-require_relative "../lib/dnd5e/core/dice"
+# frozen_string_literal: true
+
+require_relative '../lib/dnd5e/core/dice'
 
 module Dnd5e
   module Examples
@@ -9,15 +11,15 @@ module Dnd5e
         rolls = dice.roll
         puts "Rolls: #{rolls.join(', ')}"
         puts "Total: #{dice.total}"
-      
-        puts "Sampling many dice rolls of 3d6" 
+
+        puts 'Sampling many dice rolls of 3d6'
         total = 0
         dice = Core::Dice.new(3, 6)
-        10000.times do
+        10_000.times do
           dice.roll
           total += dice.total
         end
-        puts "Average: #{total/10000.0}"
+        puts "Average: #{total / 10_000.0}"
       end
     end
   end

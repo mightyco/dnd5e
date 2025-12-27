@@ -1,6 +1,8 @@
-require_relative "dice"
-require_relative "combat"
-require_relative "printing_combat_result_handler"
+# frozen_string_literal: true
+
+require_relative 'dice'
+require_relative 'combat'
+require_relative 'printing_combat_result_handler'
 require 'logger'
 
 module Dnd5e
@@ -15,7 +17,7 @@ module Dnd5e
       # @param dice_roller [DiceRoller] The dice roller to use for rolling dice.
       # @raise [ArgumentError] if the number of teams is not exactly two.
       def initialize(teams:, dice_roller: DiceRoller.new)
-        raise ArgumentError, "TeamCombat requires exactly two teams" unless teams.size == 2
+        raise ArgumentError, 'TeamCombat requires exactly two teams' unless teams.size == 2
 
         @teams = teams
         # result_handler and logger are deprecated/ignored here, handled via observers
@@ -25,10 +27,6 @@ module Dnd5e
       # Runs the combat and handles the results.
       #
       # @return [void]
-      def run_combat
-        super()
-        # Old result handling removed.
-      end
 
       # Takes a turn for a given attacker, selecting a defender from the opposing team.
       #
@@ -46,7 +44,7 @@ module Dnd5e
       #
       # @return [Boolean] true if the combat is over, false otherwise.
       def is_over?
-        @teams.any? { |team| team.all_members_defeated? }
+        @teams.any?(&:all_members_defeated?)
       end
 
       # Determines the winning team.

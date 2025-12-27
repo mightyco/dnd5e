@@ -1,11 +1,13 @@
-require_relative "../../test_helper"
-require_relative "../../../lib/dnd5e/core/combat"
-require_relative "../../../lib/dnd5e/core/dice_roller"
-require_relative "../../../lib/dnd5e/builders/character_builder"
-require_relative "../../../lib/dnd5e/builders/monster_builder"
-require_relative "../../../lib/dnd5e/core/statblock"
-require_relative "../../../lib/dnd5e/core/attack"
-require_relative "../../../lib/dnd5e/core/dice"
+# frozen_string_literal: true
+
+require_relative '../../test_helper'
+require_relative '../../../lib/dnd5e/core/combat'
+require_relative '../../../lib/dnd5e/core/dice_roller'
+require_relative '../../../lib/dnd5e/builders/character_builder'
+require_relative '../../../lib/dnd5e/builders/monster_builder'
+require_relative '../../../lib/dnd5e/core/statblock'
+require_relative '../../../lib/dnd5e/core/attack'
+require_relative '../../../lib/dnd5e/core/dice'
 require 'logger'
 
 module Dnd5e
@@ -24,26 +26,45 @@ module Dnd5e
       end
 
       def setup
-        @hero_statblock = Statblock.new(name: "Hero Statblock", strength: 16, dexterity: 10, constitution: 15, hit_die: "d10", level: 1)
-        @goblin_statblock = Statblock.new(name: "Goblin Statblock", strength: 8, dexterity: 16, constitution: 10, hit_die: "d6", level: 1)
-        @mock_dice_roller1 = MockDiceRoller.new([100, 5]) # Attack roll, Damage roll
-        @mock_dice_roller2 = MockDiceRoller.new([0, 0]) # Attack roll, Damage roll
-        @sword_attack = Attack.new(name: "Sword", damage_dice: Dice.new(1, 8), relevant_stat: :strength, dice_roller: @mock_dice_roller1)
-        @bite_attack = Attack.new(name: "Bite", damage_dice: Dice.new(1, 6), relevant_stat: :strength, dice_roller: @mock_dice_roller2)
+        create_statblocks
+        create_attacks
+        create_combatants
+        create_logger
+        create_combat
+      end
 
-        @hero = Builders::CharacterBuilder.new(name: "Hero")
+      def create_statblocks
+        @hero_statblock = Statblock.new(name: 'Hero Statblock', strength: 16, dexterity: 10, constitution: 15,
+                                        hit_die: 'd10', level: 1)
+        @goblin_statblock = Statblock.new(name: 'Goblin Statblock', strength: 8, dexterity: 16, constitution: 10,
+                                          hit_die: 'd6', level: 1)
+      end
+
+      def create_attacks
+        @mock_dice_roller1 = MockDiceRoller.new([100, 5])
+        @mock_dice_roller2 = MockDiceRoller.new([0, 0])
+        @sword_attack = Attack.new(name: 'Sword', damage_dice: Dice.new(1, 8), relevant_stat: :strength,
+                                   dice_roller: @mock_dice_roller1)
+        @bite_attack = Attack.new(name: 'Bite', damage_dice: Dice.new(1, 6), relevant_stat: :dexterity,
+                                  dice_roller: @mock_dice_roller2)
+      end
+
+      def create_combatants
+        @hero = Builders::CharacterBuilder.new(name: 'Hero')
                                           .with_statblock(@hero_statblock.deep_copy)
                                           .with_attack(@sword_attack)
                                           .build
-        @goblin = Builders::MonsterBuilder.new(name: "Goblin 1")
+        @goblin = Builders::MonsterBuilder.new(name: 'Goblin 1')
                                           .with_statblock(@goblin_statblock.deep_copy)
                                           .with_attack(@bite_attack)
                                           .build
+      end
 
+      def create_logger
         @logger = Logger.new(nil)
-        # @logger = Logger.new($stdout)
-        # @logger.level = Logger::DEBUG
+      end
 
+      def create_combat
         @observer = MockObserver.new
         @combat = Combat.new(combatants: [@hero, @goblin])
         @combat.add_observer(@observer)
@@ -59,19 +80,21 @@ module Dnd5e
       end
 
       def test_combat_ends
-        hero_statblock = Statblock.new(name: "Hero Statblock", strength: 16, dexterity: 10, constitution: 15, hit_die: "d10", level: 1)
-        goblin_statblock = Statblock.new(name: "Goblin Statblock", strength: 8, dexterity: 16, constitution: 10, hit_die: "d6", level: 1)
-        sword_attack = Attack.new(name: "Sword", damage_dice: Dice.new(1, 8), relevant_stat: :strength)
-        bite_attack = Attack.new(name: "Bite", damage_dice: Dice.new(1, 6), relevant_stat: :dexterity)
+        hero_statblock = Statblock.new(name: 'Hero Statblock', strength: 16, dexterity: 10, constitution: 15,
+                                       hit_die: 'd10', level: 1)
+        goblin_statblock = Statblock.new(name: 'Goblin Statblock', strength: 8, dexterity: 16, constitution: 10,
+                                         hit_die: 'd6', level: 1)
+        sword_attack = Attack.new(name: 'Sword', damage_dice: Dice.new(1, 8), relevant_stat: :strength)
+        bite_attack = Attack.new(name: 'Bite', damage_dice: Dice.new(1, 6), relevant_stat: :dexterity)
 
-        hero = Builders::CharacterBuilder.new(name: "Hero")
-                                          .with_statblock(hero_statblock.deep_copy)
-                                          .with_attack(sword_attack)
-                                          .build
-        goblin = Builders::MonsterBuilder.new(name: "Goblin 1")
-                                          .with_statblock(goblin_statblock.deep_copy)
-                                          .with_attack(bite_attack)
-                                          .build
+        hero = Builders::CharacterBuilder.new(name: 'Hero')
+                                         .with_statblock(hero_statblock.deep_copy)
+                                         .with_attack(sword_attack)
+                                         .build
+        goblin = Builders::MonsterBuilder.new(name: 'Goblin 1')
+                                         .with_statblock(goblin_statblock.deep_copy)
+                                         .with_attack(bite_attack)
+                                         .build
 
         combat = Combat.new(combatants: [hero, goblin])
         combat.run_combat
@@ -164,18 +187,18 @@ module Dnd5e
         setup
         # Set rolls for a hit: 15 to hit, 100 damage (lethal)
         @mock_dice_roller1.rolls = [15, 100]
-        
+
         # Kill the goblin so combat ends quickly after one attack or just let it play out?
-        # If I want to see multiple rounds, I need more dice. 
+        # If I want to see multiple rounds, I need more dice.
         # But if I just want to see events, one round is enough.
         # Let's ensure the goblin dies to make it short.
         # @goblin.statblock.hit_points = 1 # Make him weak
         # Actually statblock is deep copied, so I can just modify it.
         # But wait, character builder builds new statblocks.
         # Let's just mock dice to kill him.
-        
+
         @combat.run_combat
-        
+
         events = @observer.events.map { |e| e[:event] }
         assert_includes events, :combat_start
         # These might fail until I implement them, which is the point of TDD

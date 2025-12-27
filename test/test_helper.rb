@@ -1,14 +1,15 @@
-require "minitest/autorun"
-require_relative "../lib/dnd5e/core/dice"
-require_relative "../lib/dnd5e/core/statblock"
-require_relative "../lib/dnd5e/core/character"
-require_relative "../lib/dnd5e/core/monster"
-require_relative "../lib/dnd5e/core/attack"
-require_relative "../lib/dnd5e/core/dice_roller"
-require_relative "../lib/dnd5e/core/combat_attack_handler"
-require_relative "../lib/dnd5e/core/combat_result_handler"
-require_relative "../lib/dnd5e/core/printing_combat_result_handler"
-require_relative "../lib/dnd5e/core/attack_resolver"
-require_relative "../lib/dnd5e/builders/character_builder"
-require_relative "../lib/dnd5e/builders/monster_builder"
+# frozen_string_literal: true
 
+require 'minitest/autorun'
+require_relative '../lib/dnd5e/core/dice'
+require_relative '../lib/dnd5e/core/statblock'
+require_relative '../lib/dnd5e/core/character'
+require_relative '../lib/dnd5e/core/monster'
+require_relative '../lib/dnd5e/core/attack'
+require_relative '../lib/dnd5e/core/dice_roller'
+require_relative '../lib/dnd5e/core/combat_attack_handler'
+require_relative '../lib/dnd5e/core/combat_result_handler'
+require_relative '../lib/dnd5e/core/printing_combat_result_handler'
+require_relative '../lib/dnd5e/core/attack_resolver'
+require_relative '../lib/dnd5e/builders/character_builder'
+require_relative '../lib/dnd5e/builders/monster_builder'

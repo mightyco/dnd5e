@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Dnd5e
   module Builders
     # Builds a Team object with a fluent interface.
@@ -29,8 +31,8 @@ module Dnd5e
       # @return [Team] The built team.
       # @raise [InvalidTeamError] if the team is invalid.
       def build
-        raise InvalidTeamError, "Team must have a name" if @name.nil? || @name.empty?
-        raise InvalidTeamError, "Team must have at least one member" if @members.empty?
+        raise InvalidTeamError, 'Team must have a name' if @name.nil? || @name.empty?
+        raise InvalidTeamError, 'Team must have at least one member' if @members.empty?
 
         Core::Team.new(name: @name, members: @members)
       end
