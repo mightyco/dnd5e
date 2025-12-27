@@ -35,4 +35,3 @@ If you want to win a duel in this simulator:
 1.  **Wear Plate Armor**.
 2.  **Use a Greatsword**.
 3.  **Survive Round 1**.
-
