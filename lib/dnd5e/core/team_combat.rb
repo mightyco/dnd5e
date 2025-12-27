@@ -43,9 +43,11 @@ module Dnd5e
       # Checks if the combat is over.
       #
       # @return [Boolean] true if the combat is over, false otherwise.
-      def is_over?
+      def over?
         @teams.any?(&:all_members_defeated?)
       end
+
+      alias is_over? over?
 
       # Determines the winning team.
       #
