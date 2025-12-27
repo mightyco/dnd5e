@@ -75,9 +75,6 @@ module Dnd5e
 
         false
       end
-      
-      # Deprecated alias for backward compatibility
-      alias is_over? over?
 
       # Determines the winner of the combat.
       #

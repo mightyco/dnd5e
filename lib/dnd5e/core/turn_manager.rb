@@ -51,6 +51,7 @@ module Dnd5e
           sort_by_initiative
         end
 
+        # Return current, then increment (Round Robin)
         combatant = @turn_order[@current_turn_index]
         @current_turn_index = (@current_turn_index + 1) % @turn_order.size
         combatant

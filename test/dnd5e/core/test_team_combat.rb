@@ -68,10 +68,10 @@ module Dnd5e
 
       def test_is_over
         combat = TeamCombat.new(teams: [@heroes, @goblins], dice_roller: @mock_dice_roller)
-        refute combat.is_over?
+        refute combat.over?
         @goblin1.statblock.take_damage(@goblin1.statblock.hit_points)
         @goblin2.statblock.take_damage(@goblin2.statblock.hit_points)
-        assert combat.is_over?
+        assert combat.over?
       end
 
       def test_winner
@@ -128,7 +128,7 @@ module Dnd5e
           # Pass the initiative_roller to TeamCombat
           combat = TeamCombat.new(teams: [heroes, goblins], dice_roller: initiative_roller)
           combat.run_combat
-          assert combat.is_over?
+          assert combat.over?
           assert_equal heroes, combat.winner, 'Heroes that always hit should always win'
         end
       end

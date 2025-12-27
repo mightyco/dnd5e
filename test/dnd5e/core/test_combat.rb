@@ -98,14 +98,14 @@ module Dnd5e
 
         combat = Combat.new(combatants: [hero, goblin])
         combat.run_combat
-        assert combat.is_over?
+        assert combat.over?
         assert combat.winner
       end
 
       def test_is_over
-        refute @combat.is_over?
+        refute @combat.over?
         @goblin.statblock.take_damage(1000)
-        assert @combat.is_over?
+        assert @combat.over?
       end
 
       def test_winner
@@ -122,7 +122,7 @@ module Dnd5e
         @combat.run_combat
 
         # Check that the combat is over
-        assert @combat.is_over?
+        assert @combat.over?
         assert_equal @hero, @combat.winner
       end
 
@@ -135,7 +135,7 @@ module Dnd5e
         @combat.run_combat
 
         # Check that the combat is over
-        assert @combat.is_over?
+        assert @combat.over?
         assert_equal @goblin, @combat.winner
       end
 
@@ -148,7 +148,7 @@ module Dnd5e
         @combat.run_combat
 
         # Check that the combat is over
-        assert @combat.is_over?
+        assert @combat.over?
         assert_equal @hero, @combat.winner
       end
 
@@ -158,7 +158,7 @@ module Dnd5e
         # Set up dice rolls to always miss, and do 0 damage
         mock_dice_roller = MockDiceRoller.new([0, 0, 0, 0, 0, 0, 0, 0])
         combat.dice_roller = mock_dice_roller
-        refute combat.is_over?
+        refute combat.over?
         assert_raises(CombatTimeoutError) do
           combat.run_combat
         end
@@ -176,7 +176,7 @@ module Dnd5e
         @combat.run_combat
 
         # Check that combat is over
-        assert @combat.is_over?
+        assert @combat.over?
         assert_raises(InvalidWinnerError) do
           @combat.winner
         end

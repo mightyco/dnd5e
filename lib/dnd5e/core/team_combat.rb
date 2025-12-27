@@ -47,8 +47,6 @@ module Dnd5e
         @teams.any?(&:all_members_defeated?)
       end
 
-      alias is_over? over?
-
       # Determines the winning team.
       #
       # @return [Team] The winning team.
