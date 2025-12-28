@@ -7,17 +7,24 @@ require_relative '../lib/dnd5e/core/attack'
 require_relative '../lib/dnd5e/core/statblock'
 require_relative '../lib/dnd5e/core/dice'
 
-# Helper to run a quick scenario
 def run_scenario(name, attacker, defender, options = {})
   puts "\n--- #{name} ---"
-  print_combatants(attacker, defender)
-
   result = Dnd5e::Core::Combat.new(combatants: [attacker, defender]).attack(attacker, defender, **options)
 
   print_result_details(result, attacker, options)
   print_result_outcome(result, defender)
 
   defender.statblock.hit_points = 50
+end
+
+def print_result_details(result, attacker, options)
+  mod = attacker.statblock.ability_modifier(:strength)
+  mod -= 5 if options[:great_weapon_master]
+  # Assuming attack_roll is final total. We reverse engineer for now as AttackResult doesn't store raw dice yet.
+  raw = result.attack_roll - mod
+
+  puts "Hero attacks and #{result.success ? 'hits' : 'misses'} (rolled a #{raw} + #{mod}: #{result.attack_roll}) " \
+       "vs AC #{result.target_ac}"
 end
 
 def print_result_outcome(result, defender)
@@ -29,17 +36,6 @@ def print_result_outcome(result, defender)
   end
 end
 
-def print_result_details(result, attacker, options)
-  modifier = attacker.statblock.ability_modifier(:strength)
-  modifier -= 5 if options[:great_weapon_master]
-  puts "Attack Roll: #{result.attack_roll} (includes modifier: #{modifier}) vs AC #{result.target_ac}"
-end
-
-def print_combatants(attacker, defender)
-  puts "Attacker: #{attacker.name} (Mod: #{attacker.statblock.ability_modifier(:strength)})"
-  puts "Defender: #{defender.name} (AC: #{defender.statblock.armor_class}, HP: #{defender.statblock.hit_points})"
-end
-
 puts '=== Advanced Mechanics Example ==='
 
 # Setup
@@ -48,11 +44,14 @@ defender_stats = Dnd5e::Core::Statblock.new(name: 'Villain', armor_class: 15, hi
 attacker = Dnd5e::Core::Character.new(name: 'Hero', statblock: attacker_stats)
 defender = Dnd5e::Core::Character.new(name: 'Villain', statblock: defender_stats)
 
+puts "Attacker: #{attacker.name} (Mod: +3)"
+puts "Defender: #{defender.name} (AC: 15, HP: 50)"
+
 # Give attacker a Greatsword (2d6)
 damage_dice = Dnd5e::Core::Dice.new(2, 6, modifier: 3) # +3 Str
 attacker.attacks << Dnd5e::Core::Attack.new(
   name: 'Greatsword',
-  hit_bonus: 3, # Proficiency(2) + Str(3) = +5 (Wait, auto-calc not fully there yet, manual for now)
+  hit_bonus: 3,
   damage_dice: damage_dice
 )
 
@@ -66,19 +65,17 @@ run_scenario('Attack with Advantage', attacker, defender, advantage: true)
 run_scenario('Attack with Disadvantage', attacker, defender, disadvantage: true)
 
 # 4. Great Weapon Master (-5 Hit, +10 Dmg)
-# Note: With +3 mod vs AC 15, normal need 12+. With GWM, need 17+.
 puts "\n--- Great Weapon Master Attack (-5/+10) ---"
-puts 'Attempting a power attack...'
 result = Dnd5e::Core::Combat.new(combatants: [attacker, defender]).attack(
   attacker, defender, great_weapon_master: true
 )
-puts "Attack Roll: #{result.attack_roll} vs AC #{result.target_ac}"
-puts result.success ? "Result: SMASH! Damage: #{result.damage} (+10 applied)" : 'Result: Missed (due to -5 penalty?)'
-puts "Defender HP remaining: #{defender.statblock.hit_points}"
+print_result_details(result, attacker, { great_weapon_master: true })
+print_result_outcome(result, defender)
+defender.statblock.hit_points = 50
 
-# 5. Critical Hit Simulation (Force a crit via mock)
+# 5. Critical Hit Simulation
 puts "\n--- Forced Critical Hit ---"
-mock_roller = Dnd5e::Core::MockDiceRoller.new([20, 10]) # 20 (Crit), 10 (Damage)
+mock_roller = Dnd5e::Core::MockDiceRoller.new([20, 10])
 crit_attacker = Dnd5e::Core::Character.new(name: 'CritHero', statblock: attacker_stats.deep_copy)
 crit_attacker.attacks << Dnd5e::Core::Attack.new(
   name: 'Greatsword',
@@ -87,7 +84,7 @@ crit_attacker.attacks << Dnd5e::Core::Attack.new(
 )
 
 combat = Dnd5e::Core::Combat.new(combatants: [crit_attacker, defender], dice_roller: mock_roller)
-combat.attack(crit_attacker, defender)
-puts 'Rolled a Natural 20!'
-puts "Defender HP remaining: #{defender.statblock.hit_points}"
-puts '(Note: Damage should be higher than normal max due to doubled dice)'
+res = combat.attack(crit_attacker, defender)
+print_result_details(res, crit_attacker, {})
+print_result_outcome(res, defender)
+puts '(Note: Damage doubled dice + mod)'
