@@ -22,6 +22,7 @@ module Dnd5e
         @name = name
         @statblock = nil
         @attacks = []
+        @spells = []
       end
 
       # Sets the statblock for the character.
@@ -39,6 +40,15 @@ module Dnd5e
       # @return [CharacterBuilder] The CharacterBuilder instance.
       def with_attack(attack)
         @attacks << attack
+        self
+      end
+
+      # Adds a spell to the character.
+      #
+      # @param spell [Spell] The spell to add.
+      # @return [CharacterBuilder] The CharacterBuilder instance.
+      def with_spell(spell)
+        @spells << spell
         self
       end
 
@@ -74,7 +84,7 @@ module Dnd5e
         raise InvalidCharacterError, 'Character must have a name' if @name.nil? || @name.empty?
         raise InvalidCharacterError, 'Character must have a statblock' if @statblock.nil?
 
-        Core::Character.new(name: @name, statblock: @statblock, attacks: @attacks)
+        Core::Character.new(name: @name, statblock: @statblock, attacks: @attacks, spells: @spells)
       end
 
       private
