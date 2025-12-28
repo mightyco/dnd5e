@@ -12,16 +12,27 @@ def run_scenario(name, attacker, defender, options = {})
   puts "\n--- #{name} ---"
   print_combatants(attacker, defender)
 
-  hit = Dnd5e::Core::Combat.new(combatants: [attacker, defender]).attack(attacker, defender, **options)
+  result = Dnd5e::Core::Combat.new(combatants: [attacker, defender]).attack(attacker, defender, **options)
 
-  if hit
-    puts 'Result: HIT!'
+  print_result_details(result, attacker, options)
+  print_result_outcome(result, defender)
+
+  defender.statblock.hit_points = 50
+end
+
+def print_result_outcome(result, defender)
+  if result.success
+    puts "Result: HIT! Damage: #{result.damage}"
     puts "Defender HP remaining: #{defender.statblock.hit_points}"
   else
     puts 'Result: MISS!'
   end
+end
 
-  defender.statblock.hit_points = 50
+def print_result_details(result, attacker, options)
+  modifier = attacker.statblock.ability_modifier(:strength)
+  modifier -= 5 if options[:great_weapon_master]
+  puts "Attack Roll: #{result.attack_roll} (includes modifier: #{modifier}) vs AC #{result.target_ac}"
 end
 
 def print_combatants(attacker, defender)
@@ -58,10 +69,11 @@ run_scenario('Attack with Disadvantage', attacker, defender, disadvantage: true)
 # Note: With +3 mod vs AC 15, normal need 12+. With GWM, need 17+.
 puts "\n--- Great Weapon Master Attack (-5/+10) ---"
 puts 'Attempting a power attack...'
-hit = Dnd5e::Core::Combat.new(combatants: [attacker, defender]).attack(
+result = Dnd5e::Core::Combat.new(combatants: [attacker, defender]).attack(
   attacker, defender, great_weapon_master: true
 )
-puts hit ? 'Result: SMASH! (+10 damage applied)' : 'Result: Missed (due to -5 penalty?)'
+puts "Attack Roll: #{result.attack_roll} vs AC #{result.target_ac}"
+puts result.success ? "Result: SMASH! Damage: #{result.damage} (+10 applied)" : 'Result: Missed (due to -5 penalty?)'
 puts "Defender HP remaining: #{defender.statblock.hit_points}"
 
 # 5. Critical Hit Simulation (Force a crit via mock)
