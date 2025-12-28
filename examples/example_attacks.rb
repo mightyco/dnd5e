@@ -1,71 +1,41 @@
 # frozen_string_literal: true
 
+require_relative '../lib/dnd5e/core/combat'
 require_relative '../lib/dnd5e/core/attack'
 require_relative '../lib/dnd5e/core/character'
 require_relative '../lib/dnd5e/core/monster'
 require_relative '../lib/dnd5e/core/statblock'
 require_relative '../lib/dnd5e/core/dice'
-require_relative '../lib/dnd5e/core/dice_roller'
+require_relative '../lib/dnd5e/core/combat_logger'
 require_relative '../lib/dnd5e/core/attack_resolver'
 require 'logger'
 
-module Dnd5e
-  module Examples
-    # Demonstrates creating characters and monsters with attacks, and resolving an attack.
-    class AttacksExample
-      class << self
-        def run
-          setup
-          resolve_attack
-        end
+puts '=== Attack Mechanics Example ==='
 
-        private
+# Setup
+logger = Logger.new($stdout)
+logger.formatter = proc { |_sev, _dt, _prog, msg| "#{msg}\n" }
+combat_logger = Dnd5e::Core::CombatLogger.new(logger)
 
-        def setup
-          setup_services
-          setup_combatants
-        end
+# Hero Setup
+hero_stats = Dnd5e::Core::Statblock.new(name: 'Hero', strength: 16, level: 3)
+hero = Dnd5e::Core::Character.new(name: 'Aragorn', statblock: hero_stats)
+hero.attacks << Dnd5e::Core::Attack.new(name: 'Longsword', damage_dice: Dnd5e::Core::Dice.new(1, 8),
+                                        relevant_stat: :strength)
 
-        def setup_services
-          @logger = Logger.new($stdout)
-          @logger.formatter = proc { |_sev, _dt, _prog, msg| "#{msg}\n" }
-          @dice_roller = Core::DiceRoller.new
-          @attack_resolver = Core::AttackResolver.new(logger: @logger)
-        end
+# Goblin Setup
+goblin_stats = Dnd5e::Core::Statblock.new(name: 'Goblin', strength: 8, dexterity: 14, hit_points: 7)
+goblin = Dnd5e::Core::Monster.new(name: 'Goblin', statblock: goblin_stats)
 
-        def setup_combatants
-          @hero = create_hero
-          @goblin = create_goblin
-        end
+# Resolve Attack
+puts "\n--- Scenario: Resolving a single attack ---"
+Dnd5e::Core::AttackResolver.new
+# To use CombatLogger, we need to wire it up or mock the event.
+# CombatLogger listens to Combat, not AttackResolver directly in current architecture.
+# But for this example, let's use Combat to drive it properly.
 
-        def create_hero
-          statblock = Core::Statblock.new(name: 'Hero', strength: 16, level: 3)
-          attacks = [
-            create_attack('Longsword', 1, 8, :strength),
-            create_attack('Greatsword', 2, 6, :strength)
-          ]
-          Core::Character.new(name: 'Aragorn', statblock: statblock, attacks: attacks)
-        end
+combat = Dnd5e::Core::Combat.new(combatants: [hero, goblin])
+combat.add_observer(combat_logger)
 
-        def create_goblin
-          statblock = Core::Statblock.new(name: 'Goblin Stats', strength: 8, dexterity: 14, constitution: 10,
-                                          hit_die: 'd6', level: 1)
-          attack = create_attack('Scimitar Slash', 1, 6, :dexterity)
-          Core::Monster.new(name: 'Goblin', statblock: statblock, attacks: [attack])
-        end
-
-        def create_attack(name, dice_count, dice_sides, stat)
-          Core::Attack.new(name: name, damage_dice: Core::Dice.new(dice_count, dice_sides),
-                           relevant_stat: stat, dice_roller: @dice_roller)
-        end
-
-        def resolve_attack
-          @logger.info "Resolving attack between #{@hero.name} and #{@goblin.name}"
-          @attack_resolver.resolve(@hero, @goblin, @hero.attacks.sample)
-        end
-      end
-    end
-  end
-end
-
-Dnd5e::Examples::AttacksExample.run
+# Force an attack
+combat.attack(hero, goblin)
