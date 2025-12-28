@@ -22,7 +22,7 @@ require_relative '../lib/dnd5e/experiments/experiment'
 # We iterate through team sizes manually since Experiment class handles one main independent variable easily.
 [1, 5, 10].each do |team_size|
   puts "\n=== Experiment: Team Size #{team_size} ==="
-  
+
   experiment = Dnd5e::Experiments::Experiment.new(name: "Initiative Impact (Team Size #{team_size})")
                                              .simulations_per_step(500)
                                              .independent_variable(:level, values: [1, 5, 10])

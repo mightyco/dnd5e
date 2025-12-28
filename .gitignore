@@ -62,3 +62,4 @@ build-iPhoneSimulator/
 # Local gem storage
 /vendor/bundle/
 
+data/

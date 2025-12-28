@@ -6,7 +6,7 @@ module Dnd5e
     class Statblock
       attr_reader :name, :hit_die, :level
       attr_accessor :strength, :dexterity, :constitution, :intelligence, :wisdom, :charisma, :hit_points,
-                    :saving_throw_proficiencies, :equipped_armor, :equipped_shield
+                    :saving_throw_proficiencies, :equipped_armor, :equipped_shield, :conditions
 
       DEFAULT_STATS = {
         strength: 10, dexterity: 10, constitution: 10,
@@ -162,6 +162,7 @@ module Dnd5e
         @saving_throw_proficiencies = options[:saving_throw_proficiencies] || []
         @equipped_armor = options[:equipped_armor]
         @equipped_shield = options[:equipped_shield]
+        @conditions = options[:conditions] || []
       end
 
       def calculate_base_ac

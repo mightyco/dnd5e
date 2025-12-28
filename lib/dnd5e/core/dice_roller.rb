@@ -8,6 +8,8 @@ module Dnd5e
 
     # Handles parsing and rolling of dice notation (e.g., "1d20+5").
     class DiceRoller
+      attr_reader :dice
+
       def roll(dice_notation)
         # roll("1d20")
         num_dice, sides, modifier = parse_dice_notation(dice_notation)
@@ -65,25 +67,68 @@ module Dnd5e
 
     # A dice roller that returns predetermined values for testing.
     class MockDiceRoller < DiceRoller
-      attr_accessor :rolls
+      attr_accessor :rolls, :calls, :last_dice_params
       attr_writer :index
 
       def initialize(rolls)
         super()
         @rolls = rolls
         @index = 0
+        @calls = []
+        @last_dice_params = []
       end
 
       def roll(*_args)
-        result = @rolls[@index]
-        @index += 1
-        result.nil? ? 0 : result
+        @calls << :roll
+        next_result
       end
 
-      alias roll_with_sides roll
-      alias roll_with_dice roll
-      alias roll_with_advantage roll
-      alias roll_with_disadvantage roll
+      def roll_with_sides(*_args)
+        @calls << :roll_with_sides
+        next_result
+      end
+
+      def roll_with_dice(dice)
+        @dice = dice
+        @calls << :roll_with_dice
+        @last_dice_params << dice
+        next_result
+      end
+
+      def roll_with_advantage(sides, modifier: 0)
+        # Simulate creating dice to track it
+        @dice = Dice.new(2, sides, modifier: modifier)
+        @calls << :roll_with_advantage
+        next_result
+      end
+
+      def roll_with_disadvantage(sides, modifier: 0)
+        # Simulate creating dice to track it
+        @dice = Dice.new(2, sides, modifier: modifier)
+        @calls << :roll_with_disadvantage
+        next_result
+      end
+
+      private
+
+      def next_result
+        result = @rolls[@index]
+        @index += 1
+        val = result.nil? ? 0 : result
+
+        # Ensure the dice object knows about this roll
+        # This is critical for checks like `dice.rolls.include?(20)`
+        if @dice
+          # We need to hack the dice object to think it rolled this value
+          # Dice#roll usually clears and sets @rolls.
+          # Here we just append if we are mocking a sequence?
+          # Or replace? Dice stores history of one roll action.
+          @dice.instance_variable_set(:@rolls, [val])
+          @dice.instance_variable_set(:@total, val + @dice.modifier)
+        end
+
+        val
+      end
     end
   end
 end

@@ -9,18 +9,20 @@ module Dnd5e
     # A character has a name, a statblock, and a list of attacks.
     class Character
       attr_reader :name, :statblock
-      attr_accessor :team, :attacks
+      attr_accessor :team, :attacks, :spells
 
       # Initializes a new Character.
       #
       # @param name [String] The name of the character.
       # @param statblock [Statblock] The character's statblock.
       # @param attacks [Array<Attack>] The character's attacks.
+      # @param spells [Array<Spell>] The character's known/prepared spells.
       # @param team [Object, nil] The team the character belongs to.
-      def initialize(name:, statblock:, attacks: [], team: nil)
+      def initialize(name:, statblock:, attacks: [], spells: [], team: nil)
         @name = name
         @statblock = statblock
         @attacks = attacks
+        @spells = spells
         @team = team
       end
     end
