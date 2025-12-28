@@ -30,7 +30,7 @@ module Dnd5e
       # @param path [String] Path to file or directory.
       def ingest(path)
         paths = path.is_a?(Array) ? path : [path]
-        
+
         paths.each do |p|
           files = File.directory?(p) ? Dir.glob("#{p}/*.txt") : [p]
           files.each do |file|

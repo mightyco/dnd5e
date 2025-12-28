@@ -8,11 +8,11 @@ namespace :rules do
   desc 'Ingest rules from text files and build the JSON cache'
   task :build do
     puts 'Building rules cache...'
-    
+
     ingestor = Dnd5e::Ingest::RuleIngestor.new
     # Ingest from the standard reference directory and SRD
-    rules = ingestor.ingest(['rules_reference', 'srd_reference'])
-    
+    rules = ingestor.ingest(%w[rules_reference srd_reference])
+
     # Serialize rules to simple hash structure
     # This requires our model objects to be serializable or we map them manually here
     serializable_rules = {

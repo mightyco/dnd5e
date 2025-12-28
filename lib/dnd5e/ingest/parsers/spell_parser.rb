@@ -25,6 +25,9 @@ module Dnd5e
           (?=^[A-Z][a-zA-Z\s']+$|\Z)
         /xmsu
 
+        # Regex to find damage dice in description (e.g., "8d6", "1d4 + 1")
+        DAMAGE_DICE_REGEX = /(\d+d\d+(?:\s*[+-]\s*\d+)?)/
+
         def parse(content)
           spells = []
           content = prepare_content(content)
@@ -46,14 +49,24 @@ module Dnd5e
 
         def build_spell(match_data)
           level, school = parse_level_school(match_data[:level_school].strip)
+          description = match_data[:description].strip
+          damage = parse_damage(description)
 
-          attributes = {
+          create_spell_from_match(match_data, level, school, description, damage)
+        end
+
+        def create_spell_from_match(match_data, level, school, description, damage)
+          Dnd5e::Core::Spell.new(
             name: match_data[:name].strip, level: level, school: school,
             casting_time: match_data[:time].strip, range: match_data[:range].strip,
             components: match_data[:components].strip, duration: match_data[:duration].strip,
-            description: match_data[:description].strip
-          }
-          Dnd5e::Core::Spell.new(**attributes)
+            description: description, damage_dice_string: damage
+          )
+        end
+
+        def parse_damage(description)
+          damage_match = description.match(DAMAGE_DICE_REGEX)
+          damage_match ? damage_match[1].gsub(/\s+/, '') : nil
         end
 
         def parse_level_school(text)

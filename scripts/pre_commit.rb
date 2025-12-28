@@ -3,30 +3,31 @@
 
 require 'open3'
 
-def run_check(name, command)
+def run_check?(name, command)
   puts "Running #{name}..."
   stdout, stderr, status = Open3.capture3(command)
-  
-  if status.success?
-    puts "#{name} passed."
-    true
-  else
-    puts "#{name} failed!"
-    puts stdout
-    puts stderr
-    false
-  end
+
+  return true if status.success?
+
+  log_failure(name, stdout, stderr)
+  false
 end
 
-puts "Running pre-commit checks..."
+def log_failure(name, stdout, stderr)
+  puts "#{name} failed!"
+  puts stdout
+  puts stderr
+end
 
-lint_passed = run_check("RuboCop", "bundle exec rubocop")
-tests_passed = run_check("Tests", "bundle exec rake test")
+puts 'Running pre-commit checks...'
+
+lint_passed = run_check?('RuboCop', 'bundle exec rubocop')
+tests_passed = run_check?('Tests', 'bundle exec rake test')
 
 if lint_passed && tests_passed
-  puts "All checks passed!"
+  puts 'All checks passed!'
   exit 0
 else
-  puts "Checks failed. Commit aborted."
+  puts 'Checks failed. Commit aborted.'
   exit 1
 end

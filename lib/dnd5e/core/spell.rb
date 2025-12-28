@@ -4,7 +4,8 @@ module Dnd5e
   module Core
     # Represents a spell in D&D 5e.
     class Spell
-      attr_reader :name, :level, :school, :casting_time, :range, :components, :duration, :description
+      attr_reader :name, :level, :school, :casting_time, :range, :components, :duration, :description,
+                  :damage_dice_string
 
       def initialize(**attributes)
         @name = attributes.fetch(:name)
@@ -15,6 +16,7 @@ module Dnd5e
         @components = attributes.fetch(:components)
         @duration = attributes.fetch(:duration)
         @description = attributes.fetch(:description)
+        @damage_dice_string = attributes[:damage_dice_string]
       end
     end
   end
