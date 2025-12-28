@@ -55,18 +55,12 @@ module Dnd5e
       # @return [Combatant, nil] The defender if the defender is alive, nil otherwise.
       def take_turn(attacker)
         notify_observers(:turn_start, combatant: attacker)
-        defender = find_valid_defender(attacker)
-        if defender.nil?
-          # logger.info "No valid targets for #{attacker.name}, skipping turn" # Deprecated
-          return false
-        end
 
-        begin
-          attack(attacker, defender)
-        rescue InvalidAttackError
-          # logger.info "Skipping turn: #{e.message}" # Deprecated
+        if attacker.respond_to?(:strategy)
+          attacker.strategy.execute_turn(attacker, self)
+        else
+          execute_legacy_turn(attacker)
         end
-        defender.statblock.alive? ? defender : nil
       end
 
       # Checks if the combat is over.
@@ -160,6 +154,17 @@ module Dnd5e
       # @return [Combatant, nil] A valid defender if one exists, nil otherwise.
       def find_valid_defender(attacker)
         (combatants - [attacker]).find { |c| c.statblock.alive? }
+      end
+
+      def execute_legacy_turn(attacker)
+        defender = find_valid_defender(attacker)
+        return false if defender.nil?
+
+        begin
+          attack(attacker, defender)
+        rescue InvalidAttackError
+          # logger.info "Skipping turn: #{e.message}" # Deprecated
+        end
       end
     end
   end

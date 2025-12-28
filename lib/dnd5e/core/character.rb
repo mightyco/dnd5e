@@ -3,6 +3,7 @@
 require_relative 'statblock'
 require_relative 'attack'
 require_relative 'turn_context'
+require_relative 'strategies/simple_strategy'
 
 module Dnd5e
   module Core
@@ -10,7 +11,7 @@ module Dnd5e
     # A character has a name, a statblock, and a list of attacks.
     class Character
       attr_reader :name, :statblock, :turn_context
-      attr_accessor :team, :attacks, :spells
+      attr_accessor :team, :attacks, :spells, :strategy
 
       # Initializes a new Character.
       #
@@ -19,13 +20,16 @@ module Dnd5e
       # @param attacks [Array<Attack>] The character's attacks.
       # @param spells [Array<Spell>] The character's known/prepared spells.
       # @param team [Object, nil] The team the character belongs to.
-      def initialize(name:, statblock:, attacks: [], spells: [], team: nil)
+      # @param strategy [Strategy] The strategy to use for combat (default: SimpleStrategy).
+      # @param options [Hash] Additional options (attacks, spells, team).
+      def initialize(name:, statblock:, strategy: Strategies::SimpleStrategy.new, **options)
         @name = name
         @statblock = statblock
-        @attacks = attacks
-        @spells = spells
-        @team = team
+        @attacks = options[:attacks] || []
+        @spells = options[:spells] || []
+        @team = options[:team]
         @turn_context = TurnContext.new
+        @strategy = strategy
       end
 
       # Prepares the character for the start of their turn.
