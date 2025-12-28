@@ -36,7 +36,7 @@ module Dnd5e
       def resolve_attack_roll(attacker, defender, attack, options)
         return handle_missing_ac(attacker, defender, attack) if defender.statblock.armor_class.nil?
 
-        attack_roll = Helpers::AttackRollHelper.roll_attack(attacker, attack, options)
+        attack_roll = Helpers::AttackRollHelper.roll_attack(attacker, defender, attack, options)
         target_ac = defender.statblock.armor_class
         is_crit = Helpers::AttackRollHelper.critical_hit?(attack, options)
         success = attack_roll >= target_ac || is_crit

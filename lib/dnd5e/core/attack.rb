@@ -8,7 +8,7 @@ module Dnd5e
     # Represents an attack action available to a combatant.
     class Attack
       attr_reader :name, :damage_dice, :relevant_stat, :dice_roller, :type, :save_ability, :half_damage_on_save,
-                  :fixed_dc, :dc_stat
+                  :fixed_dc, :dc_stat, :range
 
       # Initializes a new Attack.
       #
@@ -21,6 +21,7 @@ module Dnd5e
       # @param half_damage_on_save [Boolean] Whether half damage is dealt on a successful save.
       # @param fixed_dc [Integer, nil] A fixed DC for the save (optional).
       # @param dc_stat [Symbol] The stat used to calculate DC if not fixed (default: same as relevant_stat).
+      # @param range [Integer] The range of the attack in feet (default: 5).
       def initialize(name:, damage_dice:, relevant_stat: :strength, dice_roller: DiceRoller.new, **options)
         @name = name
         @damage_dice = damage_dice
@@ -31,6 +32,7 @@ module Dnd5e
         @half_damage_on_save = options[:half_damage_on_save] || false
         @fixed_dc = options[:fixed_dc]
         @dc_stat = options[:dc_stat] || relevant_stat
+        @range = options[:range] || 5
       end
     end
   end
