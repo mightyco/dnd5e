@@ -92,4 +92,3 @@ See `STRATEGY.md` for detailed mechanics implementation status.
 *   Provide a record and replay capability with exemplars
 *   Provide the ability to rate concepts against many simulation runs
 *   Provide a UI to allow others to use the concepts
-
