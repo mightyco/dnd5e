@@ -29,12 +29,15 @@ module Dnd5e
       # Ingests rules from a file or directory.
       # @param path [String] Path to file or directory.
       def ingest(path)
-        files = File.directory?(path) ? Dir.glob("#{path}/*.txt") : [path]
-
-        files.each do |file|
-          # Enforce UTF-8 encoding
-          content = File.read(file, encoding: 'UTF-8')
-          process_content(content)
+        paths = path.is_a?(Array) ? path : [path]
+        
+        paths.each do |p|
+          files = File.directory?(p) ? Dir.glob("#{p}/*.txt") : [p]
+          files.each do |file|
+            # Enforce UTF-8 encoding
+            content = File.read(file, encoding: 'UTF-8')
+            process_content(content)
+          end
         end
         @rules
       end
