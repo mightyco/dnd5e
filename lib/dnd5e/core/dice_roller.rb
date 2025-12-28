@@ -6,6 +6,7 @@ module Dnd5e
   module Core
     class InvalidDiceNotationError < StandardError; end
 
+    # Handles parsing and rolling of dice notation (e.g., "1d20+5").
     class DiceRoller
       def roll(dice_notation)
         # roll("1d20")
@@ -51,18 +52,24 @@ module Dnd5e
         sides = match_data[2].to_i
         modifier = match_data[3].nil? ? 0 : match_data[3].to_i
 
-        raise InvalidDiceNotationError, 'Number of dice must be greater than 0' unless num_dice.positive?
-        raise InvalidDiceNotationError, 'Number of sides must be greater than 0' unless sides.positive?
+        validate_dice_params(num_dice, sides)
 
         [num_dice, sides, modifier]
       end
+
+      def validate_dice_params(num_dice, sides)
+        raise InvalidDiceNotationError, 'Number of dice must be greater than 0' unless num_dice.positive?
+        raise InvalidDiceNotationError, 'Number of sides must be greater than 0' unless sides.positive?
+      end
     end
 
+    # A dice roller that returns predetermined values for testing.
     class MockDiceRoller < DiceRoller
       attr_accessor :rolls
       attr_writer :index
 
       def initialize(rolls)
+        super()
         @rolls = rolls
         @index = 0
       end

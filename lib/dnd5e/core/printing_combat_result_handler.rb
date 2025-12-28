@@ -5,6 +5,7 @@ require 'logger'
 
 module Dnd5e
   module Core
+    # Handles reporting combat results to a logger in a human-readable format.
     class PrintingCombatResultHandler < CombatResultHandler
       attr_reader :logger
 

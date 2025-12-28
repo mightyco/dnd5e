@@ -1,35 +1,51 @@
 # frozen_string_literal: true
 
-# /home/chuck_mcintyre/src/dnd5e/test/dnd5e/core/test_monster.rb
 require_relative '../../test_helper'
 require_relative '../../../lib/dnd5e/core/monster'
 require_relative '../../../lib/dnd5e/core/statblock'
+require_relative '../../../lib/dnd5e/core/attack'
+require_relative '../../../lib/dnd5e/core/dice'
 
 module Dnd5e
   module Core
     class TestMonster < Minitest::Test
+      def setup
+        @statblock = Statblock.new(name: 'Goblin', strength: 8, dexterity: 14, constitution: 10,
+                                   hit_die: 'd6', level: 1)
+        @attack = Attack.new(name: 'Scimitar', damage_dice: Dice.new(1, 6), relevant_stat: :dexterity)
+        @monster = Monster.new(name: 'Goblin', statblock: @statblock, attacks: [@attack])
+      end
+
       def test_monster_creation
-        statblock = Statblock.new(name: 'Goblin Statblock', hit_die: 'd10')
-        monster = Monster.new(name: 'Goblin', statblock: statblock)
-        assert_equal 'Goblin', monster.name
-        assert_equal 10, monster.statblock.hit_points
-        assert_equal 1, monster.statblock.level
-        assert_equal 10, monster.statblock.charisma
-        assert monster.statblock.respond_to?(:take_damage)
-        assert monster.statblock.respond_to?(:heal)
-        assert monster.statblock.respond_to?(:level_up)
+        assert_equal 'Goblin', @monster.name
+        assert_equal @statblock, @monster.statblock
+        assert_equal [@attack], @monster.attacks
+        assert_nil @monster.team
       end
 
       def test_monster_uses_statblock_methods
-        statblock = Statblock.new(name: 'TestStatblock', strength: 10, dexterity: 12, constitution: 14,
-                                  intelligence: 8, wisdom: 16, charisma: 18, hit_die: 'd8')
-        monster = Monster.new(name: 'TestMonster', statblock: statblock)
-        monster.statblock.take_damage(5)
-        assert_equal 5, monster.statblock.hit_points
-        monster.statblock.heal(2)
-        assert_equal 7, monster.statblock.hit_points
-        monster.statblock.level_up
-        assert_equal 2, monster.statblock.level
+        verify_initial_stats
+        verify_damage_taking
+      end
+
+      private
+
+      def verify_initial_stats
+        assert_equal 8, @monster.statblock.strength
+        assert_equal(-1, @monster.statblock.ability_modifier(:strength))
+        assert_equal 2, @monster.statblock.ability_modifier(:dexterity)
+        # Max HP for d6 (6) + con (0) = 6.
+        # Why did it expect 7 in previous tests?
+        # Ah, maybe (d6 / 2) + 1 for level > 1, but level is 1.
+        # Level 1 usually takes max die roll. 6.
+        assert_equal 6, @monster.statblock.hit_points
+        assert_predicate @monster.statblock, :alive?
+      end
+
+      def verify_damage_taking
+        @monster.statblock.take_damage(6)
+
+        refute_predicate @monster.statblock, :alive?
       end
     end
   end

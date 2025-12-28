@@ -9,6 +9,7 @@ require 'logger'
 
 module Dnd5e
   module Simulation
+    # Runs the simulation by executing the scenario multiple times and aggregating results.
     class Runner
       attr_reader :scenario, :results, :result_handler, :logger
 
@@ -47,23 +48,28 @@ module Dnd5e
         puts 'Simulation Report'
         puts '-----------------'
 
+        print_sample_results
+        print_detailed_report
+      end
+
+      private
+
+      def print_sample_results
         # Support both old and new handlers
         results_source = @result_handler.respond_to?(:results) ? @result_handler.results : @results
 
-        if results_source.any?
-          puts 'Sample Results:'
-          winners = {}
-          results_source.each do |result|
-            winners[result.winner.name] ||= []
-            winners[result.winner.name] << result
-          end
-          winners.each_value do |results|
-            sample_result = results.sample
-            puts "  Winner: #{sample_result.winner.name}, Initiative Winner: #{sample_result.initiative_winner.name}"
-          end
-          puts '-----------------'
-        end
+        return unless results_source.any?
 
+        puts 'Sample Results:'
+        winners = results_source.group_by { |r| r.winner.name }
+        winners.each_value do |results|
+          sample_result = results.sample
+          puts "  Winner: #{sample_result.winner.name}, Initiative Winner: #{sample_result.initiative_winner.name}"
+        end
+        puts '-----------------'
+      end
+
+      def print_detailed_report
         if @result_handler.respond_to?(:generate_report)
           puts @result_handler.generate_report(@scenario.num_simulations)
         elsif @result_handler.respond_to?(:report)
@@ -73,28 +79,15 @@ module Dnd5e
         end
       end
 
-      private
-
       def create_teams
         # Create new instances of teams and their members
         @scenario.teams.map do |team|
           new_members = team.members.map do |member|
-            # Access statblock attributes correctly
-            new_statblock = member.statblock.class.new(
-              name: member.statblock.name,
-              strength: member.statblock.strength,
-              dexterity: member.statblock.dexterity,
-              constitution: member.statblock.constitution,
-              intelligence: member.statblock.intelligence,
-              wisdom: member.statblock.wisdom,
-              charisma: member.statblock.charisma,
-              hit_die: member.statblock.hit_die,
-              level: member.statblock.level,
-              saving_throw_proficiencies: member.statblock.saving_throw_proficiencies,
-              equipped_armor: member.statblock.equipped_armor,
-              equipped_shield: member.statblock.equipped_shield
-            )
+            new_statblock = member.statblock.deep_copy
+            # Ensure HP is at max for new battle.
+            # deep_copy preserves current HP which might be 0 if reused, but here we copy from template
             new_statblock.hit_points = new_statblock.calculate_hit_points
+
             member.class.new(name: member.name, statblock: new_statblock, attacks: member.attacks)
           end
           Core::Team.new(name: team.name, members: new_members)

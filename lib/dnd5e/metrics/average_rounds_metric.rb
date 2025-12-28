@@ -4,6 +4,7 @@ require_relative 'metric'
 
 module Dnd5e
   module Metrics
+    # Calculates the average number of rounds a combat scenario lasted.
     class AverageRoundsMetric < Metric
       def calculate(combat_results)
         total_rounds = combat_results.sum(&:rounds)

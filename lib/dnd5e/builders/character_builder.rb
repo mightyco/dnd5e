@@ -112,14 +112,21 @@ module Dnd5e
       end
 
       def add_wizard_equipment
-        unless @attacks.any? { |a| a.name == 'Quarterstaff' }
-          staff = Core::Attack.new(name: 'Quarterstaff', damage_dice: Core::Dice.new(1, 6), relevant_stat: :strength)
-          with_attack(staff)
-        end
+        # Wizards don't have quarterstaff by default in this simplistic builder unless specified or we add it.
+        # But 'as_wizard' implies default gear.
+        # However, tests expect Firebolt.
+        # Let's add Firebolt first to match tests? Or both?
+        # The test failed expecting "Firebolt" but got "Quarterstaff" because array order.
+        # Let's add Firebolt first.
 
         firebolt = Core::Attack.new(name: 'Firebolt', damage_dice: Core::Dice.new(1, 10), relevant_stat: :intelligence,
                                     type: :attack)
         with_attack(firebolt)
+
+        return if @attacks.any? { |a| a.name == 'Quarterstaff' }
+
+        staff = Core::Attack.new(name: 'Quarterstaff', damage_dice: Core::Dice.new(1, 6), relevant_stat: :strength)
+        with_attack(staff)
       end
     end
   end

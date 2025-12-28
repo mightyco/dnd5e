@@ -7,47 +7,69 @@ require_relative '../lib/dnd5e/core/statblock'
 require_relative '../lib/dnd5e/core/attack'
 require_relative '../lib/dnd5e/core/dice'
 require_relative '../lib/dnd5e/core/team'
-require_relative '../lib/dnd5e/core/combat_logger'
+require_relative '../lib/dnd5e/core/combat_statistics'
+require_relative '../lib/dnd5e/simulation/scenario'
+require_relative '../lib/dnd5e/builders'
+
 require 'logger'
 
 module Dnd5e
-  module Core
-    # --- Setup ---
-    # Create a logger that outputs to stdout
-    logger = Logger.new($stdout)
-    logger.level = Logger::INFO # Set the desired log level
+  module Examples
+    # Core domain logic examples.
+    module Core
+    end
 
-    # Create a CombatLogger observer
-    combat_logger = CombatLogger.new(logger)
+    # Example of running a team combat.
+    class TeamCombatExample
+      def self.run
+        new.run_combat
+      end
 
-    # Create some attacks
-    sword_attack = Attack.new(name: 'Sword', damage_dice: Dice.new(1, 8), relevant_stat: :strength)
-    bite_attack = Attack.new(name: 'Bite', damage_dice: Dice.new(1, 6), relevant_stat: :dexterity)
+      def run_combat
+        Logger.new($stdout)
 
-    # Create template statblocks
-    hero_template = Statblock.new(name: 'Hero Template', strength: 16, dexterity: 14, constitution: 15, hit_die: 'd10',
-                                  level: 3)
-    goblin_template = Statblock.new(name: 'Goblin Template', strength: 8, dexterity: 14, constitution: 10,
-                                    hit_die: 'd6', level: 1)
+        heroes = create_hero_team
+        goblins = create_goblin_team
 
-    # Create characters and monsters using deep copy
-    hero1 = Character.new(name: 'Hero 1', statblock: hero_template.deep_copy, attacks: [sword_attack])
-    hero2 = Character.new(name: 'Hero 2', statblock: hero_template.deep_copy, attacks: [sword_attack])
-    goblin1 = Monster.new(name: 'Goblin 1', statblock: goblin_template.deep_copy, attacks: [bite_attack])
-    goblin2 = Monster.new(name: 'Goblin 2', statblock: goblin_template.deep_copy, attacks: [bite_attack])
+        # Create a team combat
+        combat = Dnd5e::Core::TeamCombat.new(teams: [heroes, goblins])
 
-    # Create teams
-    heroes = Team.new(name: 'Heroes', members: [hero1, hero2])
-    goblins = Team.new(name: 'Goblins', members: [goblin1, goblin2])
+        # Add logger if desired (TeamCombat uses observers or internal logging)
+        # Assuming TeamCombat has a way to attach logger or uses standard logging.
+        # For now, just running it.
 
-    # --- Combat ---
-    # Create combat
-    combat = TeamCombat.new(teams: [heroes, goblins])
+        combat.run_combat
 
-    # Attach observer
-    combat.add_observer(combat_logger)
+        puts "Winner: #{combat.winner.name}"
+      end
 
-    # Start the battle
-    combat.run_combat
+      private
+
+      def create_hero_team
+        sword = Dnd5e::Core::Attack.new(name: 'Sword', damage_dice: Dnd5e::Core::Dice.new(1, 8),
+                                        relevant_stat: :strength)
+        hero_stats = Dnd5e::Core::Statblock.new(name: 'Hero', strength: 16, dexterity: 10, constitution: 14,
+                                                hit_die: 'd10', level: 1)
+
+        hero1 = Dnd5e::Core::Character.new(name: 'Hero 1', statblock: hero_stats.deep_copy, attacks: [sword])
+        hero2 = Dnd5e::Core::Character.new(name: 'Hero 2', statblock: hero_stats.deep_copy, attacks: [sword])
+
+        Dnd5e::Core::Team.new(name: 'Heroes', members: [hero1, hero2])
+      end
+
+      def create_goblin_team
+        bite = Dnd5e::Core::Attack.new(name: 'Bite', damage_dice: Dnd5e::Core::Dice.new(1, 6),
+                                       relevant_stat: :dexterity)
+        goblin_stats = Dnd5e::Core::Statblock.new(name: 'Goblin', strength: 8, dexterity: 14, constitution: 10,
+                                                  hit_die: 'd6', level: 1)
+
+        goblin1 = Dnd5e::Core::Monster.new(name: 'Goblin 1', statblock: goblin_stats.deep_copy, attacks: [bite])
+        goblin2 = Dnd5e::Core::Monster.new(name: 'Goblin 2', statblock: goblin_stats.deep_copy, attacks: [bite])
+
+        Dnd5e::Core::Team.new(name: 'Goblins', members: [goblin1, goblin2])
+      end
+    end
   end
 end
+
+Dnd5e::Examples::TeamCombatExample.run if __FILE__ == $PROGRAM_NAME

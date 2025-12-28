@@ -19,17 +19,20 @@ module Dnd5e
 
       def test_initialization
         combat_attack_handler = CombatAttackHandler.new
-        refute combat_attack_handler.logger.nil?
-        refute combat_attack_handler.attack_resolver.nil?
+
+        refute_nil combat_attack_handler.logger
+        refute_nil combat_attack_handler.attack_resolver
       end
 
       def test_initialization_with_logger
         combat_attack_handler = CombatAttackHandler.new(logger: @logger)
+
         assert_equal @logger, combat_attack_handler.logger
       end
 
       def test_attack_with_valid_attacker_and_defender
         result = @attack_handler.attack(@character1, @character2)
+
         assert result.success
         assert_equal 5, @character2.statblock.hit_points
       end
@@ -51,6 +54,7 @@ module Dnd5e
         @character1 = Character.new(name: 'Character 1', statblock: @statblock1, attacks: [@attack])
         @attack_handler = CombatAttackHandler.new(logger: @logger)
         result = @attack_handler.attack(@character1, @character2)
+
         refute result.success
         assert_equal 10, @character2.statblock.hit_points
       end
@@ -59,21 +63,10 @@ module Dnd5e
       def test_attack_on_invalid_target
         # Kill the defender
         @character2.statblock.take_damage(@character2.statblock.hit_points)
-        refute @character2.statblock.is_alive?
+
+        refute_predicate @character2.statblock, :alive?
 
         # Attempt to attack the dead defender
-        assert_raises(InvalidAttackError) do
-          @attack_handler.attack(@character1, @character2)
-        end
-      end
-
-      # Moved from test_combat.rb
-      def test_attack_with_dead_attacker
-        # Kill the attacker
-        @character1.statblock.take_damage(@character1.statblock.hit_points)
-        refute @character1.statblock.is_alive?
-
-        # Attempt to attack with the dead attacker
         assert_raises(InvalidAttackError) do
           @attack_handler.attack(@character1, @character2)
         end

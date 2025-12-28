@@ -2,6 +2,7 @@
 
 module Dnd5e
   module Experiments
+    # Defines a scientific experiment to compare two teams under varying conditions.
     class Experiment
       attr_reader :name, :control_group_block, :test_group_block, :variables, :simulation_count
 

@@ -2,6 +2,7 @@
 
 module Dnd5e
   module Simulation
+    # Represents the result of a single combat simulation.
     class Result
       attr_reader :winner, :initiative_winner
 

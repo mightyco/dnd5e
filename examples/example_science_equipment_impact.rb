@@ -7,62 +7,50 @@ require_relative '../lib/dnd5e/core/attack'
 require_relative '../lib/dnd5e/core/dice'
 require_relative '../lib/dnd5e/core/armor'
 
-# Experiment: Strength (Heavy Armor) vs Dexterity (Light Armor)
-# Hypothesis: Strength should have a slight advantage at Level 1 due to AC 16 vs AC 15.
-# However, Dex Initiative might still tip the scales.
+module Dnd5e
+  module Examples
+    # Experiment: Strength (Heavy Armor) vs Dexterity (Light Armor)
+    # Hypothesis: Strength should have a slight advantage at Level 1 due to AC 16 vs AC 15.
+    # However, Dex Initiative might still tip the scales.
+    class EquipmentImpact
+      def self.run
+        Experiments::Experiment.new(name: 'Equipment Impact: Plate vs Leather')
+                               .independent_variable(:level, values: 1..10)
+                               .simulations_per_step(500)
+                               .control_group { |params| create_str_team(params) }
+                               .test_group { |params| create_dex_team(params) }
+                               .run
+      end
 
-Dnd5e::Experiments::Experiment.new(name: 'Equipment Impact: Plate vs Leather')
-                              .independent_variable(:level, values: 1..10)
-                              .simulations_per_step(500)
-                              .control_group do |params|
-  # Strength Build
-  # AC 16 (Chain Mail)
-  # Weapon: Longsword (1d8 + 3)
-  level = params[:level]
+      def self.create_str_team(params)
+        char = create_character('Str Knight', params[:level], { strength: 16, dexterity: 10, constitution: 14 })
+        chain_mail = Core::Armor.new(name: 'Chain Mail', base_ac: 16, type: :heavy, max_dex_bonus: 0,
+                                     stealth_disadvantage: true)
+        char.statblock.equipped_armor = chain_mail
+        Core::Team.new(name: 'Str Team', members: [char])
+      end
 
-  chain_mail = Dnd5e::Core::Armor.new(
-    name: 'Chain Mail',
-    base_ac: 16,
-    type: :heavy,
-    max_dex_bonus: 0,
-    stealth_disadvantage: true
-  )
+      def self.create_dex_team(params)
+        char = create_character('Dex Duelist', params[:level], { strength: 10, dexterity: 16, constitution: 14 })
+        studded_leather = Core::Armor.new(name: 'Studded Leather', base_ac: 12, type: :light, max_dex_bonus: nil,
+                                          stealth_disadvantage: false)
+        char.statblock.equipped_armor = studded_leather
+        equip_rapier(char)
+        Core::Team.new(name: 'Dex Team', members: [char])
+      end
 
-  char = Dnd5e::Builders::CharacterBuilder.new(name: 'Str Knight')
-                                          .as_fighter(level: level, abilities: { strength: 16, dexterity: 10,
-                                                                                 constitution: 14 })
-                                          .build
+      def self.create_character(name, level, abilities)
+        Builders::CharacterBuilder.new(name: name)
+                                  .as_fighter(level: level, abilities: abilities)
+                                  .build
+      end
 
-  char.statblock.equipped_armor = chain_mail
-
-  Dnd5e::Core::Team.new(name: 'Str Team', members: [char])
-end
-  .test_group do |params|
-    # Dexterity Build
-    # AC 12 + 3 (Studded Leather) = 15
-    # Weapon: Rapier (1d8 + 3)
-    level = params[:level]
-
-    studded_leather = Dnd5e::Core::Armor.new(
-      name: 'Studded Leather',
-      base_ac: 12,
-      type: :light,
-      max_dex_bonus: nil, # Unlimited
-      stealth_disadvantage: false
-    )
-
-    char = Dnd5e::Builders::CharacterBuilder.new(name: 'Dex Duelist')
-                                            .as_fighter(level: level, abilities: { strength: 10, dexterity: 16,
-                                                                                   constitution: 14 })
-                                            .build
-
-    # Swap weapon to Rapier
-    rapier = Dnd5e::Core::Attack.new(name: 'Rapier', damage_dice: Dnd5e::Core::Dice.new(1, 8),
-                                     relevant_stat: :dexterity)
-    char.attacks = [rapier]
-
-    char.statblock.equipped_armor = studded_leather
-
-    Dnd5e::Core::Team.new(name: 'Dex Team', members: [char])
+      def self.equip_rapier(character)
+        rapier = Core::Attack.new(name: 'Rapier', damage_dice: Core::Dice.new(1, 8), relevant_stat: :dexterity)
+        character.attacks = [rapier]
+      end
+    end
   end
-  .run
+end
+
+Dnd5e::Examples::EquipmentImpact.run

@@ -1,5 +1,10 @@
 # frozen_string_literal: true
 
+require_relative '../core/monster'
+require_relative '../core/statblock'
+require_relative '../core/attack'
+require_relative '../core/dice'
+
 module Dnd5e
   module Builders
     # Builds a Monster object with a fluent interface.
@@ -33,6 +38,22 @@ module Dnd5e
       # @return [MonsterBuilder] The MonsterBuilder instance.
       def with_attack(attack)
         @attacks << attack
+        self
+      end
+
+      # Builds the monster as a Goblin.
+      #
+      # @return [MonsterBuilder] The MonsterBuilder instance.
+      def as_goblin
+        @statblock = Core::Statblock.new(
+          name: @name,
+          strength: 8, dexterity: 14, constitution: 10,
+          intelligence: 10, wisdom: 8, charisma: 8,
+          hit_die: 'd6', level: 1, saving_throw_proficiencies: []
+        )
+
+        scimitar = Core::Attack.new(name: 'Scimitar', damage_dice: Core::Dice.new(1, 6), relevant_stat: :dexterity)
+        with_attack(scimitar)
         self
       end
 

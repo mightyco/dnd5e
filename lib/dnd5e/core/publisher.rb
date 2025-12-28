@@ -2,6 +2,7 @@
 
 module Dnd5e
   module Core
+    # A simple implementation of the Observer pattern.
     module Publisher
       def add_observer(observer)
         @observers ||= []

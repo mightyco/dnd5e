@@ -1,25 +1,20 @@
 # frozen_string_literal: true
 
-require_relative '../lib/dnd5e/core/dice'
+require_relative '../lib/dnd5e/core/dice_roller'
 
 module Dnd5e
   module Examples
+    # Example of rolling dice.
     class Roll
       def self.run
-        dice = Core::Dice.new(3, 6, modifier: 2)
-        puts "Rolling #{dice}..."
-        rolls = dice.roll
-        puts "Rolls: #{rolls.join(', ')}"
-        puts "Total: #{dice.total}"
+        puts 'Rolling 1d20:'
+        puts Core::DiceRoller.new.roll('1d20')
 
-        puts 'Sampling many dice rolls of 3d6'
-        total = 0
-        dice = Core::Dice.new(3, 6)
-        10_000.times do
-          dice.roll
-          total += dice.total
-        end
-        puts "Average: #{total / 10_000.0}"
+        puts 'Rolling 2d6+3:'
+        puts Core::DiceRoller.new.roll('2d6+3')
+
+        puts 'Rolling with advantage (d20):'
+        puts Core::DiceRoller.new.roll_with_advantage(20)
       end
     end
   end

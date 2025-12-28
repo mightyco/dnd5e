@@ -2,6 +2,7 @@
 
 module Dnd5e
   module Simulation
+    # Represents a simulation scenario with predefined teams and settings.
     class Scenario
       attr_reader :teams, :num_simulations
 

@@ -28,8 +28,8 @@ module Dnd5e
       # @raise [InvalidAttackError] if the attacker or defender is dead.
       # @return [Boolean] true if the attack hits, false otherwise.
       def attack(attacker, defender)
-        raise InvalidAttackError, 'Cannot attack with a dead attacker' unless attacker.statblock.is_alive?
-        raise InvalidAttackError, 'Cannot attack a dead defender' unless defender.statblock.is_alive?
+        raise InvalidAttackError, 'Cannot attack with a dead attacker' unless attacker.statblock.alive?
+        raise InvalidAttackError, 'Cannot attack a dead defender' unless defender.statblock.alive?
 
         @attack_resolver.resolve(attacker, defender, attacker.attacks.first)
       end
@@ -40,7 +40,7 @@ module Dnd5e
       # @param combatants [Array<Combatant>] All combatants in the combat.
       # @return [Combatant, nil] A valid defender if one exists, nil otherwise.
       def find_valid_defender(attacker, combatants)
-        (combatants - [attacker]).find { |c| c.statblock.is_alive? }
+        (combatants - [attacker]).find { |c| c.statblock.alive? }
       end
     end
   end

@@ -30,6 +30,7 @@ module Dnd5e
       def test_add_observer
         @subject.add_observer(@observer)
         @subject.notify_observers(:test_event, { foo: 'bar' })
+
         assert_equal 1, @observer.events.length
         assert_equal :test_event, @observer.events.first[:event]
         assert_equal 'bar', @observer.events.first[:data][:foo]
@@ -39,6 +40,7 @@ module Dnd5e
         @subject.add_observer(@observer)
         @subject.remove_observer(@observer)
         @subject.notify_observers(:test_event)
+
         assert_empty @observer.events
       end
 

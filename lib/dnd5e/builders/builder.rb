@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Dnd5e
+  # Core domain models for D&D 5e.
   module Core
   end
 
@@ -14,7 +15,8 @@ module Dnd5e
   # Each builder class follows a similar pattern:
   #
   # 1.  **Initialization:** The builder is initialized with required parameters (e.g., name).
-  # 2.  **Configuration:** `with_` methods are used to configure the object being built (e.g., `with_statblock`, `with_attack`, `with_member`).
+  # 2.  **Configuration:** `with_` methods are used to configure the object being built
+  #     (e.g., `with_statblock`, `with_attack`, `with_member`).
   # 3.  **Building:** The `build` method creates and returns the final object.
   #
   # @example Creating a character

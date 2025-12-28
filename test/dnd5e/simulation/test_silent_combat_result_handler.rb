@@ -2,71 +2,58 @@
 
 require_relative '../../test_helper'
 require_relative '../../../lib/dnd5e/simulation/silent_combat_result_handler'
-require_relative '../../../lib/dnd5e/core/team_combat'
+require_relative '../../../lib/dnd5e/core/combat'
 require_relative '../../../lib/dnd5e/core/team'
 require_relative '../../../lib/dnd5e/builders/character_builder'
-require_relative '../../../lib/dnd5e/builders/monster_builder'
 require_relative '../../../lib/dnd5e/core/statblock'
 require_relative '../../../lib/dnd5e/core/attack'
 require_relative '../../../lib/dnd5e/core/dice'
-
-require 'logger'
 
 module Dnd5e
   module Simulation
     class TestSilentCombatResultHandler < Minitest::Test
       def setup
-        hero_statblock = Core::Statblock.new(name: 'Hero Statblock', strength: 16, dexterity: 10, constitution: 15,
-                                             hit_die: 'd10', level: 3)
-        goblin_statblock = Core::Statblock.new(name: 'Goblin Statblock', strength: 8, dexterity: 14, constitution: 10,
-                                               hit_die: 'd6', level: 1)
-        sword_attack = Core::Attack.new(name: 'Sword', damage_dice: Core::Dice.new(1, 8), relevant_stat: :strength)
-        bite_attack = Core::Attack.new(name: 'Bite', damage_dice: Core::Dice.new(1, 6), relevant_stat: :dexterity)
-
-        @hero1 = Builders::CharacterBuilder.new(name: 'Hero1')
-                                           .with_statblock(hero_statblock.deep_copy)
-                                           .with_attack(sword_attack)
-                                           .build
-        @hero2 = Builders::CharacterBuilder.new(name: 'Hero2')
-                                           .with_statblock(hero_statblock.deep_copy)
-                                           .with_attack(sword_attack)
-                                           .build
-        @goblin1 = Builders::MonsterBuilder.new(name: 'Goblin1')
-                                           .with_statblock(goblin_statblock.deep_copy)
-                                           .with_attack(bite_attack)
-                                           .build
-        @goblin2 = Builders::MonsterBuilder.new(name: 'Goblin2')
-                                           .with_statblock(goblin_statblock.deep_copy)
-                                           .with_attack(bite_attack)
-                                           .build
-
-        @heroes = Core::Team.new(name: 'Heroes', members: [@hero1, @hero2])
-        @goblins = Core::Team.new(name: 'Goblins', members: [@goblin1, @goblin2])
-
-        @logger = Logger.new(nil)
         @handler = SilentCombatResultHandler.new
+        create_teams
+      end
 
-        @combat = Core::TeamCombat.new(teams: [@heroes, @goblins])
-        @combat.add_observer(@handler)
+      def create_teams
+        sword = Core::Attack.new(name: 'Sword', damage_dice: Core::Dice.new(1, 8), relevant_stat: :strength)
+        hero = Builders::CharacterBuilder.new(name: 'Hero').as_fighter.with_attack(sword).build
+        goblin = Builders::CharacterBuilder.new(name: 'Goblin').as_fighter.with_attack(sword).build
+
+        @team1 = Core::Team.new(name: 'Team 1', members: [hero])
+        @team2 = Core::Team.new(name: 'Team 2', members: [goblin])
+        @combat_data = { combat: Struct.new(:teams).new([@team1, @team2]), combatants: [hero, goblin] }
+      end
+
+      def test_initialization
+        assert_empty @handler.results
       end
 
       def test_handle_result
-        @combat.run_combat # Calls handler and records init
+        @handler.update(:combat_start, @combat_data)
+        winner = @team1.members.first
+        initiative_winner = @team2.members.first
+
+        @handler.update(:combat_end, winner: winner, initiative_winner: initiative_winner)
+
         assert_equal 1, @handler.results.size
-
         result = @handler.results.first
-        # The initiative winner should be a Team, not a Combatant
-        assert_kind_of Core::Team, result.initiative_winner
-
-        # Verify it matches the team of the combatant who went first
-        first_combatant = @combat.turn_manager.turn_order.first
-        assert_equal first_combatant.team, result.initiative_winner
+        # Winner should be mapped to team
+        assert_equal @team1, result.winner
+        assert_equal @team2, result.initiative_winner
       end
 
       def test_results
-        @combat.run_combat
-        @handler.handle_result(@combat, @heroes, @goblins)
-        assert_equal @handler.results, @handler.results
+        @handler.update(:combat_start, @combat_data)
+        winner = @team1.members.first
+
+        3.times do
+          @handler.update(:combat_end, winner: winner, initiative_winner: winner)
+        end
+
+        assert_equal 3, @handler.results.size
       end
     end
   end

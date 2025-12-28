@@ -68,6 +68,7 @@ module Dnd5e
         # Report string check
         @stats.update(:combat_end, winner: @heroes, initiative_winner: @heroes)
         report = @stats.generate_report(1)
+
         assert_match(/Heroes won 100.0%/, report)
       end
     end

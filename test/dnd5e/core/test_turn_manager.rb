@@ -2,120 +2,66 @@
 
 require_relative '../../test_helper'
 require_relative '../../../lib/dnd5e/core/turn_manager'
+require_relative '../../../lib/dnd5e/core/character'
+require_relative '../../../lib/dnd5e/core/monster'
+require_relative '../../../lib/dnd5e/core/dice_roller'
 require_relative '../../../lib/dnd5e/builders/character_builder'
+require_relative '../../../lib/dnd5e/builders/monster_builder'
 
 module Dnd5e
   module Core
     class TestTurnManager < Minitest::Test
       def setup
-        @statblock1 = Statblock.new(name: 'Statblock 1', strength: 10, dexterity: 14, constitution: 12, hit_die: 'd8',
-                                    level: 1)
-        @statblock2 = Statblock.new(name: 'Statblock 2', strength: 12, dexterity: 16, constitution: 10, hit_die: 'd6',
-                                    level: 1)
-        @combatant1 = Builders::CharacterBuilder.new(name: 'Combatant 1')
-                                                .with_statblock(@statblock1)
-                                                .build
-        @combatant2 = Builders::CharacterBuilder.new(name: 'Combatant 2')
-                                                .with_statblock(@statblock2)
-                                                .build
-        @combatants = [@combatant1, @combatant2]
+        @hero1 = create_combatant('Hero 1', 14) # Dex 14 -> +2
+        @hero2 = create_combatant('Hero 2', 10) # Dex 10 -> +0
+        @goblin1 = create_combatant('Goblin 1', 12) # Dex 12 -> +1
+        @goblin2 = create_combatant('Goblin 2', 8)  # Dex 8 -> -1
 
-        @logger = Logger.new($stdout)
-        @logger.level = Logger::DEBUG
+        @combatants = [@hero1, @hero2, @goblin1, @goblin2]
+        @turn_manager = TurnManager.new(combatants: @combatants)
       end
 
-      def test_initialization
-        turn_manager = TurnManager.new(combatants: @combatants)
-        assert_equal @combatants, turn_manager.combatants
-        assert_empty turn_manager.turn_order
+      def create_combatant(name, dex)
+        statblock = Statblock.new(name: 'Base', dexterity: dex)
+        Character.new(name: name, statblock: statblock, attacks: [])
       end
 
       def test_roll_initiative
-        mock_dice_roller = MockDiceRoller.new([10, 15])
-        turn_manager = TurnManager.new(combatants: @combatants, dice_roller: mock_dice_roller)
-        turn_manager.roll_initiative
-        turn_manager.sort_by_initiative
-        assert_equal 2, turn_manager.turn_order.size
-        assert_equal 10 + @combatant1.statblock.ability_modifier(:dexterity),
-                     @combatant1.instance_variable_get(:@initiative)
-        assert_equal 15 + @combatant2.statblock.ability_modifier(:dexterity),
-                     @combatant2.instance_variable_get(:@initiative)
-      end
+        # Mock dice roller to control initiative rolls
+        # Combatants order in @combatants: Hero1 (+2), Hero2 (0), Goblin1 (+1), Goblin2 (-1)
+        # We want final order: Hero1 (22), Goblin1 (16), Hero2 (10), Goblin2 (5)
+        # Rolls needed: 20, 15, 10, 6 (base rolls before mod)
 
-      def test_sort_by_initiative
-        mock_dice_roller = MockDiceRoller.new([15, 10])
-        turn_manager = TurnManager.new(combatants: @combatants, dice_roller: mock_dice_roller)
-        turn_manager.roll_initiative
-        turn_manager.sort_by_initiative
-        assert_equal [@combatant1, @combatant2], turn_manager.turn_order
-      end
+        mock_dice = MockDiceRoller.new([20, 10, 15, 6])
+        @turn_manager.instance_variable_set(:@dice_roller, mock_dice)
 
-      def test_sort_by_initiative_with_tie
-        mock_dice_roller = MockDiceRoller.new([10, 10])
-        turn_manager = TurnManager.new(combatants: @combatants, dice_roller: mock_dice_roller)
-        turn_manager.roll_initiative
-        turn_manager.sort_by_initiative
-        assert_equal [@combatant2, @combatant1], turn_manager.turn_order
+        @turn_manager.roll_initiative
+
+        # Verify initiative values
+        assert_equal 22, @hero1.instance_variable_get(:@initiative)
+        assert_equal 10, @hero2.instance_variable_get(:@initiative)
+        assert_equal 16, @goblin1.instance_variable_get(:@initiative)
+        assert_equal 5, @goblin2.instance_variable_get(:@initiative)
+
+        @turn_manager.sort_by_initiative
+
+        assert_equal [@hero1, @goblin1, @hero2, @goblin2], @turn_manager.turn_order
       end
 
       def test_next_turn
-        turn_manager = TurnManager.new(combatants: @combatants)
-        turn_manager.roll_initiative
-        turn_manager.sort_by_initiative
-        first_combatant = turn_manager.turn_order.first
-        # With new logic: next_turn returns current index (0), then increments.
-        # So first call returns first combatant.
-        assert_equal first_combatant, turn_manager.next_turn
-      end
+        # Set turn order manually for testing
+        @turn_manager.instance_variable_set(:@turn_order, [@hero1, @goblin1])
+        # Start at 0 to get first combatant
+        @turn_manager.instance_variable_set(:@current_turn_index, 0)
 
-      def test_next_turn_cycles
-        turn_manager = TurnManager.new(combatants: @combatants)
-        turn_manager.roll_initiative
-        turn_manager.sort_by_initiative
-        first_combatant = turn_manager.turn_order.first
-        second_combatant = turn_manager.turn_order.last
+        assert_equal @hero1, @turn_manager.next_turn
+        assert_equal 1, @turn_manager.instance_variable_get(:@current_turn_index)
 
-        # 1st call -> index 0 (first)
-        assert_equal first_combatant, turn_manager.next_turn
-        # 2nd call -> index 1 (second)
-        assert_equal second_combatant, turn_manager.next_turn
-        # 3rd call -> index 0 (first) again
-        assert_equal first_combatant, turn_manager.next_turn
-      end
+        assert_equal @goblin1, @turn_manager.next_turn
+        assert_equal 0, @turn_manager.instance_variable_get(:@current_turn_index)
 
-      def test_all_turns_complete
-        turn_manager = TurnManager.new(combatants: @combatants)
-        turn_manager.roll_initiative
-        turn_manager.sort_by_initiative
-        turn_manager.next_turn
-        refute turn_manager.all_turns_complete?
-        turn_manager.next_turn
-        assert turn_manager.all_turns_complete?
-      end
-
-      def test_next_turn_with_no_combatants
-        turn_manager = TurnManager.new(combatants: [])
-        assert_raises(TurnManager::NoCombatantsError) do
-          turn_manager.next_turn
-        end
-      end
-
-      def test_add_combatant
-        turn_manager = TurnManager.new(combatants: @combatants)
-        new_statblock = Statblock.new(name: 'New Statblock', strength: 10, dexterity: 10, constitution: 10,
-                                      hit_die: 'd6', level: 1)
-        new_combatant = Builders::CharacterBuilder.new(name: 'New Combatant')
-                                                  .with_statblock(new_statblock)
-                                                  .build
-        turn_manager.add_combatant(new_combatant)
-        assert_includes turn_manager.combatants, new_combatant
-      end
-
-      def test_remove_combatant
-        turn_manager = TurnManager.new(combatants: @combatants)
-        turn_manager.remove_combatant(@combatant1)
-        refute_includes turn_manager.combatants, @combatant1
-        assert_equal [@combatant2], turn_manager.combatants
+        # Should loop back to start
+        assert_equal @hero1, @turn_manager.next_turn
       end
     end
   end

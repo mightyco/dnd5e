@@ -8,34 +8,20 @@ module Dnd5e
       attr_accessor :strength, :dexterity, :constitution, :intelligence, :wisdom, :charisma, :hit_points,
                     :saving_throw_proficiencies, :equipped_armor, :equipped_shield
 
+      DEFAULT_STATS = {
+        strength: 10, dexterity: 10, constitution: 10,
+        intelligence: 10, wisdom: 10, charisma: 10,
+        hit_die: 'd8', level: 1
+      }.freeze
+
       # Initializes a new Statblock.
       #
       # @param name [String] The name of the character.
-      # @param strength [Integer] The character's strength score.
-      # @param dexterity [Integer] The character's dexterity score.
-      # @param constitution [Integer] The character's constitution score.
-      # @param intelligence [Integer] The character's intelligence score.
-      # @param wisdom [Integer] The character's wisdom score.
-      # @param charisma [Integer] The character's charisma score.
-      # @param hit_die [String] The character's hit die (e.g., "d8").
-      # @param level [Integer] The character's level.
-      # @param saving_throw_proficiencies [Array<Symbol>] List of abilities the character has save proficiency in.
-      # @param equipped_armor [Armor, nil] The armor the character is wearing.
-      # @param equipped_shield [Armor, nil] The shield the character is holding.
-      def initialize(name:, strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10,
-                     hit_die: 'd8', level: 1, saving_throw_proficiencies: [], equipped_armor: nil, equipped_shield: nil)
+      # @param options [Hash] Optional stats (strength, dexterity, etc.)
+      def initialize(name:, **options)
         @name = name
-        @strength = strength
-        @dexterity = dexterity
-        @constitution = constitution
-        @intelligence = intelligence
-        @wisdom = wisdom
-        @charisma = charisma
-        @hit_die = hit_die
-        @level = level
-        @saving_throw_proficiencies = saving_throw_proficiencies
-        @equipped_armor = equipped_armor
-        @equipped_shield = equipped_shield
+        initialize_stats(options)
+        initialize_equipment(options)
         @hit_points = calculate_hit_points
       end
 
@@ -45,18 +31,11 @@ module Dnd5e
       def armor_class
         return @armor_class if defined?(@armor_class) && @armor_class # Manual override priority
 
-        base = if @equipped_armor
-                 @equipped_armor.calculate_ac(ability_modifier(:dexterity))
-               else
-                 10 + ability_modifier(:dexterity)
-               end
-
+        base = calculate_base_ac
         base += @equipped_shield.base_ac if @equipped_shield
         base
       end
 
-      # Deprecated accessor for backward compatibility if needed, but we want dynamic calc.
-      # If we allow setting AC manually (for monsters), we need to store an override.
       attr_writer :armor_class
 
       # Calculates the ability modifier for a given ability.
@@ -112,7 +91,7 @@ module Dnd5e
       # Checks if the character is alive.
       #
       # @return [Boolean] True if the character is alive, false otherwise.
-      def is_alive?
+      def alive?
         @hit_points.positive?
       end
 
@@ -125,7 +104,7 @@ module Dnd5e
         return base_hp if @level == 1
 
         additional_hp_per_level = ((hit_die_sides + 1) / 2.0).ceil + ability_modifier(:constitution)
-        base_hp + additional_hp_per_level * (@level - 1)
+        base_hp + (additional_hp_per_level * (@level - 1))
       end
 
       # Levels up the character.
@@ -148,16 +127,11 @@ module Dnd5e
       # @return [Integer] Proficiency bonus.
       def self.calculate_proficiency_bonus(level)
         case level
-        when 1..4
-          2
-        when 5..8
-          3
-        when 9..12
-          4
-        when 13..16
-          5
-        when 17..20
-          6
+        when 1..4 then 2
+        when 5..8 then 3
+        when 9..12 then 4
+        when 13..16 then 5
+        when 17..20 then 6
         else
           raise "Invalid level: #{level}"
         end
@@ -168,6 +142,32 @@ module Dnd5e
       # @return [Statblock] A deep copy of the Statblock.
       def deep_copy
         Marshal.load(Marshal.dump(self))
+      end
+
+      private
+
+      def initialize_stats(options)
+        stats = DEFAULT_STATS.merge(options)
+        @strength = stats[:strength]
+        @dexterity = stats[:dexterity]
+        @constitution = stats[:constitution]
+        @intelligence = stats[:intelligence]
+        @wisdom = stats[:wisdom]
+        @charisma = stats[:charisma]
+        @hit_die = stats[:hit_die]
+        @level = stats[:level]
+      end
+
+      def initialize_equipment(options)
+        @saving_throw_proficiencies = options[:saving_throw_proficiencies] || []
+        @equipped_armor = options[:equipped_armor]
+        @equipped_shield = options[:equipped_shield]
+      end
+
+      def calculate_base_ac
+        return 10 + ability_modifier(:dexterity) unless @equipped_armor
+
+        @equipped_armor.calculate_ac(ability_modifier(:dexterity))
       end
     end
   end

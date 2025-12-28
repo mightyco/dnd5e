@@ -42,6 +42,7 @@ module Dnd5e
       def test_with_attack
         monster_builder = MonsterBuilder.new(name: 'Test Monster')
         monster_builder.with_attack(@attack)
+
         assert_equal 1, monster_builder.instance_variable_get(:@attacks).count
       end
     end

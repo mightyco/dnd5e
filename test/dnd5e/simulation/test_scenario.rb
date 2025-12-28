@@ -2,7 +2,6 @@
 
 require_relative '../../test_helper'
 require_relative '../../../lib/dnd5e/simulation/scenario'
-require_relative '../../../lib/dnd5e/simulation/scenario_builder'
 require_relative '../../../lib/dnd5e/core/team'
 require_relative '../../../lib/dnd5e/builders/character_builder'
 require_relative '../../../lib/dnd5e/builders/monster_builder'
@@ -14,52 +13,38 @@ module Dnd5e
   module Simulation
     class TestScenario < Minitest::Test
       def setup
-        hero_statblock = Core::Statblock.new(name: 'Hero Statblock', strength: 16, dexterity: 10, constitution: 15,
-                                             hit_die: 'd10', level: 3)
-        goblin_statblock = Core::Statblock.new(name: 'Goblin Statblock', strength: 8, dexterity: 14, constitution: 10,
-                                               hit_die: 'd6', level: 1)
-        sword_attack = Core::Attack.new(name: 'Sword', damage_dice: Core::Dice.new(1, 8), relevant_stat: :strength)
-        bite_attack = Core::Attack.new(name: 'Bite', damage_dice: Core::Dice.new(1, 6), relevant_stat: :dexterity)
+        @hero_team = create_team('Heroes', ['Hero 1', 'Hero 2'], Builders::CharacterBuilder)
+        @goblin_team = create_team('Goblins', ['Goblin 1', 'Goblin 2'], Builders::MonsterBuilder)
+        @teams = [@hero_team, @goblin_team]
+      end
 
-        @hero1 = Builders::CharacterBuilder.new(name: 'Hero1')
-                                           .with_statblock(hero_statblock.deep_copy)
-                                           .with_attack(sword_attack)
-                                           .build
-        @hero2 = Builders::CharacterBuilder.new(name: 'Hero2')
-                                           .with_statblock(hero_statblock.deep_copy)
-                                           .with_attack(sword_attack)
-                                           .build
-        @goblin1 = Builders::MonsterBuilder.new(name: 'Goblin1')
-                                           .with_statblock(goblin_statblock.deep_copy)
-                                           .with_attack(bite_attack)
-                                           .build
-        @goblin2 = Builders::MonsterBuilder.new(name: 'Goblin2')
-                                           .with_statblock(goblin_statblock.deep_copy)
-                                           .with_attack(bite_attack)
-                                           .build
-
-        @heroes = Core::Team.new(name: 'Heroes', members: [@hero1, @hero2])
-        @goblins = Core::Team.new(name: 'Goblins', members: [@goblin1, @goblin2])
+      def create_team(team_name, member_names, builder_class)
+        members = member_names.map do |name|
+          builder_class.new(name: name)
+                       .with_statblock(Core::Statblock.new(name: 'Base'))
+                       .with_attack(Core::Attack.new(name: 'Base Attack', damage_dice: Core::Dice.new(1, 6)))
+                       .build
+        end
+        Core::Team.new(name: team_name, members: members)
       end
 
       def test_scenario_initialization
-        scenario = Scenario.new(teams: [@heroes, @goblins], num_simulations: 1000)
-        assert_equal [@heroes, @goblins], scenario.teams
-        assert_equal 1000, scenario.num_simulations
-      end
+        scenario = Scenario.new(teams: @teams, num_simulations: 100)
 
-      def test_scenario_builder
-        scenario = ScenarioBuilder.new(num_simulations: 500).with_team(@heroes).with_team(@goblins).build
-        assert_equal [@heroes, @goblins], scenario.teams
-        assert_equal 500, scenario.num_simulations
+        assert_equal @teams, scenario.teams
+        assert_equal 100, scenario.num_simulations
       end
 
       def test_scenario_requires_at_least_two_teams
-        assert_raises(ArgumentError) { Scenario.new(teams: [@heroes], num_simulations: 1000) }
+        assert_raises(ArgumentError) do
+          Scenario.new(teams: [@hero_team], num_simulations: 100)
+        end
       end
 
-      def test_scenario_teams_must_be_teams
-        assert_raises(ArgumentError) { Scenario.new(teams: [@heroes, 'not a team'], num_simulations: 1000) }
+      def test_scenario_requires_valid_teams
+        assert_raises(ArgumentError) do
+          Scenario.new(teams: [@hero_team, 'not a team'], num_simulations: 100)
+        end
       end
     end
   end

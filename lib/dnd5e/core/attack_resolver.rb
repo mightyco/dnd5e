@@ -30,67 +30,92 @@ module Dnd5e
       private
 
       def resolve_attack_roll(attacker, defender, attack)
-        if defender.statblock.armor_class.nil?
-          # Treat as auto-miss or handle error? For now, return miss with 0 damage.
-          return AttackResult.new(
-            attacker: attacker, defender: defender, attack: attack,
-            success: false, damage: 0, type: :attack,
-            target_ac: nil
-          )
-        end
+        return handle_missing_ac(attacker, defender, attack) if defender.statblock.armor_class.nil?
 
-        attack_dice = Dice.new(1, 20, modifier: attacker.statblock.ability_modifier(attack.relevant_stat))
-        attack_roll = attack.dice_roller.roll_with_dice(attack_dice)
-
+        attack_roll = roll_attack(attacker, attack)
         target_ac = defender.statblock.armor_class
         success = attack_roll >= target_ac
+        damage, is_dead = apply_attack_damage(defender, attack, success)
 
-        damage = 0
-        is_dead = false
-
-        if success
-          damage = attack.dice_roller.roll_with_dice(attack.damage_dice)
-          defender.statblock.take_damage(damage)
-          is_dead = !defender.statblock.is_alive?
-        end
-
-        AttackResult.new(
-          attacker: attacker, defender: defender, attack: attack,
-          success: success, damage: damage, type: :attack,
-          attack_roll: attack_roll, target_ac: target_ac, is_dead: is_dead
+        create_attack_result(
+          combat_context: { attacker: attacker, defender: defender, attack: attack },
+          outcome: { success: success, damage: damage },
+          type: :attack, attack_roll: attack_roll, target_ac: target_ac, is_dead: is_dead
         )
       end
 
       def resolve_save(attacker, defender, attack)
-        dc = attack.fixed_dc || 8 + attacker.statblock.proficiency_bonus + attacker.statblock.ability_modifier(attack.dc_stat)
+        dc = calculate_dc(attacker, attack)
+        save_roll = roll_save(defender, attack)
+        damage, is_dead, attacker_success = apply_save_damage(defender, attack, save_roll, dc)
 
-        save_mod = defender.statblock.save_modifier(attack.save_ability)
-        save_roll = attack.dice_roller.roll_with_dice(Dice.new(1, 20, modifier: save_mod))
-
-        full_damage = attack.dice_roller.roll_with_dice(attack.damage_dice)
-
-        # Save Success: Roll >= DC
-        save_success = save_roll >= dc
-
-        # Attacker "success" (dealing full effect) happens if save fails.
-        attacker_success = !save_success
-        damage = if save_success
-                   attack.half_damage_on_save ? (full_damage / 2).floor : 0
-                 else
-                   full_damage
-                 end
-
-        is_dead = false
-        if damage.positive?
-          defender.statblock.take_damage(damage)
-          is_dead = !defender.statblock.is_alive?
-        end
-
-        AttackResult.new(
-          attacker: attacker, defender: defender, attack: attack,
-          success: attacker_success, damage: damage, type: :save,
-          save_roll: save_roll, save_dc: dc, is_dead: is_dead
+        create_attack_result(
+          combat_context: { attacker: attacker, defender: defender, attack: attack },
+          outcome: { success: attacker_success, damage: damage },
+          type: :save, save_roll: save_roll, save_dc: dc, is_dead: is_dead
         )
+      end
+
+      def handle_missing_ac(attacker, defender, attack)
+        # Treat as auto-miss or handle error? For now, return miss with 0 damage.
+        create_attack_result(
+          combat_context: { attacker: attacker, defender: defender, attack: attack },
+          outcome: { success: false, damage: 0 },
+          type: :attack, target_ac: nil
+        )
+      end
+
+      def roll_attack(attacker, attack)
+        attack_dice = Dice.new(1, 20, modifier: attacker.statblock.ability_modifier(attack.relevant_stat))
+        attack.dice_roller.roll_with_dice(attack_dice)
+      end
+
+      def apply_attack_damage(defender, attack, success)
+        damage = 0
+        if success
+          damage = attack.dice_roller.roll_with_dice(attack.damage_dice)
+          apply_damage(defender, damage)
+        end
+        [damage, !defender.statblock.alive?]
+      end
+
+      def create_attack_result(params)
+        AttackResult.new(**params)
+      end
+
+      def calculate_dc(attacker, attack)
+        attack.fixed_dc || (8 + attacker.statblock.proficiency_bonus +
+                            attacker.statblock.ability_modifier(attack.dc_stat))
+      end
+
+      def roll_save(defender, attack)
+        save_mod = defender.statblock.save_modifier(attack.save_ability)
+        attack.dice_roller.roll_with_dice(Dice.new(1, 20, modifier: save_mod))
+      end
+
+      def apply_save_damage(defender, attack, save_roll, difficulty_class)
+        full_damage = attack.dice_roller.roll_with_dice(attack.damage_dice)
+        save_success = save_roll >= difficulty_class
+        attacker_success = !save_success
+
+        damage = calculate_save_damage(attack, full_damage, save_success)
+        apply_damage(defender, damage)
+
+        [damage, !defender.statblock.alive?, attacker_success]
+      end
+
+      def calculate_save_damage(attack, full_damage, save_success)
+        if save_success
+          attack.half_damage_on_save ? (full_damage / 2).floor : 0
+        else
+          full_damage
+        end
+      end
+
+      def apply_damage(defender, damage)
+        return unless damage.positive?
+
+        defender.statblock.take_damage(damage)
       end
     end
   end

@@ -4,8 +4,10 @@ require_relative 'metric'
 
 module Dnd5e
   module Metrics
+    # Calculates the percentage of battles won by a specific team.
     class WinPercentageMetric < Metric
       def initialize(team_name:)
+        super()
         @team_name = team_name
       end
 

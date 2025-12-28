@@ -17,6 +17,7 @@ module Dnd5e
     # Manages the flow of a combat encounter.
     class Combat
       include Publisher
+
       attr_accessor :dice_roller
       attr_reader :combatants, :turn_manager, :max_rounds, :combat_attack_handler
 
@@ -64,14 +65,14 @@ module Dnd5e
         rescue InvalidAttackError
           # logger.info "Skipping turn: #{e.message}" # Deprecated
         end
-        defender.statblock.is_alive? ? defender : nil
+        defender.statblock.alive? ? defender : nil
       end
 
       # Checks if the combat is over.
       #
       # @return [Boolean] true if the combat is over, false otherwise.
       def over?
-        return true if @combatants.any? { |c| !c.statblock.is_alive? }
+        return true if @combatants.any? { |c| !c.statblock.alive? }
 
         false
       end
@@ -81,17 +82,17 @@ module Dnd5e
       # @raise [InvalidWinnerError] if no winner can be determined.
       # @return [Combatant] The winning combatant.
       def winner
-        alive_combatants = @combatants.select { |c| c.statblock.is_alive? }
-        
+        alive_combatants = @combatants.select { |c| c.statblock.alive? }
+
         if alive_combatants.size == 1
           alive_combatants.first
         elsif alive_combatants.empty?
-           raise InvalidWinnerError, 'No winner found (all dead)'
+          raise InvalidWinnerError, 'No winner found (all dead)'
         else
-           # If multiple alive, no winner yet or stalemate?
-           # Original logic assumed only 2 combatants or last standing.
-           # If we support teams, this logic is flawed here, but let's stick to simple "Last Man Standing".
-           raise InvalidWinnerError, 'Combat not over (multiple alive)'
+          # If multiple alive, no winner yet or stalemate?
+          # Original logic assumed only 2 combatants or last standing.
+          # If we support teams, this logic is flawed here, but let's stick to simple "Last Man Standing".
+          raise InvalidWinnerError, 'Combat not over (multiple alive)'
         end
       end
 
@@ -124,7 +125,7 @@ module Dnd5e
 
       def process_turn
         current_combatant = @turn_manager.next_turn
-        return unless current_combatant.statblock.is_alive? && !over?
+        return unless current_combatant.statblock.alive? && !over?
 
         take_turn(current_combatant)
       end
@@ -157,7 +158,7 @@ module Dnd5e
       # @param attacker [Combatant] The attacking combatant.
       # @return [Combatant, nil] A valid defender if one exists, nil otherwise.
       def find_valid_defender(attacker)
-        (combatants - [attacker]).find { |c| c.statblock.is_alive? }
+        (combatants - [attacker]).find { |c| c.statblock.alive? }
       end
     end
   end

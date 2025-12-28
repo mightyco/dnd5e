@@ -2,6 +2,7 @@
 
 module Dnd5e
   module Simulation
+    # Builder for creating Simulation::Scenario objects.
     class ScenarioBuilder
       def initialize(num_simulations: 1000)
         @num_simulations = num_simulations

@@ -6,6 +6,7 @@ require_relative '../simulation/silent_combat_result_handler'
 
 module Dnd5e
   module Experiments
+    # Executes an experiment by running simulations for each combination of variables.
     class Runner
       def initialize(experiment)
         @experiment = experiment
@@ -18,7 +19,7 @@ module Dnd5e
 
         combinations.each do |combo|
           # Map values back to names
-          params = Hash[@experiment.variables.keys.zip(combo)]
+          params = @experiment.variables.keys.zip(combo).to_h
           run_scenario(params)
         end
 
@@ -70,23 +71,35 @@ module Dnd5e
         control_wins = handler.results.count { |r| r.winner.name == control_team.name }
         test_wins = handler.results.count { |r| r.winner.name == test_team.name }
 
-        result = {
-          params: params,
-          control_team: control_team.name, test_team: test_team.name,
-          control_wins: control_wins, test_wins: test_wins,
-          total: @experiment.simulation_count
-        }
+        result = create_result_hash(params, control_team, test_team, control_wins, test_wins)
 
         @results << result
         print_progress(result)
       end
 
+      def create_result_hash(params, control_team, test_team, control_wins, test_wins)
+        {
+          params: params,
+          control_team: control_team.name, test_team: test_team.name,
+          control_wins: control_wins, test_wins: test_wins,
+          total: @experiment.simulation_count
+        }
+      end
+
       def print_progress(result)
-        params_str = result[:params].map { |k, v| "#{k}: #{v}" }.join(', ')
-        control_pct = (result[:control_wins].to_f / result[:total] * 100).round(1)
-        test_pct = (result[:test_wins].to_f / result[:total] * 100).round(1)
+        params_str = format_params(result[:params])
+        control_pct = calculate_percentage(result[:control_wins], result[:total])
+        test_pct = calculate_percentage(result[:test_wins], result[:total])
 
         puts "[#{params_str}] #{result[:control_team]}: #{control_pct}% | #{result[:test_team]}: #{test_pct}%"
+      end
+
+      def format_params(params)
+        params.map { |k, v| "#{k}: #{v}" }.join(', ')
+      end
+
+      def calculate_percentage(wins, total)
+        (wins.to_f / total * 100).round(1)
       end
 
       def print_summary

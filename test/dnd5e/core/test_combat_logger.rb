@@ -41,6 +41,7 @@ module Dnd5e
 
       def test_round_start
         @combat_logger.update(:round_start, round: 1)
+
         assert_includes @logger.logs, 'DEBUG: Round: 1'
       end
 

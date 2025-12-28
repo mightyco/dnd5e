@@ -2,6 +2,7 @@
 
 module Dnd5e
   module Core
+    # Represents a piece of armor or shield with AC and other properties.
     class Armor
       attr_reader :name, :base_ac, :type, :max_dex_bonus, :stealth_disadvantage
 
