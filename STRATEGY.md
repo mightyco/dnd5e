@@ -29,6 +29,16 @@ This guide summarizes the findings from our simulation engine regarding 5e comba
 - [x] **Critical Hits**: Basic 20=Hit implemented, double damage dice verified.
 - [x] **Feats**: Great Weapon Master, Sharpshooter (-5/+10 mechanic implemented).
 - [ ] **Conditions**: Prone, Grappled, Restrained.
+- [ ] **Skills**: Athletics, Acrobatics.
+
+## Future Enhancements
+*   More complex character classes and abilities.
+*   More detailed combat logging.
+*   Support for different types of attacks and damage.
+*   A command-line interface (CLI) for running simulations.
+*   Provide a record and replay capability with exemplars
+*   Provide the ability to rate concepts against many simulation runs
+*   Provide a UI to allow others to use the concepts
 
 ## Recommendations for Optimization
 If you want to win a duel in this simulator:

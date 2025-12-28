@@ -43,21 +43,13 @@ This project is a Ruby-based combat simulator for Dungeons & Dragons 5th Edition
 
 Contributions are welcome! Please feel free to submit pull requests or open issues.
 
-### Future Enhancements
-
-*   More complex character classes and abilities.
-*   More detailed combat logging.
-*   Support for different types of attacks and damage.
-*   A command-line interface (CLI) for running simulations.
-*   Provide a record and replay capability with exemplars
-*   Provide the ability to rate concepts against many simulation runs
-*   Provide a UI to allow others to use the concepts
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
 ## Project Roadmap
+
+See `STRATEGY.md` for detailed mechanics implementation status.
 
 1.  **Core Combat Engine** (Completed)
     *   [x] Dice Rolling
@@ -80,12 +72,24 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
     *   [x] Str vs Dex Scaling
     *   [x] Gear Progression Analysis
 
-5.  **Advanced Mechanics** (Next)
-    *   [ ] Advantage / Disadvantage
+5.  **Advanced Mechanics** (In Progress)
+    *   [x] Advantage / Disadvantage
+    *   [x] Critical Hits (20 = Hit, Double Dice)
+    *   [x] Feats (GWM, Sharpshooter)
+    *   [ ] Conditions (Prone, Grappled, Restrained)
     *   [ ] Skills (Athletics/Acrobatics)
-    *   [ ] Conditions (Prone, Grappled)
-    *   [ ] Feats (GWM, Sentinel)
 
 6.  **Reporting**
     *   [ ] CSV/JSON Export
     *   [ ] Detailed Metrics (DPR, Survival Rate)
+
+### Future Enhancements
+
+*   More complex character classes and abilities.
+*   More detailed combat logging.
+*   Support for different types of attacks and damage.
+*   A command-line interface (CLI) for running simulations.
+*   Provide a record and replay capability with exemplars
+*   Provide the ability to rate concepts against many simulation runs
+*   Provide a UI to allow others to use the concepts
+
