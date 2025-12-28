@@ -40,7 +40,7 @@ module Dnd5e
         target_ac = defender.statblock.armor_class
         is_crit = Helpers::AttackRollHelper.critical_hit?(attack, options)
         success = attack_roll >= target_ac || is_crit
-        damage, is_dead = apply_attack_damage(defender, attack, success, is_crit: is_crit)
+        damage, is_dead = apply_attack_damage(defender, attack, success, is_crit: is_crit, **options)
 
         @result_builder.build(attacker: attacker, defender: defender, attack: attack,
                               outcome: { success: success, damage: damage },
@@ -60,22 +60,26 @@ module Dnd5e
                               details: { target_ac: nil })
       end
 
-      def apply_attack_damage(defender, attack, success, is_crit: false)
+      def apply_attack_damage(defender, attack, success, is_crit: false, **options)
         damage = 0
         if success
-          damage_dice = calculate_damage_dice(attack, is_crit)
+          damage_dice = calculate_damage_dice(attack, is_crit, options)
           damage = attack.dice_roller.roll_with_dice(damage_dice)
           apply_damage(defender, damage)
         end
         [damage, !defender.statblock.alive?]
       end
 
-      def calculate_damage_dice(attack, is_crit)
+      def calculate_damage_dice(attack, is_crit, options)
+        modifier = attack.damage_dice.modifier
+        modifier += 10 if options[:great_weapon_master] || options[:sharpshooter]
+
         if is_crit
           Dice.new(attack.damage_dice.count * 2, attack.damage_dice.sides,
-                   modifier: attack.damage_dice.modifier)
+                   modifier: modifier)
         else
-          attack.damage_dice
+          Dice.new(attack.damage_dice.count, attack.damage_dice.sides,
+                   modifier: modifier)
         end
       end
 

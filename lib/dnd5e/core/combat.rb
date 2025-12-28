@@ -39,11 +39,12 @@ module Dnd5e
       #
       # @param attacker [Combatant] The attacking combatant.
       # @param defender [Combatant] The defending combatant.
+      # @param options [Hash] Optional flags (advantage, disadvantage).
       # @raise [InvalidAttackError] if the attacker or defender is dead.
       # @return [Boolean] true if the attack hits/succeeds, false otherwise.
-      def attack(attacker, defender)
+      def attack(attacker, defender, **)
         notify_observers(:attack, attacker: attacker, defender: defender)
-        result = @combat_attack_handler.attack(attacker, defender)
+        result = @combat_attack_handler.attack(attacker, defender, **)
         notify_observers(:attack_resolved, result: result)
         result.success
       end

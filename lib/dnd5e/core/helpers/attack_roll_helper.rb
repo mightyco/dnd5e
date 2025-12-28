@@ -9,6 +9,7 @@ module Dnd5e
       class AttackRollHelper
         def self.roll_attack(attacker, attack, options)
           modifier = attacker.statblock.ability_modifier(attack.relevant_stat)
+          modifier -= 5 if options[:great_weapon_master] || options[:sharpshooter]
 
           if options[:advantage]
             attack.dice_roller.roll_with_advantage(20, modifier: modifier)

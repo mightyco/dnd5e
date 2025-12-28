@@ -25,9 +25,9 @@ This guide summarizes the findings from our simulation engine regarding 5e comba
 - [x] **Damage & HP**: Functional.
 - [x] **Saving Throws**: Implemented for spells/abilities.
 - [x] **Armor & Shields**: Light, Medium, Heavy armor logic with Dex caps.
-- [ ] **Advantage/Disadvantage**: Not yet implemented.
-- [ ] **Critical Hits**: Basic 20=Hit implemented, but double damage dice not yet verified.
-- [ ] **Feats**: Great Weapon Master, Sharpshooter, etc.
+- [x] **Advantage/Disadvantage**: Implemented.
+- [x] **Critical Hits**: Basic 20=Hit implemented, double damage dice verified.
+- [x] **Feats**: Great Weapon Master, Sharpshooter (-5/+10 mechanic implemented).
 - [ ] **Conditions**: Prone, Grappled, Restrained.
 
 ## Recommendations for Optimization
