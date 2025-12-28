@@ -47,9 +47,13 @@ module Dnd5e
       def attack(attacker, defender, **options)
         notify_observers(:attack, attacker: attacker, defender: defender)
         options[:combat] ||= self
-        result = @combat_attack_handler.attack(attacker, defender, **options)
-        notify_observers(:attack_resolved, result: result)
-        result
+        results = @combat_attack_handler.attack(attacker, defender, **options)
+
+        # results can be a single AttackResult or an array for AOE
+        Array(results).each do |result|
+          notify_observers(:attack_resolved, result: result)
+        end
+        results
       end
 
       # Takes a turn for a given attacker.
@@ -70,9 +74,9 @@ module Dnd5e
       #
       # @return [Boolean] true if the combat is over, false otherwise.
       def over?
-        return true if @combatants.any? { |c| !c.statblock.alive? }
-
-        false
+        # Standard combat ends when only one combatant (or side) is left alive.
+        alive_combatants = @combatants.select { |c| c.statblock.alive? }
+        alive_combatants.size <= 1
       end
 
       # Determines the winner of the combat.
@@ -101,6 +105,14 @@ module Dnd5e
         prepare_combat
         run_rounds
         conclude_combat
+      end
+
+      # Finds a valid defender for the given attacker.
+      #
+      # @param attacker [Combatant] The attacking combatant.
+      # @return [Combatant, nil] A valid defender if one exists, nil otherwise.
+      def find_valid_defender(attacker)
+        (combatants - [attacker]).find { |c| c.statblock.alive? }
       end
 
       private
@@ -149,14 +161,6 @@ module Dnd5e
         rescue InvalidWinnerError
           notify_observers(:combat_end, winner: nil, initiative_winner: initiative_winner)
         end
-      end
-
-      # Finds a valid defender for the given attacker.
-      #
-      # @param attacker [Combatant] The attacking combatant.
-      # @return [Combatant, nil] A valid defender if one exists, nil otherwise.
-      def find_valid_defender(attacker)
-        (combatants - [attacker]).find { |c| c.statblock.alive? }
       end
 
       def execute_legacy_turn(attacker)

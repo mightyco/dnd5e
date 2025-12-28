@@ -40,12 +40,22 @@ module Dnd5e
         end
 
         def move_towards_target(combatant, _target, attack, combat)
-          return if in_range?(attack, combat)
+          return if in_range?(attack, combat) && !should_kite?(combatant, combat)
 
           speed = combatant.statblock.speed
-          new_distance = [0, combat.distance - speed].max
-          combat.distance = new_distance
+          if should_kite?(combatant, combat)
+            combat.distance += speed
+          else
+            combat.distance = [0, combat.distance - speed].max
+          end
           combatant.turn_context.use_movement(speed)
+        end
+
+        def should_kite?(combatant, combat)
+          # Kite if we have a ranged attack and the enemy is close
+          return false if combat.distance > 5
+
+          combatant.attacks.any? { |a| a.range > 5 }
         end
 
         def in_range?(attack, combat)
@@ -62,11 +72,20 @@ module Dnd5e
           end
         end
 
-        def select_attack(combatant, _combat)
-          # Select first attack that is affordable
+        def select_attack(combatant, combat)
+          # Select first attack that is affordable and safe (don't AOE self)
           combatant.attacks.find do |attack|
-            combatant.statblock.resources.available?(attack.resource_cost)
+            affordable = combatant.statblock.resources.available?(attack.resource_cost)
+            safe = !self_damage?(combatant, attack, combat)
+            affordable && safe
           end
+        end
+
+        def self_damage?(_combatant, attack, combat)
+          return false unless attack.area_radius
+
+          # In our simple 1D engine, we are hit if distance is less than radius
+          combat.distance < attack.area_radius
         end
 
         def try_second_wind(combatant)
@@ -96,12 +115,8 @@ module Dnd5e
         end
 
         def find_target(combatant, combat)
-          # This relies on Combat exposing a way to find targets.
-          # Previously Combat#find_valid_defender was private.
-          # We might need to make it public or expose combatants.
-
-          # Assuming we can access combatants
-          (combat.combatants - [combatant]).find { |c| c.statblock.alive? }
+          # Use the combat's defender selection logic (which handles teams)
+          combat.find_valid_defender(combatant)
         end
       end
     end

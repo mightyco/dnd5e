@@ -6,7 +6,7 @@ require 'rake/testtask'
 Dir.glob('lib/tasks/*.rake').each { |r| import r }
 
 # Default task to run tests, linting, and examples
-task default: %i[test lint examples]
+task default: %i[test lint]
 
 # Configure the test task
 Rake::TestTask.new(:test) do |t|

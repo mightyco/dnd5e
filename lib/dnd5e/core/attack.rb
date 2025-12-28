@@ -8,7 +8,7 @@ module Dnd5e
     # Represents an attack action available to a combatant.
     class Attack
       attr_reader :name, :damage_dice, :relevant_stat, :dice_roller, :type, :save_ability, :half_damage_on_save,
-                  :fixed_dc, :dc_stat, :range, :scaling, :resource_cost
+                  :fixed_dc, :dc_stat, :range, :scaling, :resource_cost, :area_radius
 
       # Initializes a new Attack.
       #
@@ -24,6 +24,7 @@ module Dnd5e
       # @param range [Integer] The range of the attack in feet (default: 5).
       # @param scaling [Boolean] Whether the damage dice scale with level (default: false).
       # @param resource_cost [Symbol, nil] The resource consumed by this attack (e.g., :spell_slot_3).
+      # @param area_radius [Integer, nil] The radius of the AOE in feet (optional).
       def initialize(name:, damage_dice:, relevant_stat: :strength, dice_roller: DiceRoller.new, **options)
         @name = name
         @damage_dice = damage_dice
@@ -41,6 +42,7 @@ module Dnd5e
         @range = options[:range] || 5
         @scaling = options[:scaling] || false
         @resource_cost = options[:resource_cost]
+        @area_radius = options[:area_radius]
       end
 
       # Returns the damage dice for a given level, applying scaling if enabled.

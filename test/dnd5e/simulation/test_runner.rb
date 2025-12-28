@@ -24,10 +24,10 @@ module Dnd5e
       end
 
       def create_statblocks
-        @hero_statblock = Core::Statblock.new(name: 'Hero Statblock', strength: 16, dexterity: 10, constitution: 15,
-                                              hit_die: 'd10', level: 3)
-        @goblin_statblock = Core::Statblock.new(name: 'Goblin Statblock', strength: 8, dexterity: 14, constitution: 10,
-                                                hit_die: 'd6', level: 1)
+        @hero_statblock = Core::Statblock.new(name: 'Hero Statblock', strength: 10, dexterity: 10, constitution: 10,
+                                              hit_die: 'd10', level: 1)
+        @goblin_statblock = Core::Statblock.new(name: 'Goblin Statblock', strength: 10, dexterity: 10, constitution: 10,
+                                                hit_die: 'd10', level: 1)
       end
 
       def create_attacks

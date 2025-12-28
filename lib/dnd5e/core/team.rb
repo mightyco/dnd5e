@@ -18,6 +18,18 @@ module Dnd5e
         @members.each { |member| member.team = self }
       end
 
+      def ==(other)
+        return false unless other.is_a?(Team)
+
+        @name == other.name
+      end
+
+      alias eql? ==
+
+      def hash
+        @name.hash
+      end
+
       # Adds a member to the team.
       #
       # @param member [Character, Monster] The member to add.

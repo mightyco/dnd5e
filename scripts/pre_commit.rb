@@ -23,8 +23,9 @@ puts 'Running pre-commit checks...'
 
 lint_passed = run_check?('RuboCop', 'bundle exec rubocop')
 tests_passed = run_check?('Tests', 'bundle exec rake test')
+examples_passed = run_check?('Examples', 'bundle exec rake examples')
 
-if lint_passed && tests_passed
+if lint_passed && tests_passed && examples_passed
   puts 'All checks passed!'
   exit 0
 else

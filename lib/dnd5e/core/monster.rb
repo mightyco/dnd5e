@@ -12,21 +12,22 @@ module Dnd5e
     # A monster has a name, a statblock, and a list of attacks.
     class Monster
       attr_reader :name, :statblock, :attacks, :turn_context, :feature_manager
-      attr_accessor :team
+      attr_accessor :team, :strategy
 
       # Initializes a new Monster.
       #
       # @param name [String] The name of the monster.
       # @param statblock [Statblock] The monster's statblock.
-      # @param attacks [Array<Attack>] The monster's attacks.
-      # @param team [Object, nil] The team the monster belongs to.
-      def initialize(name:, statblock:, attacks: [], team: nil)
+      # @param strategy [Strategy] The strategy to use for combat (default: SimpleStrategy).
+      # @param options [Hash] Additional options (attacks, team, features).
+      def initialize(name:, statblock:, strategy: Strategies::SimpleStrategy.new, **options)
         @name = name
         @statblock = statblock
-        @attacks = attacks
-        @team = team
+        @strategy = strategy
+        @attacks = options[:attacks] || []
+        @team = options[:team]
         @turn_context = TurnContext.new
-        @feature_manager = FeatureManager.new([])
+        @feature_manager = FeatureManager.new(options[:features] || [])
       end
 
       # Prepares the monster for the start of their turn.

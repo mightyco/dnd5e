@@ -60,7 +60,7 @@ module Dnd5e
       end
 
       def log_save_resolution(result)
-        msg = "#{result.defender.name} rolled a save of #{result.save_roll} " \
+        msg = "#{result.defender.name} rolled a save against #{result.attack.name} of #{result.save_roll} " \
               "#{format_roll_info(result)} against DC #{result.save_dc}"
         @logger.debug msg
 
@@ -73,17 +73,18 @@ module Dnd5e
       end
 
       def log_save_failure(result)
-        @logger.info "#{result.defender.name} fails #{result.attack.save_ability} save against #{result.attacker.name}!"
+        @logger.info "#{result.defender.name} fails #{result.attack.save_ability} save against #{result.attack.name}!"
       end
 
       def log_save_success(result)
-        msg = "#{result.defender.name} succeeds on #{result.attack.save_ability} save against #{result.attacker.name}!"
+        msg = "#{result.defender.name} succeeds on #{result.attack.save_ability} save against #{result.attack.name}!"
         @logger.info msg
       end
 
       def log_attack_roll_resolution(result)
         roll_info = format_roll_info(result)
-        msg = "Attacker #{result.attacker.name} rolled an attack roll of #{result.attack_roll} #{roll_info}"
+        msg = "Attacker #{result.attacker.name} uses #{result.attack.name} and rolls " \
+              "#{result.attack_roll} #{roll_info}"
         @logger.debug msg
 
         return log_missing_ac(result) if result.target_ac.nil?
@@ -101,11 +102,12 @@ module Dnd5e
 
       def log_attack_hit(result)
         roll_info = format_damage_info(result)
-        @logger.info "#{result.attacker.name} hits #{result.defender.name} for #{result.damage} damage! #{roll_info}"
+        @logger.info "#{result.attacker.name} hits #{result.defender.name} with #{result.attack.name} " \
+                     "for #{result.damage} damage! #{roll_info}"
       end
 
       def log_attack_miss(result)
-        @logger.info "#{result.attacker.name} misses #{result.defender.name}!"
+        @logger.info "#{result.attacker.name} misses #{result.defender.name} with #{result.attack.name}!"
       end
 
       def log_damage_and_defeat(result)

@@ -32,7 +32,7 @@ def add_fireball(char)
     name: 'Fireball', damage_dice: Dnd5e::Core::Dice.new(8, 6),
     type: :save, save_ability: :dexterity,
     dc_stat: :intelligence, half_damage_on_save: true,
-    resource_cost: :lvl3_slots, range: 150
+    resource_cost: :lvl3_slots, range: 150, area_radius: 20
   )
   char.attacks.unshift(fireball)
 end

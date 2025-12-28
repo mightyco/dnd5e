@@ -82,16 +82,19 @@ module Dnd5e
       def create_teams
         # Create new instances of teams and their members
         @scenario.teams.map do |team|
-          new_members = team.members.map do |member|
-            new_statblock = member.statblock.deep_copy
-            # Ensure HP is at max for new battle.
-            # deep_copy preserves current HP which might be 0 if reused, but here we copy from template
-            new_statblock.hit_points = new_statblock.calculate_hit_points
-
-            member.class.new(name: member.name, statblock: new_statblock, attacks: member.attacks)
-          end
+          new_members = team.members.map { |m| clone_member(m) }
           Core::Team.new(name: team.name, members: new_members)
         end
+      end
+
+      def clone_member(member)
+        stat = member.statblock.deep_copy
+        stat.hit_points = stat.calculate_hit_points
+
+        member.class.new(
+          name: member.name, statblock: stat, strategy: member.strategy,
+          attacks: member.attacks, features: member.feature_manager.features
+        )
       end
     end
   end

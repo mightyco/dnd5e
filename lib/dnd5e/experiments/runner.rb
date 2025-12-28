@@ -68,8 +68,8 @@ module Dnd5e
       end
 
       def analyze_results(handler, control_team, test_team, params)
-        control_wins = handler.results.count { |r| r.winner.name == control_team.name }
-        test_wins = handler.results.count { |r| r.winner.name == test_team.name }
+        control_wins = handler.results.count { |r| r.winner&.name == control_team.name }
+        test_wins = handler.results.count { |r| r.winner&.name == test_team.name }
 
         result = create_result_hash(params, control_team, test_team, control_wins, test_wins)
 

@@ -28,28 +28,27 @@ module Dnd5e
       #
       # @return [void]
 
-      # Takes a turn for a given attacker, selecting a defender from the opposing team.
+      # Finds a valid defender for the given attacker.
       #
-      # @param attacker [Combatant] The combatant taking the turn.
-      # @return [Combatant, nil] The defender if one is selected, nil otherwise.
-      def take_turn(attacker)
-        notify_observers(:turn_start, combatant: attacker)
-        defender = find_valid_defender(attacker)
-        return if defender.nil?
-
-        attack(attacker, defender)
+      # @param attacker [Combatant] The attacking combatant.
+      # @return [Combatant, nil] A valid defender if one exists, nil otherwise.
+      def find_valid_defender(attacker)
+        attacker.team ||= @teams.find { |t| t.members.include?(attacker) }
+        enemy_teams = @teams.reject { |team| team == attacker.team }
+        potential_defenders = enemy_teams.flat_map(&:alive_members)
+        potential_defenders.sample
       end
 
-      # Checks if the combat is over.
-      #
-      # @return [Boolean] true if the combat is over, false otherwise.
+      def take_turn(attacker)
+        # We need to preserve team context for the strategy to find targets
+        attacker.team ||= @teams.find { |t| t.members.include?(attacker) }
+        super
+      end
+
       def over?
         @teams.any?(&:all_members_defeated?)
       end
 
-      # Determines the winning team.
-      #
-      # @return [Team] The winning team.
       def winner
         @teams.find { |team| !team.all_members_defeated? }
       end
@@ -63,13 +62,12 @@ module Dnd5e
 
       private
 
-      # Finds a valid defender for the given attacker.
-      #
-      # @param attacker [Combatant] The attacking combatant.
-      # @return [Combatant, nil] A valid defender if one exists, nil otherwise.
-      def find_valid_defender(attacker)
-        potential_defenders = @teams.reject { |team| team == attacker.team }.flat_map(&:alive_members)
-        potential_defenders.sample
+      # Deprecated: legacy turn logic moved to strategies
+      def execute_legacy_turn(attacker)
+        defender = find_valid_defender(attacker)
+        return false if defender.nil?
+
+        attack(attacker, defender)
       end
     end
   end
