@@ -53,6 +53,8 @@ module Dnd5e
 
         # Return current, then increment (Round Robin)
         combatant = @turn_order[@current_turn_index]
+        combatant.start_turn if combatant.respond_to?(:start_turn)
+
         @current_turn_index = (@current_turn_index + 1) % @turn_order.size
         combatant
       end

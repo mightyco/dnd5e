@@ -2,13 +2,14 @@
 
 require_relative 'statblock'
 require_relative 'attack'
+require_relative 'turn_context'
 
 module Dnd5e
   module Core
     # Represents a character in the D&D 5e system.
     # A character has a name, a statblock, and a list of attacks.
     class Character
-      attr_reader :name, :statblock
+      attr_reader :name, :statblock, :turn_context
       attr_accessor :team, :attacks, :spells
 
       # Initializes a new Character.
@@ -24,6 +25,12 @@ module Dnd5e
         @attacks = attacks
         @spells = spells
         @team = team
+        @turn_context = TurnContext.new
+      end
+
+      # Prepares the character for the start of their turn.
+      def start_turn
+        @turn_context.reset!
       end
     end
   end
