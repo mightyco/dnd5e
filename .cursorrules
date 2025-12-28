@@ -22,11 +22,17 @@
 *   **Respect Hooks:** NEVER suggest `git commit --no-verify` or otherwise bypass pre-commit hooks. If a hook fails, fix the underlying code or test failure.
 *   **No "Bouncing":** Do not iterate on lint failures in the chat. Run the linter, fix the issues silently, and only present the user with the clean, passing code.
 
-## 4. Architectural Standards
-*   **Rubyisms:** Use idiomatic Ruby (e.g., `keyword_init: true` for Structs, double splat `**` for options hashes).
-*   **Testing:** New features must have accompanying tests. Refactoring must not break existing tests.
+## 4. Architectural Standards & Style Guide
+*   **Frozen String Literals:** ALL files must start with `# frozen_string_literal: true`.
+*   **Quote Style:** Use single quotes `'` unless string interpolation is needed.
+*   **Method Length:** Strictly < 10 lines. Extract helpers aggressively.
+*   **Testing:**
+    *   Use `assert_predicate object, :method?` instead of `assert object.method?`.
+    *   Use `refute_predicate object, :method?` instead of `refute object.method?`.
+*   **Naming:** Predicate methods (returning boolean) MUST end in `?`.
+*   **Line Length:** 120 characters max.
+*   **Documentation:** Public classes and methods MUST have RDoc comments.
 *   **Indentation:** 2 spaces.
-*   **Documentation:** RDoc format.
 *   **Dependencies:** Manage via Gemfile and Bundler.
 
 # ==============================================================================

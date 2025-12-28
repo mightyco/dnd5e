@@ -1,4 +1,3 @@
-
 ## Rules Management for AI Agents
 
 To support the AI coding assistant's "Rules Sage" persona, we maintain a text-based reference of the D&D 2024 rules.
@@ -33,8 +32,43 @@ To automatically fix safe offenses:
 rubocop -A
 ```
 
+### AI Style Guide (Strict Enforcement)
+To avoid wasted cycles on linting errors, the AI Assistant must strictly adhere to the following rules **during generation**:
+
+1.  **Frozen String Literals (MANDATORY)**
+    *   **Every** Ruby file must start with: `# frozen_string_literal: true`
+    *   This includes test files, helper files, and scripts.
+
+2.  **Quote Style**
+    *   Use single quotes `'string'` by default.
+    *   Use double quotes `"string"` **only** when string interpolation (`"#{val}"`) is required.
+
+3.  **Method Length & Complexity**
+    *   **Max Lines:** 10 lines per method.
+    *   **Strategy:** Extract logic into private helper methods *before* writing the main method.
+    *   **Parameter Lists:** Use keyword arguments (`**options`) if a method takes more than 3 arguments.
+
+4.  **Testing Best Practices (Minitest)**
+    *   **Boolean Assertions:**
+        *   Allowed: `assert_predicate object, :valid?`
+        *   BANNED: `assert object.valid?`
+    *   **Refutations:**
+        *   Allowed: `refute_predicate object, :valid?`
+        *   BANNED: `refute object.valid?`
+
+5.  **Naming Conventions**
+    *   Methods that return a boolean must end in `?` (e.g., `def valid?`, not `def valid`).
+
+6.  **Formatting**
+    *   **Line Length:** Hard limit of 120 characters. Break long lines (especially comments and method calls).
+    *   **Trailing Whitespace:** Ensure no trailing whitespace exists.
+    *   **Alignment:** Align hash keys and method arguments vertically if they span multiple lines.
+
+7.  **Documentation**
+    *   Public classes and methods must have RDoc comments explaining parameters and return values.
+
 ### Common Style Mistakes & Guidelines
-During development, the following issues were frequently encountered and corrected. Please keep these in mind:
+(Legacy section kept for reference)
 
 1.  **Class/Method Length:**
     *   Keep classes under 100 lines and methods under 10 lines where possible.
@@ -44,15 +78,3 @@ During development, the following issues were frequently encountered and correct
 2.  **Complexity (ABC Size):**
     *   Avoid methods that do too much (Assignment, Branching, Conditionals).
     *   Split methods that parse, calculate, and report into separate, focused methods.
-
-3.  **String Literals:**
-    *   Use single quotes `'string'` by default.
-    *   Use double quotes `"string"` only when using string interpolation or special characters.
-
-4.  **Frozen String Literals:**
-    *   Add `# frozen_string_literal: true` at the top of every Ruby file.
-    *   This improves performance and memory usage.
-
-5.  **Documentation:**
-    *   Ensure all public classes and methods have RDoc comments.
-    *   This is critical for the AI and future developers to understand the API.
