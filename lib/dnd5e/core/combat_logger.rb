@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
 require 'logger'
+require_relative 'combat_log_formatter'
 
 module Dnd5e
   module Core
     # Logs combat events to a logger (stdout by default).
     class CombatLogger
+      include CombatLogFormatter
+
       def initialize(logger = Logger.new($stdout))
         @logger = logger
       end
@@ -57,7 +60,9 @@ module Dnd5e
       end
 
       def log_save_resolution(result)
-        @logger.debug "#{result.defender.name} rolled a save of #{result.save_roll} against DC #{result.save_dc}"
+        msg = "#{result.defender.name} rolled a save of #{result.save_roll} " \
+              "#{format_roll_info(result)} against DC #{result.save_dc}"
+        @logger.debug msg
 
         # Attacker success means Save Fail
         if result.success
@@ -77,7 +82,9 @@ module Dnd5e
       end
 
       def log_attack_roll_resolution(result)
-        @logger.debug "Attacker #{result.attacker.name} rolled an attack roll of #{result.attack_roll}"
+        roll_info = format_roll_info(result)
+        msg = "Attacker #{result.attacker.name} rolled an attack roll of #{result.attack_roll} #{roll_info}"
+        @logger.debug msg
 
         return log_missing_ac(result) if result.target_ac.nil?
 
@@ -93,7 +100,8 @@ module Dnd5e
       end
 
       def log_attack_hit(result)
-        @logger.info "#{result.attacker.name} hits #{result.defender.name} for #{result.damage} damage!"
+        roll_info = format_damage_info(result)
+        @logger.info "#{result.attacker.name} hits #{result.defender.name} for #{result.damage} damage! #{roll_info}"
       end
 
       def log_attack_miss(result)
@@ -101,15 +109,20 @@ module Dnd5e
       end
 
       def log_damage_and_defeat(result)
-        # Common damage/defeat logging
-        if result.damage.positive?
-          @logger.info "#{result.defender.name} takes #{result.damage} damage!" if result.type == :save
-          # For attack rolls, damage is usually part of the "hits" message, but checking if we need extra
-        elsif result.type == :save
-          @logger.info "#{result.defender.name} takes no damage."
-        end
-
+        log_damage(result) if result.damage.positive?
+        log_no_damage(result) if result.damage.zero? && result.type == :save
         @logger.info "#{result.defender.name} is defeated!" if result.is_dead
+      end
+
+      def log_damage(result)
+        return unless result.type == :save
+
+        roll_info = format_damage_info(result)
+        @logger.info "#{result.defender.name} takes #{result.damage} damage! #{roll_info}"
+      end
+
+      def log_no_damage(result)
+        @logger.info "#{result.defender.name} takes no damage."
       end
     end
   end

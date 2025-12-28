@@ -4,6 +4,7 @@ require_relative 'parsers/spell_parser'
 require_relative 'parsers/magic_item_parser'
 require_relative 'parsers/condition_parser'
 require_relative 'parsers/mechanic_parser'
+require_relative 'parsers/class_table_parser'
 
 module Dnd5e
   module Ingest
@@ -17,7 +18,8 @@ module Dnd5e
           spells: [],
           conditions: [],
           items: [],
-          mechanics: []
+          mechanics: [],
+          class_tables: {}
         }
         register_default_parsers
       end
@@ -49,6 +51,7 @@ module Dnd5e
         register_parser(Parsers::MagicItemParser.new)
         register_parser(Parsers::ConditionParser.new)
         register_parser(Parsers::MechanicParser.new)
+        register_parser(Parsers::ClassTableParser.new)
       end
 
       def process_content(content)
@@ -60,7 +63,11 @@ module Dnd5e
 
       def merge_results(results)
         results.each do |key, values|
-          @rules[key].concat(values) if @rules.key?(key)
+          if key == :class_tables
+            @rules[key].merge!(values)
+          elsif @rules.key?(key)
+            @rules[key].concat(values)
+          end
         end
       end
     end

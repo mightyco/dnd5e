@@ -4,23 +4,34 @@ require_relative '../../test_helper'
 require_relative '../../../lib/dnd5e/core/combat'
 require_relative '../../../lib/dnd5e/core/character'
 require_relative '../../../lib/dnd5e/core/dice_roller'
+require_relative '../../../lib/dnd5e/core/features/great_weapon_master'
+require_relative '../../../lib/dnd5e/core/features/sharpshooter'
 
 class TestFeats < Minitest::Test
   def setup
     @dice_roller = Dnd5e::Core::MockDiceRoller.new([15, 5]) # Attack: 15, Damage: 5
+    setup_attacker
+    setup_defender
+    setup_combat
+  end
 
-    statblock_attacker = Dnd5e::Core::Statblock.new(name: 'Attacker', strength: 10, dexterity: 10) # +0 mods
-    statblock_defender = Dnd5e::Core::Statblock.new(name: 'Defender', strength: 10, dexterity: 10, hit_points: 20,
-                                                    ac: 10)
-
-    @attacker = Dnd5e::Core::Character.new(name: 'Attacker', statblock: statblock_attacker)
-    @defender = Dnd5e::Core::Character.new(name: 'Defender', statblock: statblock_defender)
-
-    # Weapon: 1d8 + 0
+  def setup_attacker
+    statblock = Dnd5e::Core::Statblock.new(name: 'Attacker', strength: 10, dexterity: 10)
+    @attacker = Dnd5e::Core::Character.new(
+      name: 'Attacker', statblock: statblock,
+      features: [Dnd5e::Core::Features::GreatWeaponMaster.new, Dnd5e::Core::Features::Sharpshooter.new]
+    )
     damage_dice = Dnd5e::Core::Dice.new(1, 8, modifier: 0)
     @attacker.attacks << Dnd5e::Core::Attack.new(name: 'Greatsword', hit_bonus: 0, damage_dice: damage_dice,
                                                  dice_roller: @dice_roller)
+  end
 
+  def setup_defender
+    statblock = Dnd5e::Core::Statblock.new(name: 'Defender', strength: 10, dexterity: 10, hit_points: 20, ac: 10)
+    @defender = Dnd5e::Core::Character.new(name: 'Defender', statblock: statblock)
+  end
+
+  def setup_combat
     @combat = Dnd5e::Core::Combat.new(combatants: [@attacker, @defender], dice_roller: @dice_roller)
   end
 

@@ -8,7 +8,7 @@ module Dnd5e
     # Represents an attack action available to a combatant.
     class Attack
       attr_reader :name, :damage_dice, :relevant_stat, :dice_roller, :type, :save_ability, :half_damage_on_save,
-                  :fixed_dc, :dc_stat, :range
+                  :fixed_dc, :dc_stat, :range, :scaling, :resource_cost
 
       # Initializes a new Attack.
       #
@@ -22,17 +22,47 @@ module Dnd5e
       # @param fixed_dc [Integer, nil] A fixed DC for the save (optional).
       # @param dc_stat [Symbol] The stat used to calculate DC if not fixed (default: same as relevant_stat).
       # @param range [Integer] The range of the attack in feet (default: 5).
+      # @param scaling [Boolean] Whether the damage dice scale with level (default: false).
+      # @param resource_cost [Symbol, nil] The resource consumed by this attack (e.g., :spell_slot_3).
       def initialize(name:, damage_dice:, relevant_stat: :strength, dice_roller: DiceRoller.new, **options)
         @name = name
         @damage_dice = damage_dice
         @relevant_stat = relevant_stat
         @dice_roller = dice_roller
+        assign_options(options)
+      end
+
+      def assign_options(options)
         @type = options[:type] || :attack
         @save_ability = options[:save_ability]
         @half_damage_on_save = options[:half_damage_on_save] || false
         @fixed_dc = options[:fixed_dc]
-        @dc_stat = options[:dc_stat] || relevant_stat
+        @dc_stat = options[:dc_stat] || @relevant_stat
         @range = options[:range] || 5
+        @scaling = options[:scaling] || false
+        @resource_cost = options[:resource_cost]
+      end
+
+      # Returns the damage dice for a given level, applying scaling if enabled.
+      #
+      # @param level [Integer] The level to calculate damage for.
+      # @return [Dice] The (potentially scaled) damage dice.
+      def damage_dice_for(level)
+        return @damage_dice unless @scaling
+
+        multiplier = calculate_scaling_multiplier(level)
+        Dice.new(@damage_dice.count * multiplier, @damage_dice.sides, modifier: @damage_dice.modifier)
+      end
+
+      private
+
+      def calculate_scaling_multiplier(level)
+        case level
+        when 5..10 then 2
+        when 11..16 then 3
+        when 17..20 then 4
+        else 1
+        end
       end
     end
   end

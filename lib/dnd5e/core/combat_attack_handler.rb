@@ -25,14 +25,15 @@ module Dnd5e
       #
       # @param attacker [Combatant] The attacking combatant.
       # @param defender [Combatant] The defending combatant.
-      # @param options [Hash] Optional flags (advantage, disadvantage).
+      # @param options [Hash] Optional flags (advantage, disadvantage, attack).
       # @raise [InvalidAttackError] if the attacker or defender is dead.
       # @return [Boolean] true if the attack hits, false otherwise.
-      def attack(attacker, defender, **)
+      def attack(attacker, defender, **options)
         raise InvalidAttackError, 'Cannot attack with a dead attacker' unless attacker.statblock.alive?
         raise InvalidAttackError, 'Cannot attack a dead defender' unless defender.statblock.alive?
 
-        @attack_resolver.resolve(attacker, defender, attacker.attacks.first, **)
+        attack_to_use = options[:attack] || attacker.attacks.first
+        @attack_resolver.resolve(attacker, defender, attack_to_use, **options)
       end
 
       # Finds a valid defender for the given attacker.

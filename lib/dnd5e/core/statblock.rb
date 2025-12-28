@@ -1,17 +1,22 @@
 # frozen_string_literal: true
 
+require_relative 'resource_pool'
+require_relative 'proficiency'
+
 module Dnd5e
   module Core
     # Represents a character's stat block in the D&D 5e system.
     class Statblock
       attr_reader :name, :hit_die, :level
       attr_accessor :strength, :dexterity, :constitution, :intelligence, :wisdom, :charisma, :hit_points,
-                    :saving_throw_proficiencies, :equipped_armor, :equipped_shield, :conditions
+                    :saving_throw_proficiencies, :equipped_armor, :equipped_shield, :conditions,
+                    :extra_attacks, :resources, :speed
 
       DEFAULT_STATS = {
         strength: 10, dexterity: 10, constitution: 10,
         intelligence: 10, wisdom: 10, charisma: 10,
-        hit_die: 'd8', level: 1
+        hit_die: 'd8', level: 1, extra_attacks: 0,
+        resources: {}, speed: 30
       }.freeze
 
       # Initializes a new Statblock.
@@ -22,7 +27,10 @@ module Dnd5e
         @name = name
         initialize_stats(options)
         initialize_equipment(options)
+        @armor_class = options[:armor_class]
+        @resources = ResourcePool.new(options[:resources] || {})
         @hit_points = calculate_hit_points
+        @speed = options[:speed] || 30
       end
 
       # Calculates the Armor Class (AC).
@@ -118,23 +126,7 @@ module Dnd5e
       # @return [Integer] The character's proficiency bonus.
       # @raise [RuntimeError] if the level is invalid.
       def proficiency_bonus
-        self.class.calculate_proficiency_bonus(@level)
-      end
-
-      # Calculates proficiency bonus for a given level.
-      #
-      # @param level [Integer] Character level (1-20).
-      # @return [Integer] Proficiency bonus.
-      def self.calculate_proficiency_bonus(level)
-        case level
-        when 1..4 then 2
-        when 5..8 then 3
-        when 9..12 then 4
-        when 13..16 then 5
-        when 17..20 then 6
-        else
-          raise "Invalid level: #{level}"
-        end
+        Proficiency.calculate(@level)
       end
 
       # Creates a deep copy of the Statblock.
@@ -154,8 +146,14 @@ module Dnd5e
         @intelligence = stats[:intelligence]
         @wisdom = stats[:wisdom]
         @charisma = stats[:charisma]
+        assign_class_features(stats)
+      end
+
+      def assign_class_features(stats)
         @hit_die = stats[:hit_die]
         @level = stats[:level]
+        @extra_attacks = stats[:extra_attacks]
+        @speed = stats[:speed]
       end
 
       def initialize_equipment(options)

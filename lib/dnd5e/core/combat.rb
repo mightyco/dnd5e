@@ -18,7 +18,7 @@ module Dnd5e
     class Combat
       include Publisher
 
-      attr_accessor :dice_roller
+      attr_accessor :dice_roller, :distance
       attr_reader :combatants, :turn_manager, :max_rounds, :combat_attack_handler
 
       # Initializes a new Combat instance.
@@ -26,12 +26,14 @@ module Dnd5e
       # @param combatants [Array<Combatant>] The combatants participating in the combat.
       # @param dice_roller [DiceRoller] The dice roller to use for rolling dice.
       # @param max_rounds [Integer] The maximum number of rounds the combat can last.
-      def initialize(combatants:, dice_roller: DiceRoller.new, max_rounds: 1000)
+      # @param distance [Integer] Initial distance between sides in feet (default: 30).
+      def initialize(combatants:, dice_roller: DiceRoller.new, max_rounds: 1000, distance: 30)
         @combatants = combatants
         @turn_manager = TurnManager.new(combatants: @combatants)
         @dice_roller = dice_roller
         @max_rounds = max_rounds
         @round_counter = 0
+        @distance = distance
         @combat_attack_handler = CombatAttackHandler.new(logger: Logger.new(nil)) # Use silent logger
       end
 
@@ -39,12 +41,13 @@ module Dnd5e
       #
       # @param attacker [Combatant] The attacking combatant.
       # @param defender [Combatant] The defending combatant.
-      # @param options [Hash] Optional flags (advantage, disadvantage).
+      # @param options [Hash] Optional flags (advantage, disadvantage, attack).
       # @raise [InvalidAttackError] if the attacker or defender is dead.
       # @return [AttackResult] The result of the attack.
-      def attack(attacker, defender, **)
+      def attack(attacker, defender, **options)
         notify_observers(:attack, attacker: attacker, defender: defender)
-        result = @combat_attack_handler.attack(attacker, defender, **)
+        options[:combat] ||= self
+        result = @combat_attack_handler.attack(attacker, defender, **options)
         notify_observers(:attack_resolved, result: result)
         result
       end

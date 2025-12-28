@@ -19,7 +19,8 @@ namespace :rules do
       spells: rules[:spells].map { |s| object_to_hash(s) },
       conditions: rules[:conditions].map { |c| object_to_hash(c) },
       items: rules[:items].map { |i| object_to_hash(i) },
-      mechanics: rules[:mechanics].map { |m| object_to_hash(m) }
+      mechanics: rules[:mechanics].map { |m| object_to_hash(m) },
+      class_tables: rules[:class_tables]
     }
 
     File.write(Dnd5e::Core::RuleRepository::CACHE_FILE, JSON.pretty_generate(serializable_rules))
@@ -28,6 +29,7 @@ namespace :rules do
     puts "  Spells: #{serializable_rules[:spells].count}"
     puts "  Conditions: #{serializable_rules[:conditions].count}"
     puts "  Items: #{serializable_rules[:items].count}"
+    puts "  Class Tables: #{serializable_rules[:class_tables].count}"
   end
 
   desc 'Clear the rules cache'

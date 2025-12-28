@@ -3,12 +3,15 @@
 require_relative 'statblock'
 require_relative 'attack'
 
+require_relative 'feature_manager'
+require_relative 'turn_context'
+
 module Dnd5e
   module Core
     # Represents a monster in the D&D 5e system.
     # A monster has a name, a statblock, and a list of attacks.
     class Monster
-      attr_reader :name, :statblock, :attacks
+      attr_reader :name, :statblock, :attacks, :turn_context, :feature_manager
       attr_accessor :team
 
       # Initializes a new Monster.
@@ -22,6 +25,13 @@ module Dnd5e
         @statblock = statblock
         @attacks = attacks
         @team = team
+        @turn_context = TurnContext.new
+        @feature_manager = FeatureManager.new([])
+      end
+
+      # Prepares the monster for the start of their turn.
+      def start_turn
+        @turn_context.reset!
       end
     end
   end

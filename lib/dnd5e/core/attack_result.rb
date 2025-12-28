@@ -5,7 +5,9 @@ module Dnd5e
     # Stores the result of an attack resolution.
     class AttackResult
       attr_reader :attacker, :defender, :attack, :success, :damage, :type,
-                  :attack_roll, :target_ac, :save_roll, :save_dc, :is_dead
+                  :attack_roll, :raw_roll, :modifier, :target_ac,
+                  :save_roll, :save_dc, :is_dead, :rolls, :advantage, :disadvantage,
+                  :damage_rolls, :damage_modifier
 
       # Initializes a new AttackResult.
       #
@@ -26,11 +28,30 @@ module Dnd5e
       private
 
       def assign_details(details)
+        assign_roll_details(details)
+        assign_save_details(details)
+        assign_damage_details(details)
+        @is_dead = details[:is_dead] || false
+      end
+
+      def assign_roll_details(details)
         @attack_roll = details[:attack_roll]
+        @raw_roll = details[:raw_roll]
+        @modifier = details[:modifier]
+        @rolls = details[:rolls] || []
+        @advantage = details[:advantage] || false
+        @disadvantage = details[:disadvantage] || false
+      end
+
+      def assign_save_details(details)
         @target_ac = details[:target_ac]
         @save_roll = details[:save_roll]
         @save_dc = details[:save_dc]
-        @is_dead = details[:is_dead] || false
+      end
+
+      def assign_damage_details(details)
+        @damage_rolls = details[:damage_rolls] || []
+        @damage_modifier = details[:damage_modifier] || 0
       end
     end
   end

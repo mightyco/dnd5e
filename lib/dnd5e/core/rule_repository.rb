@@ -16,13 +16,14 @@ module Dnd5e
 
       CACHE_FILE = 'data/rules_cache.json'
 
-      attr_reader :spells, :conditions, :items, :mechanics
+      attr_reader :spells, :conditions, :items, :mechanics, :class_tables
 
       def initialize
         @spells = {}
         @conditions = {}
         @items = {}
         @mechanics = {}
+        @class_tables = {}
         load_data if File.exist?(CACHE_FILE)
       end
 
@@ -34,7 +35,7 @@ module Dnd5e
       # Checks if the repository has loaded data.
       # @return [Boolean]
       def loaded?
-        !@spells.empty?
+        !@spells.empty? || !@class_tables.empty?
       end
 
       private
@@ -48,6 +49,7 @@ module Dnd5e
         @conditions = map_collection(data[:conditions], Condition)
         @items = map_collection(data[:items], MagicItem)
         @mechanics = map_collection(data[:mechanics], Mechanic)
+        @class_tables = data[:class_tables] || {}
       rescue JSON::ParserError => e
         warn "Failed to parse rules cache: #{e.message}"
       end
@@ -57,6 +59,7 @@ module Dnd5e
         @conditions = {}
         @items = {}
         @mechanics = {}
+        @class_tables = {}
       end
 
       def map_collection(collection, klass)
