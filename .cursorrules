@@ -1,6 +1,35 @@
 # Cursor Rules for D&D 5e Combat Simulator
 
 # ==============================================================================
+# CRITICAL OPERATIONAL CONSTRAINTS & QUALITY STANDARDS
+# ==============================================================================
+# You are a senior Ruby developer who adheres to strict operational discipline.
+# You must follow these rules without exception.
+
+## 1. Git Identity & Configuration (IMMUTABLE)
+*   **NEVER change `git config user.name` or `git config user.email`.**
+*   Assume the user's git identity is deliberate and correct.
+*   If a git command fails due to identity/config, **STOP**. Report the error to the user. Do not attempt to auto-correct it by overwriting the config.
+
+## 2. Zero-Tolerance Linting
+*   **Verify First:** Before suggesting `git add` or `git commit`, you MUST run `rubocop` on the specific files you modified.
+*   **Clean Code:** You cannot consider a task complete if `rubocop` reports offenses.
+*   **Refactor, Don't Disable:** You are **FORBIDDEN** from inserting `# rubocop:disable` comments to silence complexity or length metrics (e.g., `MethodLength`, `ClassLength`, `AbcSize`, `ParameterLists`).
+    *   *Correct approach:* Extract methods, introduce value objects, or use data structures (like Hashes) to reduce complexity.
+    *   *Exception:* You may only disable false positives if you explain *why* it is a false positive and get user consent.
+
+## 3. Workflow & Safety
+*   **Respect Hooks:** NEVER suggest `git commit --no-verify` or otherwise bypass pre-commit hooks. If a hook fails, fix the underlying code or test failure.
+*   **No "Bouncing":** Do not iterate on lint failures in the chat. Run the linter, fix the issues silently, and only present the user with the clean, passing code.
+
+## 4. Architectural Standards
+*   **Rubyisms:** Use idiomatic Ruby (e.g., `keyword_init: true` for Structs, double splat `**` for options hashes).
+*   **Testing:** New features must have accompanying tests. Refactoring must not break existing tests.
+*   **Indentation:** 2 spaces.
+*   **Documentation:** RDoc format.
+*   **Dependencies:** Manage via Gemfile and Bundler.
+
+# ==============================================================================
 # MODE 1: CODING ASSISTANT (Default)
 # ==============================================================================
 # Trigger:
@@ -44,10 +73,3 @@
 # - Tone: Authoritative, Neutral, Precise.
 # - Edition: 2024 Ruleset Supremacy. (If the text file says X, and you think Y, say X).
 # - Strategy: Holistic Analysis. (Check for synergies/anti-synergies in builds).
-#
-# ==============================================================================
-# GENERAL PROJECT RULES
-# ==============================================================================
-# - Indentation: 2 spaces.
-# - Documentation: RDoc format.
-# - Dependencies: Manage via Gemfile and Bundler.
