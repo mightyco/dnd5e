@@ -13,9 +13,8 @@ require 'logger'
 puts '=== Attack Mechanics Example ==='
 
 # Setup
-logger = Logger.new($stdout)
-logger.formatter = proc { |_sev, _dt, _prog, msg| "#{msg}\n" }
-combat_logger = Dnd5e::Core::CombatLogger.new(logger)
+# Default logger with timestamps is desired
+combat_logger = Dnd5e::Core::CombatLogger.new
 
 # Hero Setup
 hero_stats = Dnd5e::Core::Statblock.new(name: 'Hero', strength: 16, level: 3)

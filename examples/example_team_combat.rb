@@ -33,9 +33,8 @@ team_goblins = Dnd5e::Core::Team.new(name: 'Goblins', members: [goblin1, goblin2
 
 # Configure Combat
 combat = Dnd5e::Core::TeamCombat.new(teams: [team_heroes, team_goblins])
-logger = Logger.new($stdout)
-logger.formatter = proc { |_sev, _dt, _prog, msg| "#{msg}\n" }
-combat.add_observer(Dnd5e::Core::CombatLogger.new(logger))
+# Default logger with timestamps is desired
+combat.add_observer(Dnd5e::Core::CombatLogger.new)
 
 # Execution
 puts "Starting battle: #{team_heroes.members.map(&:name).join(', ')} vs #{team_goblins.members.map(&:name).join(', ')}"

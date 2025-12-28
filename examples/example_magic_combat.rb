@@ -8,6 +8,7 @@ require_relative '../lib/dnd5e/core/statblock'
 require_relative '../lib/dnd5e/core/attack'
 require_relative '../lib/dnd5e/core/dice'
 require_relative '../lib/dnd5e/core/dice_roller'
+require_relative '../lib/dnd5e/core/combat_logger'
 require 'logger'
 
 puts '=== Magic Combat Example ==='
@@ -56,9 +57,8 @@ team_monsters = Dnd5e::Core::Team.new(name: 'Monsters', members: [goblin])
 
 # Setup Combat
 combat = Dnd5e::Core::TeamCombat.new(teams: [team_heroes, team_monsters])
-logger = Logger.new($stdout)
-logger.formatter = proc { |_sev, _dt, _prog, msg| "#{msg}\n" }
-combat.add_observer(Dnd5e::Core::CombatLogger.new(logger))
+# Default logger with timestamps is desired
+combat.add_observer(Dnd5e::Core::CombatLogger.new)
 
 puts 'Starting battle: Wizard vs Goblin'
 combat.run_combat
