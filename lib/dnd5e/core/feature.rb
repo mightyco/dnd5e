@@ -25,11 +25,25 @@ module Dnd5e
         nil
       end
 
+      # Called to add extra damage dice (e.g. Sneak Attack, Smite).
+      # @param context [Hash] Context including :attacker, :defender, :attack, :options.
+      # @return [Array<Dice>] An array of extra dice to roll and add to damage.
+      def extra_damage_dice(_context)
+        []
+      end
+
       # Called when a saving throw is being calculated.
       # @param context [Hash] Context including :attacker, :defender, :attack, :modifier.
       # @return [Integer] The modification to the save modifier.
       def on_save_roll(_context)
         0
+      end
+
+      # Called when damage is about to be applied to the character.
+      # @param context [Hash] Context including :attacker, :defender, :attack, :damage, :outcome.
+      # @return [Integer, nil] The new damage value, or nil to keep current.
+      def on_damage_taken(_context)
+        nil
       end
     end
   end

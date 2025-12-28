@@ -36,7 +36,9 @@ module Dnd5e
         attacker.team ||= @teams.find { |t| t.members.include?(attacker) }
         enemy_teams = @teams.reject { |team| team == attacker.team }
         potential_defenders = enemy_teams.flat_map(&:alive_members)
-        potential_defenders.sample
+
+        # Priority Targeting: Geek the Mage (Target with lowest current HP)
+        potential_defenders.min_by { |c| c.statblock.hit_points }
       end
 
       def take_turn(attacker)

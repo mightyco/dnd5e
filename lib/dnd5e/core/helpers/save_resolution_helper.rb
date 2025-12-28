@@ -47,6 +47,12 @@ module Dnd5e
 
           attacker_success = !save_success
           damage = calculate_save_damage(attack, full_damage, save_success)
+
+          # Apply defender feature hooks (e.g., Evasion)
+          context = { attacker: attacker, defender: defender, attack: attack,
+                      damage: damage, save_success: save_success }
+          damage = defender.feature_manager.apply_hook(:on_damage_taken, context, damage)
+
           defender.statblock.take_damage(damage) if damage.positive?
 
           build_save_damage_data(damage, defender, attacker_success, attack, base_dice)

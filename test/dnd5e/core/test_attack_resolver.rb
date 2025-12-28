@@ -84,36 +84,14 @@ module Dnd5e
     class TestAttackResolver < AttackResolverTestBase
       def test_resolve_critical_hit
         # Attack roll (20), Damage (simulated 2d8=11)
-        # Note: 20 is rolled, AttackResolver should see it as a crit.
-        # It should then take the attack's damage dice (1d8), create a new dice (2d8), and roll that.
-        # We need the MockDiceRoller to return 11 for that second roll.
-
+        # 20 + 2 (Str mod) = 22
         @mock_dice_roller = MockDiceRoller.new([20, 11])
-        # Force the underlying dice to have a roll of [20] so checking dice.rolls returns [20]
-        # This is a bit of internal knowledge of how DiceRoller works, but necessary for mocking.
-        # However, MockDiceRoller doesn't create a @dice object until roll is called unless we force it.
-        # Actually, AttackResolver calls roll_with_dice/advantage which sets @dice.
-
-        # When `roll_attack` is called, it calls `dice_roller.roll_with_dice`.
-        # Our Mock `roll` method now updates `@dice.rolls` IF `@dice` exists.
-
-        # But wait! `DiceRoller#roll_with_dice(dice)` sets `@dice = dice`.
-        # So when `roll_attack` runs:
-        # 1. Creates `attack_dice` (1d20).
-        # 2. Calls `dice_roller.roll_with_dice(attack_dice)`.
-        # 3. MockDiceRoller calls `super`? No, it overrides it.
-        # 4. MockDiceRoller sets `@dice = dice` (inherited from DiceRoller? No, DiceRoller has it, Mock overrides it?)
-        # Ah! MockDiceRoller OVERRIDES `roll_with_dice` and aliases `roll`.
-        # The base `roll_with_dice` sets `@dice`. The Mock version does NOT call super, so `@dice` is never set!
-
-        # FIX: We need MockDiceRoller to set @dice so that AttackResolver can inspect it.
-
         @attack.instance_variable_set(:@dice_roller, @mock_dice_roller)
 
         result = @attack_resolver.resolve(@hero, @goblin, @attack)
 
         assert result.success
-        assert_equal 20, result.attack_roll
+        assert_equal 22, result.attack_roll
 
         last_dice = @mock_dice_roller.last_dice_params.last
 
@@ -127,7 +105,7 @@ module Dnd5e
 
         assert_attack_success(result, initial_hp, 5)
         assert_equal :attack, result.type
-        assert_equal 100, result.attack_roll # Mock roll
+        assert_equal 102, result.attack_roll # 100 + 2 (Str mod)
         assert_equal @goblin.statblock.armor_class, result.target_ac
       end
 
@@ -137,7 +115,11 @@ module Dnd5e
         @attack.instance_variable_set(:@dice_roller, @mock_dice_roller)
         result = @attack_resolver.resolve(@goblin, @hero, @attack)
 
-        assert_attack_miss(result, initial_hp)
+        # 1 + 2 (Str mod) = 3
+        assert_equal initial_hp, @hero.statblock.hit_points
+        refute result.success
+        assert_equal 0, result.damage
+        assert_equal 3, result.attack_roll
       end
 
       def test_resolve_with_advantage
@@ -174,10 +156,11 @@ module Dnd5e
       end
 
       def test_resolve_save_with_fixed_dc
-        trap = create_trap_attack(MockDiceRoller.new([14, 10]))
+        # Fixed DC 15. Roll 13 + 1 (Dex mod) = 14. Fail.
+        trap = create_trap_attack(MockDiceRoller.new([13, 10]))
         result = @attack_resolver.resolve(@hero, @goblin, trap)
 
-        assert result.success # Attacker success (trap worked)
+        assert result.success # Attacker success (trap worked because save 14 < DC 15)
         assert_equal 15, result.save_dc
         assert_equal 14, result.save_roll
       end

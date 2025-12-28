@@ -4,25 +4,18 @@ require_relative 'dice'
 require_relative 'attack_result_builder'
 require_relative 'helpers/attack_roll_helper'
 require_relative 'helpers/save_resolution_helper'
+require_relative 'helpers/damage_roll_helper'
 require 'logger'
 
 module Dnd5e
   module Core
     # Resolves an attack, applying damage and returning the result.
     class AttackResolver
-      # @param logger [Logger] Deprecated: Logger is no longer used in AttackResolver.
       def initialize(*)
         @result_builder = AttackResultBuilder.new
-        # Logger kept for backward compatibility signature but unused
       end
 
       # Resolves an attack, applying damage and returning the result.
-      #
-      # @param attacker [Character] The attacking character.
-      # @param defender [Character] The defending character.
-      # @param attack [Attack] The attack being performed.
-      # @param options [Hash] Optional flags (advantage, disadvantage).
-      # @return [AttackResult] The result of the attack.
       def resolve(attacker, defender, attack, **options)
         if attack.type == :save
           resolve_save(attacker, defender, attack)
@@ -40,8 +33,7 @@ module Dnd5e
         roll_data = Helpers::AttackRollHelper.roll_attack(attacker, defender, attack, options)
         success = roll_data[:total] >= defender.statblock.armor_class || roll_data[:is_crit]
 
-        apply_and_build_result(attacker, defender, attack, roll_data,
-                               { success: success, options: options })
+        apply_and_build_result(attacker, defender, attack, roll_data, { success: success, options: options })
       end
 
       def apply_and_build_result(attacker, defender, attack, roll_data, outcome)
@@ -77,10 +69,7 @@ module Dnd5e
       end
 
       def build_damage_details(params)
-        {
-          damage_rolls: params[:damage_rolls],
-          damage_modifier: params[:damage_modifier]
-        }
+        { damage_rolls: params[:damage_rolls], damage_modifier: params[:damage_modifier] }
       end
 
       def resolve_save(attacker, defender, attack)
@@ -90,7 +79,6 @@ module Dnd5e
       end
 
       def handle_missing_ac(attacker, defender, attack)
-        # Treat as auto-miss or handle error? For now, return miss with 0 damage.
         @result_builder.build(attacker: attacker, defender: defender, attack: attack,
                               outcome: { success: false, damage: 0 },
                               details: { target_ac: nil })
@@ -105,30 +93,18 @@ module Dnd5e
       end
 
       def roll_damage(defender, attack, is_crit, options)
-        damage_dice = calculate_damage_dice(options[:attacker], attack, is_crit, options)
+        attacker = options[:attacker]
+        damage_dice = Helpers::DamageRollHelper.calculate_dice(attacker, attack, is_crit, options)
         damage = attack.dice_roller.roll_with_dice(damage_dice)
-        apply_damage(defender, damage)
-        [damage, attack.dice_roller.dice.rolls, damage_dice.modifier]
-      end
+        rolls = attack.dice_roller.dice.rolls.dup
 
-      def calculate_damage_dice(attacker, attack, is_crit, options)
-        base_dice = attack.damage_dice_for(attacker.statblock.level)
-
-        # Apply feature hooks
-        context = { attacker: attacker, attack: attack, dice: base_dice, options: options, is_crit: is_crit }
-        base_dice = attacker.feature_manager.apply_hook(:on_damage_calculation, context, base_dice)
-
-        if is_crit
-          Dice.new(base_dice.count * 2, base_dice.sides, modifier: base_dice.modifier)
-        else
-          Dice.new(base_dice.count, base_dice.sides, modifier: base_dice.modifier)
-        end
+        extra_dmg, extra_rolls = Helpers::DamageRollHelper.roll_extra(attacker, defender, attack, options)
+        apply_damage(defender, damage + extra_dmg)
+        [damage + extra_dmg, rolls + extra_rolls, damage_dice.modifier]
       end
 
       def apply_damage(defender, damage)
-        return unless damage.positive?
-
-        defender.statblock.take_damage(damage)
+        defender.statblock.take_damage(damage) if damage.positive?
       end
     end
   end

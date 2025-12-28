@@ -21,12 +21,6 @@ module Dnd5e
       attr_accessor :dice_roller, :distance
       attr_reader :combatants, :turn_manager, :max_rounds, :combat_attack_handler
 
-      # Initializes a new Combat instance.
-      #
-      # @param combatants [Array<Combatant>] The combatants participating in the combat.
-      # @param dice_roller [DiceRoller] The dice roller to use for rolling dice.
-      # @param max_rounds [Integer] The maximum number of rounds the combat can last.
-      # @param distance [Integer] Initial distance between sides in feet (default: 30).
       def initialize(combatants:, dice_roller: DiceRoller.new, max_rounds: 1000, distance: 30)
         @combatants = combatants
         @turn_manager = TurnManager.new(combatants: @combatants)
@@ -34,83 +28,53 @@ module Dnd5e
         @max_rounds = max_rounds
         @round_counter = 0
         @distance = distance
-        @combat_attack_handler = CombatAttackHandler.new(logger: Logger.new(nil)) # Use silent logger
+        @combat_attack_handler = CombatAttackHandler.new(logger: Logger.new(nil))
       end
 
-      # Performs an attack from an attacker to a defender.
-      #
-      # @param attacker [Combatant] The attacking combatant.
-      # @param defender [Combatant] The defending combatant.
-      # @param options [Hash] Optional flags (advantage, disadvantage, attack).
-      # @raise [InvalidAttackError] if the attacker or defender is dead.
-      # @return [AttackResult] The result of the attack.
       def attack(attacker, defender, **options)
         notify_observers(:attack, attacker: attacker, defender: defender)
         options[:combat] ||= self
         results = @combat_attack_handler.attack(attacker, defender, **options)
 
-        # results can be a single AttackResult or an array for AOE
-        Array(results).each do |result|
-          notify_observers(:attack_resolved, result: result)
-        end
+        Array(results).each { |r| notify_observers(:attack_resolved, result: r) }
         results
       end
 
-      # Takes a turn for a given attacker.
-      #
-      # @param attacker [Combatant] The combatant taking the turn.
-      # @return [Combatant, nil] The defender if the defender is alive, nil otherwise.
       def take_turn(attacker)
         notify_observers(:turn_start, combatant: attacker)
 
         if attacker.respond_to?(:strategy)
           attacker.strategy.execute_turn(attacker, self)
         else
-          execute_legacy_turn(attacker)
+          defender = find_valid_defender(attacker)
+          attack(attacker, defender) if defender
         end
       end
 
-      # Checks if the combat is over.
-      #
-      # @return [Boolean] true if the combat is over, false otherwise.
+      def move_combatant(combatant, new_distance)
+        check_opportunity_attacks(combatant, new_distance)
+        @distance = new_distance
+      end
+
       def over?
-        # Standard combat ends when only one combatant (or side) is left alive.
         alive_combatants = @combatants.select { |c| c.statblock.alive? }
         alive_combatants.size <= 1
       end
 
-      # Determines the winner of the combat.
-      #
-      # @raise [InvalidWinnerError] if no winner can be determined.
-      # @return [Combatant] The winning combatant.
       def winner
-        alive_combatants = @combatants.select { |c| c.statblock.alive? }
+        alive = @combatants.select { |c| c.statblock.alive? }
+        raise InvalidWinnerError, 'No winner found (all dead)' if alive.empty?
+        raise InvalidWinnerError, 'Combat not over' if alive.size > 1
 
-        if alive_combatants.size == 1
-          alive_combatants.first
-        elsif alive_combatants.empty?
-          raise InvalidWinnerError, 'No winner found (all dead)'
-        else
-          # If multiple alive, no winner yet or stalemate?
-          # Original logic assumed only 2 combatants or last standing.
-          # If we support teams, this logic is flawed here, but let's stick to simple "Last Man Standing".
-          raise InvalidWinnerError, 'Combat not over (multiple alive)'
-        end
+        alive.first
       end
 
-      # Runs the combat until it is over or times out.
-      #
-      # @raise [CombatTimeoutError] if the combat exceeds the maximum number of rounds.
       def run_combat
         prepare_combat
         run_rounds
         conclude_combat
       end
 
-      # Finds a valid defender for the given attacker.
-      #
-      # @param attacker [Combatant] The attacking combatant.
-      # @return [Combatant, nil] A valid defender if one exists, nil otherwise.
       def find_valid_defender(attacker)
         (combatants - [attacker]).find { |c| c.statblock.alive? }
       end
@@ -134,10 +98,8 @@ module Dnd5e
       end
 
       def process_turn
-        current_combatant = @turn_manager.next_turn
-        return unless current_combatant.statblock.alive? && !over?
-
-        take_turn(current_combatant)
+        current = @turn_manager.next_turn
+        take_turn(current) if current.statblock.alive? && !over?
       end
 
       def check_round_end
@@ -155,23 +117,26 @@ module Dnd5e
       end
 
       def conclude_combat
-        initiative_winner = @turn_manager.turn_order.first
+        init_winner = @turn_manager.turn_order.first
         begin
-          notify_observers(:combat_end, winner: winner, initiative_winner: initiative_winner)
+          notify_observers(:combat_end, winner: winner, initiative_winner: init_winner)
         rescue InvalidWinnerError
-          notify_observers(:combat_end, winner: nil, initiative_winner: initiative_winner)
+          notify_observers(:combat_end, winner: nil, initiative_winner: init_winner)
         end
       end
 
-      def execute_legacy_turn(attacker)
-        defender = find_valid_defender(attacker)
-        return false if defender.nil?
+      def check_opportunity_attacks(mover, new_dist)
+        return unless @distance == 5 && new_dist > 5
 
-        begin
-          attack(attacker, defender)
-        rescue InvalidAttackError
-          # logger.info "Skipping turn: #{e.message}" # Deprecated
+        enemies = combatants - [mover]
+        enemies.select { |e| e.statblock.alive? && e.turn_context.reactions_used.zero? }.each do |enemy|
+          trigger_opportunity_attack(enemy, mover)
         end
+      end
+
+      def trigger_opportunity_attack(attacker, defender)
+        attack(attacker, defender)
+        attacker.turn_context.use_reaction
       end
     end
   end

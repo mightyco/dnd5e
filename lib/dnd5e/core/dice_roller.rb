@@ -92,21 +92,30 @@ module Dnd5e
         @dice = dice
         @calls << :roll_with_dice
         @last_dice_params << dice
-        next_result
+
+        mocked_rolls = []
+        dice.count.times { mocked_rolls << next_result }
+
+        @dice.instance_variable_set(:@rolls, mocked_rolls)
+        @dice.total
       end
 
       def roll_with_advantage(sides, modifier: 0)
-        # Simulate creating dice to track it
         @dice = Dice.new(2, sides, modifier: modifier)
         @calls << :roll_with_advantage
-        next_result
+
+        mocked_rolls = [next_result, next_result]
+        @dice.instance_variable_set(:@rolls, mocked_rolls)
+        @dice.rolls.max + @dice.modifier
       end
 
       def roll_with_disadvantage(sides, modifier: 0)
-        # Simulate creating dice to track it
         @dice = Dice.new(2, sides, modifier: modifier)
         @calls << :roll_with_disadvantage
-        next_result
+
+        mocked_rolls = [next_result, next_result]
+        @dice.instance_variable_set(:@rolls, mocked_rolls)
+        @dice.rolls.min + @dice.modifier
       end
 
       private
@@ -114,20 +123,7 @@ module Dnd5e
       def next_result
         result = @rolls[@index]
         @index += 1
-        val = result.nil? ? 0 : result
-
-        # Ensure the dice object knows about this roll
-        # This is critical for checks like `dice.rolls.include?(20)`
-        if @dice
-          # We need to hack the dice object to think it rolled this value
-          # Dice#roll usually clears and sets @rolls.
-          # Here we just append if we are mocking a sequence?
-          # Or replace? Dice stores history of one roll action.
-          @dice.instance_variable_set(:@rolls, [val])
-          @dice.instance_variable_set(:@total, val + @dice.modifier)
-        end
-
-        val
+        result.nil? ? 0 : result
       end
     end
   end

@@ -43,11 +43,13 @@ module Dnd5e
           return if in_range?(attack, combat) && !should_kite?(combatant, combat)
 
           speed = combatant.statblock.speed
-          if should_kite?(combatant, combat)
-            combat.distance += speed
-          else
-            combat.distance = [0, combat.distance - speed].max
-          end
+          new_dist = if should_kite?(combatant, combat)
+                       combat.distance + speed
+                     else
+                       [0, combat.distance - speed].max
+                     end
+
+          combat.move_combatant(combatant, new_dist)
           combatant.turn_context.use_movement(speed)
         end
 

@@ -28,6 +28,13 @@ module Dnd5e
           mod + feature.send(hook_name, context)
         end
       end
+
+      # Specialized hook for accumulating lists (e.g. extra dice).
+      def apply_list_hook(hook_name, context)
+        @features.flat_map do |feature|
+          feature.send(hook_name, context)
+        end
+      end
     end
   end
 end
