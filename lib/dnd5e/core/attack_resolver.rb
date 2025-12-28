@@ -33,16 +33,26 @@ module Dnd5e
 
         attack_roll = roll_attack(attacker, attack, options)
         target_ac = defender.statblock.armor_class
-        # Ensure dice exists before checking rolls
-        # DiceRoller.dice holds the result of the LAST roll.
-        # But we just rolled attack in `roll_attack`.
-        is_crit = attack.dice_roller.dice&.rolls&.include?(20) || false
+        is_crit = check_critical(attack, options, attack_roll)
         success = attack_roll >= target_ac || is_crit
         damage, is_dead = apply_attack_damage(defender, attack, success, is_crit: is_crit)
 
         build_attack_result(attacker, defender, attack,
                             outcome: { success: success, damage: damage },
                             details: { attack_roll: attack_roll, target_ac: target_ac, is_dead: is_dead })
+      end
+
+      def check_critical(attack, options, attack_roll)
+        return false unless attack.dice_roller.dice && attack.dice_roller.dice.rolls
+
+        natural_roll = if options[:advantage]
+                         attack.dice_roller.dice.rolls.max
+                       elsif options[:disadvantage]
+                         attack.dice_roller.dice.rolls.min
+                       else
+                         attack.dice_roller.dice.rolls.first
+                       end
+        natural_roll == 20
       end
 
       def resolve_save(attacker, defender, attack)
