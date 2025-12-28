@@ -67,6 +67,10 @@ To avoid wasted cycles on linting errors, the AI Assistant must strictly adhere 
 7.  **Documentation**
     *   Public classes and methods must have RDoc comments explaining parameters and return values.
 
+8.  **Example Scripts**
+    *   Follow the guidelines in `examples/README.md`.
+    *   Focus on clear output, concise setup using Builders, and informative mechanics.
+
 ### Common Style Mistakes & Guidelines
 (Legacy section kept for reference)
 
