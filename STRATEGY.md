@@ -33,13 +33,14 @@ This guide summarizes the findings from our simulation engine regarding 5e comba
 
 ### 6. Character Progression & AI (New Priority)
 To simulate complex matchups like Wizard vs. Rogue, we need:
-- [ ] **Action Economy**: Track Action, Bonus Action, and Reaction usage per turn.
-- [ ] **Strategy Engine**: Pluggable AI to decide:
-    -   *Rogue*: Hide (Bonus Action) -> Attack (Action) vs. Dash/Disengage.
+- [x] **Action Economy**: Track Action, Bonus Action, and Reaction usage per turn.
+- [x] **Strategy Engine**: Pluggable AI to decide:
+    -   *Rogue*: Hide (Bonus Action) -> Attack (Action) vs. Dash/Disengage. (Implemented)
     -   *Wizard*: Cast Spell (Level?) vs. Cantrip vs. Dodge.
 - [ ] **Class Features**:
-    -   *Rogue*: Sneak Attack, Cunning Action, Uncanny Dodge.
-    -   *Wizard*: Spell Slots, Arcane Recovery, Signature Spells.
+    -   [x] *Rogue*: Cunning Action (Hide implemented).
+    -   [ ] *Rogue*: Sneak Attack (Damage scaling), Uncanny Dodge.
+    -   [ ] *Wizard*: Spell Slots, Arcane Recovery, Signature Spells.
 
 ## Future Enhancements
 *   More complex character classes and abilities.
