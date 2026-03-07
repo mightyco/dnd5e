@@ -1,94 +1,26 @@
-# D&D 5e Combat Simulator
+# D&D 2024 Combat Simulator
 
-This project is a Ruby-based combat simulator for Dungeons & Dragons 5th Edition (D&D 5e). It allows you to simulate battles between teams of characters and monsters, providing insights into combat outcomes.
+A robust, table-driven simulation engine for Dungeons & Dragons (2024 Ruleset) built in Ruby. This project uses scientific simulation to analyze class balance, party composition, and the mathematical trade-offs of various builds.
 
-## Features
+## 🎯 Current Project Goal
+We are currently modeling the **Champion vs. Battlemaster Fighter** comparison to determine how the 2024 rules change the classic "consistent vs. burst" debate. Our ultimate goal is to verify balance across all class compositions through at least Level 5.
 
-*   **Character and Monster Creation:** Define characters and monsters with stat blocks (strength, dexterity, etc.), hit points, and attacks.
-*   **Team-Based Combat:** Create teams of characters and monsters to simulate battles.
-*   **Combat Simulation:** Run multiple simulations of battles to analyze the probability of different outcomes.
-*   **Reporting:** Generate reports summarizing the results of the simulations, including win rates and sample battle results.
-* **Test Suite:** A robust test suite to ensure the code is working correctly.
+## 🚀 Key Features
+*   **SRD Rules Ingestion**: Dynamic extraction of class tables and spell slots from text references.
+*   **Hook-based Feature System**: A modular architecture for implementing feats (GWM, Sharpshooter) and traits (Sneak Attack, Evasion).
+*   **Tactical AI**: Intelligent kiting, AOE self-preservation, and "Geek the Mage" priority targeting.
+*   **Math Transparency**: Every roll is logged with full metadata (e.g., `Attacker rolled 18 (Adv: [15, 12] -> 15 + 3)`).
 
-## Getting Started
+## 🛠 Getting Started
 
-1.  **Prerequisites:**
-    *   Ruby (version X.X.X or higher)
-    *   Bundler (for managing dependencies)
+1.  **Prerequisites**: Ruby 3.3.x, Bundler.
+2.  **Install**: `bundle install`
+3.  **Build Rules**: `bundle exec rake rules:build` (Ingests data from `srd_reference/`)
+4.  **Run Tests**: `bundle exec rake test`
+5.  **Run Experiments**: See the `examples/` directory (e.g., `ruby examples/example_science_class_balance.rb`).
 
-2.  **Installation:**
-    *   Clone the repository: `git clone <repository-url>`
-    *   Navigate to the project directory: `cd dnd5e`
-    *   Install dependencies: `bundle install`
+## 📈 Roadmap
+For detailed technical progress and historical findings, see [ROADMAP.md](ROADMAP.md).
 
-3.  **Running the Tests:**
-    *   `rake test`
-
-4. **Running the Simulation**
-    * See the `examples/` directory.
-
-## Core Concepts
-
-*   **Statblock:** Represents the core attributes of a character or monster (strength, dexterity, hit points, etc.).
-*   **Character:** A player character with a stat block and attacks.
-*   **Monster:** A non-player character with a stat block and attacks.
-*   **Team:** A group of characters or monsters that fight together.
-*   **Attack:** Represents an attack that a character or monster can perform.
-*   **Combat:** Manages the flow of a single battle between teams.
-*   **Runner:** Runs multiple combat simulations and aggregates the results.
-* **Result:** Represents the result of a single combat.
-* **Result Handler:** Handles the results of the combat.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit pull requests or open issues.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
-
-## Project Roadmap
-
-See `STRATEGY.md` for detailed mechanics implementation status.
-
-1.  **Core Combat Engine** (Completed)
-    *   [x] Dice Rolling
-    *   [x] Attack Resolution (AC, Hit Points)
-    *   [x] Turn Management (Initiative)
-    *   [x] Team-based Combat
-
-2.  **Magic & Saving Throws** (Completed)
-    *   [x] Saving Throw Logic (DC vs Save Mod)
-    *   [x] Spell Attacks (Fireball)
-
-3.  **Character Building & Equipment** (Completed)
-    *   [x] Builder Pattern for Characters
-    *   [x] Class Archetypes (Fighter, Wizard)
-    *   [x] Armor (Light/Medium/Heavy) & Shields
-    *   [x] Weapons (Greatsword vs Longsword)
-
-4.  **Scientific Experiments** (In Progress)
-    *   [x] Experiment Engine
-    *   [x] Str vs Dex Scaling
-    *   [x] Gear Progression Analysis
-
-5.  **Advanced Mechanics** (In Progress)
-    *   [x] Advantage / Disadvantage
-    *   [x] Critical Hits (20 = Hit, Double Dice)
-    *   [x] Feats (GWM, Sharpshooter)
-    *   [ ] Conditions (Prone, Grappled, Restrained)
-    *   [ ] Skills (Athletics/Acrobatics)
-
-6.  **Reporting**
-    *   [ ] CSV/JSON Export
-    *   [ ] Detailed Metrics (DPR, Survival Rate)
-
-### Future Enhancements
-
-*   More complex character classes and abilities.
-*   More detailed combat logging.
-*   Support for different types of attacks and damage.
-*   A command-line interface (CLI) for running simulations.
-*   Provide a record and replay capability with exemplars
-*   Provide the ability to rate concepts against many simulation runs
-*   Provide a UI to allow others to use the concepts
+## ⚖️ License
+MIT License. See [LICENSE.md](LICENSE.md).
