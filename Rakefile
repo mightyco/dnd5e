@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'rake/testtask'
+require 'etc'
 
 # Load tasks from lib/tasks
 Dir.glob('lib/tasks/*.rake').each { |r| import r }
@@ -29,15 +30,34 @@ rescue LoadError
   end
 end
 
-desc 'Run all examples to ensure they execute without error'
+desc 'Run all examples in parallel'
 task :examples do
-  puts 'Running examples...'
-  Dir.glob('examples/*.rb').each do |file|
-    puts "Running #{file}..."
-    # Suppress stdout to keep the build output clean, unless it fails
-    system("ruby -Ilib #{file} > /dev/null") || raise("Example #{file} failed!")
+  puts 'Running examples in parallel...'
+  files = Dir.glob('examples/*.rb')
+
+  # Fast development cycle: skip slow examples if FAST_SIM is set
+  if ENV['FAST_SIM'] == 'true'
+    slow_examples = %w[examples/example_science_initiative_impact.rb
+                       examples/example_science_weapon_armor_progression.rb]
+    puts "FAST_SIM enabled. Skipping slow examples: #{slow_examples.join(', ')}"
+    files -= slow_examples
   end
-  puts 'All examples passed.'
+
+  max_procs = Etc.nprocessors
+  results = []
+
+  files.each_slice((files.size.to_f / max_procs).ceil) do |slice|
+    results << Thread.new do
+      slice.each do |file|
+        print '.'
+        success = system("ruby -Ilib #{file} > /dev/null 2>&1")
+        raise "Example #{file} failed!" unless success
+      end
+    end
+  end
+
+  results.each(&:join)
+  puts "\nAll examples passed."
 end
 
 desc 'Run tests and linting'

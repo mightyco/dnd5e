@@ -56,7 +56,9 @@ To ensure consistency and minimize linting overhead, adhere to these rules durin
 - **Tooling**: When searching for rules or context, use tools with `no_ignore: true` or `respect_git_ignore: false` to ensure ignored reference material is included in the search.
 
 ### Validation & Quality Standards
+- **Strict Ruby Style**: Adhere to the rules in [STYLE_GUIDE.md](STYLE_GUIDE.md). This guide captures complexity, naming, and formatting rules derived from project linting.
 - **Proactive Linting**: Run `rubocop` early and often during implementation. Do not wait for the final commit to find style or complexity violations.
-- **Empirical Proof**: For balance changes or mechanical implementations, provide a simulation script (in `examples/`) that runs at least 10,000 rounds to verify expected mathematical outcomes (e.g., damage increase, win rate).
+- **Empirical Proof**: For balance changes or mechanical implementations, provide a simulation script (in `examples/`) that runs at least 10,000 rounds to verify expected mathematical outcomes.
+- **Fast Development Cycle**: During development, use `FAST_SIM=true bundle exec rake all` to skip slow simulations (> 5s) and run examples in parallel.
 - **Modular Design**: Even in example/demo scripts, extract setup and reporting logic into small, focused methods (< 10 lines) to satisfy complexity constraints.
-- **Metadata Integrity**: Ensure all resolution objects (like `AttackResult`) carry enough metadata to support deep simulation analysis without needing to reach back into the combat state.
+- **Metadata Integrity**: Ensure all resolution objects (like `AttackResult`) carry enough metadata to support deep simulation analysis.
