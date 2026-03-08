@@ -54,5 +54,9 @@ To ensure consistency and minimize linting overhead, adhere to these rules durin
 - **Research Policy**: Files and directories listed in `.gitignore` (such as `rules_reference/`) are **not off-limits** for reading. They often contain critical context (e.g., rule text, PDFs) that must be used during the research phase.
 - **Commit Policy**: While these files should be read for information, they must **never** be staged or committed to the repository.
 - **Tooling**: When searching for rules or context, use tools with `no_ignore: true` or `respect_git_ignore: false` to ensure ignored reference material is included in the search.
-- Use `ruby extract_rules.rb` to generate the text files used by the AI's "Rules Sage" persona.
-- Always consult `rules_reference/*.txt` to ensure compliance with the 2024 ruleset.
+
+### Validation & Quality Standards
+- **Proactive Linting**: Run `rubocop` early and often during implementation. Do not wait for the final commit to find style or complexity violations.
+- **Empirical Proof**: For balance changes or mechanical implementations, provide a simulation script (in `examples/`) that runs at least 10,000 rounds to verify expected mathematical outcomes (e.g., damage increase, win rate).
+- **Modular Design**: Even in example/demo scripts, extract setup and reporting logic into small, focused methods (< 10 lines) to satisfy complexity constraints.
+- **Metadata Integrity**: Ensure all resolution objects (like `AttackResult`) carry enough metadata to support deep simulation analysis without needing to reach back into the combat state.
