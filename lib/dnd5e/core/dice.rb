@@ -42,6 +42,18 @@ module Dnd5e
         @modifier = modifier
       end
 
+      # Parses a dice string (e.g. "2d6+3") into a Dice object.
+      def self.parse(dice_notation)
+        match_data = dice_notation.match(/^(\d*)d(\d+)([+-]\d+)?$/i)
+        raise ArgumentError, "Invalid dice notation: #{dice_notation}" unless match_data
+
+        num_dice = match_data[1].empty? ? 1 : match_data[1].to_i
+        sides = match_data[2].to_i
+        modifier = match_data[3].nil? ? 0 : match_data[3].to_i
+
+        new(num_dice, sides, modifier: modifier)
+      end
+
       # Rolls the dice and stores the results.
       #
       # @return [Array<Integer>] The individual rolls of the dice.

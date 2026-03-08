@@ -32,17 +32,19 @@ Our immediate priority is modeling and comparing the **Champion** and **Battlema
     - [x] Heroic Inspiration on critical hits
     - [x] Remarkable Athlete / Additional Fighting Style
 
-### Phase 4: Refinement & Advanced Tactics (Current Focus)
-- [ ] **Condition Refactoring**: Refactor condition indirection by adding delegation to `Character` and `Monster` to simplify state checks.
-- [ ] **Battlemaster (2024)**:
-    - [ ] Combat Superiority (Superiority Dice pool)
-    - [ ] Maneuvers: Trip, Push, Menacing, Precision, etc.
-    - [ ] Tactician features
-- [ ] **Complex Conditions**: Add Incapacitated and Paralyzed conditions to support high-level play and control effects.
-- [ ] **Performance Optimization**: Improve simulation execution speed for high-volume batch processing.
-- [x] **Weapon Masteries**: Vex, Topple (Completed); Nick, Cleave, etc. (Pending)
-- [x] **Hook-based Feature System**: Modular traits (GWM, Sneak Attack, Evasion).
-- [ ] **Reaction System Expansion**: Shield spell, Uncanny Dodge, and Counterspell.
+### Phase 4: Standardized Encounter Suite (SES)
+- [ ] **Lab Runner**: Create a standardized harness to run a class through three scenarios:
+    - **The Boss**: 1 High AC/HP target.
+    - **The Pack**: 5 Medium targets.
+    - **The Swarm**: 15 Low targets.
+- [ ] **Efficiency Metric**: Implement `(Damage Dealt / Damage Taken)` as the primary evaluation score.
+- [ ] **Multi-Class Benchmarking**: Compare Fighter, Rogue, and Wizard (AOE) in the SES.
+
+### Phase 5: Refinement & Advanced Tactics
+- [ ] **Condition Refactoring**: Simplify state checks by adding delegation to `Character` and `Monster`. (In Progress)
+- [ ] **Battlemaster (2024)**: Combat Superiority and Maneuvers.
+- [ ] **Complex Conditions**: Incapacitated, Paralyzed.
+- [ ] **Performance Optimization**: Parallel execution and loop optimization.
 
 ---
 

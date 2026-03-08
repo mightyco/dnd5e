@@ -3,22 +3,24 @@
 require_relative 'resource_pool'
 require_relative 'proficiency'
 require_relative 'condition_manager'
+require_relative 'statblock_initialization'
 
 module Dnd5e
   module Core
     # Represents a character's stat block in the D&D 5e system.
     class Statblock
+      include StatblockInitialization
+
       attr_reader :name, :hit_die, :level, :condition_manager
       attr_accessor :strength, :dexterity, :constitution, :intelligence, :wisdom, :charisma, :hit_points,
                     :saving_throw_proficiencies, :equipped_armor, :equipped_shield,
-                    :extra_attacks, :resources, :speed, :crit_threshold, :heroic_inspiration
+                    :extra_attacks, :resources, :speed, :crit_threshold, :heroic_inspiration,
+                    :damage_taken, :damage_dealt
 
       DEFAULT_STATS = {
-        strength: 10, dexterity: 10, constitution: 10,
-        intelligence: 10, wisdom: 10, charisma: 10,
-        hit_die: 'd8', level: 1, extra_attacks: 0,
-        resources: {}, speed: 30, crit_threshold: 20,
-        heroic_inspiration: false
+        strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10,
+        hit_die: 'd8', level: 1, extra_attacks: 0, resources: {}, speed: 30, crit_threshold: 20,
+        heroic_inspiration: false, damage_taken: 0, damage_dealt: 0
       }.freeze
 
       def initialize(name:, **options)
@@ -86,6 +88,11 @@ module Dnd5e
         raise ArgumentError, 'Damage must be non-negative' if damage.negative?
 
         @hit_points = [0, @hit_points - damage].max
+        @damage_taken += damage
+      end
+
+      def record_damage_dealt(damage)
+        @damage_dealt += damage
       end
 
       def heal(amount)
@@ -99,12 +106,12 @@ module Dnd5e
       end
 
       def calculate_hit_points
-        hit_die_sides = @hit_die.sub('d', '').to_i
-        base_hp = hit_die_sides + ability_modifier(:constitution)
-        return base_hp if @level == 1
+        sides = @hit_die.sub('d', '').to_i
+        base = sides + ability_modifier(:constitution)
+        return base if @level == 1
 
-        additional_hp_per_level = ((hit_die_sides + 1) / 2.0).ceil + ability_modifier(:constitution)
-        base_hp + (additional_hp_per_level * (@level - 1))
+        growth = ((sides + 1) / 2.0).ceil + ability_modifier(:constitution)
+        base + (growth * (@level - 1))
       end
 
       def level_up
@@ -118,21 +125,6 @@ module Dnd5e
 
       def deep_copy
         Marshal.load(Marshal.dump(self))
-      end
-
-      private
-
-      def initialize_from_options(options)
-        stats = DEFAULT_STATS.merge(options)
-        %i[strength dexterity constitution intelligence wisdom charisma hit_die level extra_attacks speed
-           crit_threshold heroic_inspiration].each do |key|
-          instance_variable_set("@#{key}", stats[key])
-        end
-        @armor_class = options[:armor_class]
-        @saving_throw_proficiencies = options[:saving_throw_proficiencies] || []
-        @equipped_armor = options[:equipped_armor]
-        @equipped_shield = options[:equipped_shield]
-        @conditions = options[:conditions] || []
       end
     end
   end
