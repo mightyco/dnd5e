@@ -10,6 +10,12 @@ module Dnd5e
         @features = features
       end
 
+      # Called when character is initialized.
+      def on_character_init(character)
+        context = { character: character }
+        @features.each { |f| f.on_character_init(context) }
+      end
+
       # Executes a hook on all features.
       # @param hook_name [Symbol] The name of the hook method to call.
       # @param context [Hash] Context to pass to the hook.

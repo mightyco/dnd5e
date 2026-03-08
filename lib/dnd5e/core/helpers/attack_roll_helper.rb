@@ -15,7 +15,7 @@ module Dnd5e
           total = execute_roll(attack, modifier, adv, dis)
           rolls = attack.dice_roller.dice.rolls
           raw = select_natural_roll(rolls, adv: adv, dis: dis)
-          is_crit = raw == 20 # Basic 20 for now. Could be improved later for 19-20.
+          is_crit = raw >= attacker.statblock.crit_threshold
 
           { total: total, raw: raw, modifier: modifier, is_crit: is_crit,
             rolls: rolls, advantage: adv, disadvantage: dis }
@@ -75,16 +75,12 @@ module Dnd5e
           [adv, dis]
         end
 
-        def self.critical_hit?(attack, options)
+        def self.critical_hit?(attacker, attack, options)
           rolls = attack.dice_roller.dice&.rolls
           return false unless rolls
 
-          # We don't have the context of the defender here to re-calculate conditions
-          # But critical_hit? is usually called after roll_attack which sets the dice rolls.
-          # If advantage was determined by conditions, we should ideally know that here.
-          # For now, we rely on the options passed in.
           natural_roll = select_natural_roll(rolls, options)
-          natural_roll == 20
+          natural_roll >= attacker.statblock.crit_threshold
         end
 
         def self.select_natural_roll(rolls, options)

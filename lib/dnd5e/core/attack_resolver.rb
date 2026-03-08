@@ -37,6 +37,8 @@ module Dnd5e
       end
 
       def apply_and_build_result(attacker, defender, attack, roll_data, outcome)
+        attacker.statblock.heroic_inspiration = true if roll_data[:is_crit]
+
         dmg_data = apply_attack_damage(defender, attack, outcome[:success],
                                        is_crit: roll_data[:is_crit],
                                        attacker: attacker, **outcome[:options])
@@ -59,12 +61,18 @@ module Dnd5e
       end
 
       def build_basic_details(params)
-        {
+        basic = {
           attack_roll: params[:roll_data][:total], raw_roll: params[:roll_data][:raw],
-          modifier: params[:roll_data][:modifier], is_dead: params[:is_dead],
+          modifier: params[:roll_data][:modifier], is_dead: params[:is_dead]
+        }
+        basic.merge(build_roll_metadata(params))
+      end
+
+      def build_roll_metadata(params)
+        {
           target_ac: params[:defender].statblock.armor_class,
           rolls: params[:roll_data][:rolls], advantage: params[:roll_data][:advantage],
-          disadvantage: params[:roll_data][:disadvantage]
+          disadvantage: params[:roll_data][:disadvantage], is_crit: params[:roll_data][:is_crit]
         }
       end
 

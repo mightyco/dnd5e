@@ -10,13 +10,14 @@ module Dnd5e
       attr_reader :name, :hit_die, :level
       attr_accessor :strength, :dexterity, :constitution, :intelligence, :wisdom, :charisma, :hit_points,
                     :saving_throw_proficiencies, :equipped_armor, :equipped_shield, :conditions,
-                    :extra_attacks, :resources, :speed
+                    :extra_attacks, :resources, :speed, :crit_threshold, :heroic_inspiration
 
       DEFAULT_STATS = {
         strength: 10, dexterity: 10, constitution: 10,
         intelligence: 10, wisdom: 10, charisma: 10,
         hit_die: 'd8', level: 1, extra_attacks: 0,
-        resources: {}, speed: 30
+        resources: {}, speed: 30, crit_threshold: 20,
+        heroic_inspiration: false
       }.freeze
 
       # Initializes a new Statblock.
@@ -154,6 +155,8 @@ module Dnd5e
         @level = stats[:level]
         @extra_attacks = stats[:extra_attacks]
         @speed = stats[:speed]
+        @crit_threshold = stats[:crit_threshold]
+        @heroic_inspiration = stats[:heroic_inspiration]
       end
 
       def initialize_equipment(options)

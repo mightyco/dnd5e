@@ -7,7 +7,7 @@ module Dnd5e
       attr_reader :attacker, :defender, :attack, :success, :damage, :type,
                   :attack_roll, :raw_roll, :modifier, :target_ac,
                   :save_roll, :save_dc, :is_dead, :rolls, :advantage, :disadvantage,
-                  :damage_rolls, :damage_modifier
+                  :damage_rolls, :damage_modifier, :is_crit
 
       # Initializes a new AttackResult.
       #
@@ -22,6 +22,7 @@ module Dnd5e
         @success = outcome[:success]
         @damage = outcome[:damage]
         @type = type
+        @is_crit = details[:is_crit] || false
         assign_details(details)
       end
 

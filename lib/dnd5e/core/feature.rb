@@ -11,6 +11,10 @@ module Dnd5e
         @name = name
       end
 
+      # Called when a character is initialized.
+      # @param context [Hash] Context including :character.
+      def on_character_init(_context); end
+
       # Called when an attack roll is being calculated.
       # @param context [Hash] Context including :attacker, :defender, :attack, :modifier, :options.
       # @return [Integer] The modification to the attack roll modifier.

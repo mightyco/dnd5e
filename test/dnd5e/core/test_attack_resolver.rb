@@ -122,6 +122,36 @@ module Dnd5e
         assert_equal 3, result.attack_roll
       end
 
+      def test_resolve_heroic_inspiration_gain
+        # Attack roll (20), Damage (5)
+        @mock_dice_roller = MockDiceRoller.new([20, 5])
+        @attack.instance_variable_set(:@dice_roller, @mock_dice_roller)
+
+        refute_predicate @hero.statblock, :heroic_inspiration
+        @attack_resolver.resolve(@hero, @goblin, @attack)
+
+        assert_predicate @hero.statblock, :heroic_inspiration
+      end
+
+      def test_resolve_improved_critical
+        # Set threshold to 19 (Champion Fighter)
+        @hero.statblock.crit_threshold = 19
+
+        # Roll a 19. Should be a crit.
+        @mock_dice_roller = MockDiceRoller.new([19, 5])
+        @attack.instance_variable_set(:@dice_roller, @mock_dice_roller)
+
+        result = @attack_resolver.resolve(@hero, @goblin, @attack)
+
+        assert result.success
+        assert_equal 19 + 2, result.attack_roll
+
+        # Check if damage was doubled (2d8 instead of 1d8)
+        last_dice = @mock_dice_roller.last_dice_params.last
+
+        assert_equal 2, last_dice.count, 'Expected damage dice count to be 2 for a 19 crit'
+      end
+
       def test_resolve_with_advantage
         result = @attack_resolver.resolve(@hero, @goblin, @attack, advantage: true)
 

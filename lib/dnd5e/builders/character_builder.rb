@@ -18,6 +18,7 @@ module Dnd5e
         @statblock = nil
         @attacks = []
         @spells = []
+        @features = []
       end
 
       def with_statblock(statblock)
@@ -32,6 +33,11 @@ module Dnd5e
 
       def with_spell(spell)
         @spells << spell
+        self
+      end
+
+      def with_feature(feature)
+        @features << feature
         self
       end
 
@@ -53,7 +59,7 @@ module Dnd5e
         raise InvalidCharacterError, 'Character must have a name' if @name.nil? || @name.empty?
         raise InvalidCharacterError, 'Character must have a statblock' if @statblock.nil?
 
-        Core::Character.new(name: @name, statblock: @statblock, attacks: @attacks, spells: @spells)
+        Core::Character.new(name: @name, statblock: @statblock, attacks: @attacks, spells: @spells, features: @features)
       end
 
       private

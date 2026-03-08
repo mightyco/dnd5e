@@ -32,6 +32,7 @@ module Dnd5e
         @turn_context = TurnContext.new
         @strategy = strategy
         @feature_manager = FeatureManager.new(options[:features] || [])
+        @feature_manager.on_character_init(self)
       end
 
       # Prepares the character for the start of their turn.
