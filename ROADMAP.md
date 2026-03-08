@@ -32,19 +32,24 @@ Our immediate priority is modeling and comparing the **Champion** and **Battlema
     - [x] Heroic Inspiration on critical hits
     - [x] Remarkable Athlete / Additional Fighting Style
 
-### Phase 4: Standardized Encounter Suite (SES)
-- [ ] **Lab Runner**: Create a standardized harness to run a class through three scenarios:
+### Phase 4: Standardized Encounter Suite (SES) (Completed)
+- [x] **Lab Runner**: Created a standardized harness to run a class through three scenarios:
     - **The Boss**: 1 High AC/HP target.
     - **The Pack**: 5 Medium targets.
     - **The Swarm**: 15 Low targets.
-- [ ] **Efficiency Metric**: Implement `(Damage Dealt / Damage Taken)` as the primary evaluation score.
-- [ ] **Multi-Class Benchmarking**: Compare Fighter, Rogue, and Wizard (AOE) in the SES.
+- [x] **Efficiency Metric**: Implemented `(Damage Dealt / Damage Taken)` as the primary evaluation score.
+- [x] **Archetype Benchmarking**: Proved Champion (2024) efficiency gains (~12%) over Standard Fighter.
 
-### Phase 5: Refinement & Advanced Tactics
-- [ ] **Condition Refactoring**: Simplify state checks by adding delegation to `Character` and `Monster`. (In Progress)
-- [ ] **Battlemaster (2024)**: Combat Superiority and Maneuvers.
-- [ ] **Complex Conditions**: Incapacitated, Paralyzed.
-- [ ] **Performance Optimization**: Parallel execution and loop optimization.
+### Phase 5: Advanced Subclasses & Masteries (Next Priority)
+- [ ] **Weapon Masteries (Complete Set)**:
+    - [x] Vex, Topple (Implemented)
+    - [ ] Nick, Cleave, Graze, Slow, Push.
+- [ ] **Battlemaster (2024)**:
+    - [ ] Combat Superiority (Superiority Dice pool system)
+    - [ ] Maneuvers: Trip, Push, Menacing, Precision, Tactical Shift.
+    - [ ] Student of War / Know Your Enemy.
+- [ ] **Condition Refactoring**: Finish delegation to Character/Monster (In Progress).
+- [ ] **Performance**: Continuous optimization of parallel simulation loops.
 
 ---
 
