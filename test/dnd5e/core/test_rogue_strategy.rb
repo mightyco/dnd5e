@@ -26,7 +26,7 @@ class TestRogueStrategy < Minitest::Test
   def test_rogue_hides_and_attacks_with_advantage
     # Initial state
     assert_predicate @rogue.turn_context, :bonus_action_available?
-    refute_includes @rogue.statblock.conditions, :hidden
+    refute @rogue.condition?(:hidden)
 
     # Execute turn
     @combat.take_turn(@rogue)
@@ -39,6 +39,6 @@ class TestRogueStrategy < Minitest::Test
     assert_includes @dice_roller.calls, :roll_with_advantage, 'Rogue should attack with advantage after hiding'
 
     # Verify no longer hidden after attack
-    refute_includes @rogue.statblock.conditions, :hidden
+    refute @rogue.condition?(:hidden)
   end
 end

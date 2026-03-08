@@ -26,21 +26,23 @@ Our immediate priority is modeling and comparing the **Champion** and **Battlema
 - [x] **Tactical Realism**: Distance, Movement speed, and Ranged Disadvantage in 5ft.
 - [x] **AOE Support**: True multi-target resolution for spells like Fireball.
 
-### Phase 3: Subclass Implementation (In Progress)
+### Phase 3: Subclass Implementation (Completed)
 - [x] **Champion (2024)**:
     - [x] Improved Critical (19-20)
     - [x] Heroic Inspiration on critical hits
-    - [ ] Remarkable Athlete / Additional Fighting Style
+    - [x] Remarkable Athlete / Additional Fighting Style
+
+### Phase 4: Refinement & Advanced Tactics (Current Focus)
+- [ ] **Condition Refactoring**: Refactor condition indirection by adding delegation to `Character` and `Monster` to simplify state checks.
 - [ ] **Battlemaster (2024)**:
     - [ ] Combat Superiority (Superiority Dice pool)
     - [ ] Maneuvers: Trip, Push, Menacing, Precision, etc.
     - [ ] Tactician features
-
-### Phase 4: Advanced Mechanics & Evolution
+- [ ] **Complex Conditions**: Add Incapacitated and Paralyzed conditions to support high-level play and control effects.
+- [ ] **Performance Optimization**: Improve simulation execution speed for high-volume batch processing.
+- [x] **Weapon Masteries**: Vex, Topple (Completed); Nick, Cleave, etc. (Pending)
 - [x] **Hook-based Feature System**: Modular traits (GWM, Sneak Attack, Evasion).
-- [ ] **Conditions**: Prone, Grappled, Restrained, Incapacitated.
-- [ ] **Weapon Masteries**: Vex, Topple, Nick, Cleave, etc.
-- [ ] **Reaction System**: Opportunity Attacks (implemented), Shield spell, Uncanny Dodge.
+- [ ] **Reaction System Expansion**: Shield spell, Uncanny Dodge, and Counterspell.
 
 ---
 

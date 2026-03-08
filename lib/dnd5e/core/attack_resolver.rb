@@ -57,7 +57,7 @@ module Dnd5e
 
         case attack.mastery
         when :vex
-          attacker.statblock.add_condition(:vexing, { target: defender, expiry: :turn_end })
+          attacker.add_condition(:vexing, { target: defender, expiry: :turn_end })
         when :topple
           resolve_topple(attacker, defender, attack)
         end
@@ -69,7 +69,7 @@ module Dnd5e
         save_params = { save_ability: :constitution, dice_roller: attack.dice_roller }
         save_data = Helpers::SaveResolutionHelper.roll_save(defender,
                                                             Struct.new(*save_params.keys).new(*save_params.values))
-        defender.statblock.add_condition(:prone) if save_data[:total] < dc
+        defender.add_condition(:prone) if save_data[:total] < dc
       end
 
       def build_attack_result(params)

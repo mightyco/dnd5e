@@ -10,7 +10,7 @@ module Dnd5e
     class Statblock
       attr_reader :name, :hit_die, :level, :condition_manager
       attr_accessor :strength, :dexterity, :constitution, :intelligence, :wisdom, :charisma, :hit_points,
-                    :saving_throw_proficiencies, :equipped_armor, :equipped_shield, :conditions,
+                    :saving_throw_proficiencies, :equipped_armor, :equipped_shield,
                     :extra_attacks, :resources, :speed, :crit_threshold, :heroic_inspiration
 
       DEFAULT_STATS = {
@@ -32,12 +32,14 @@ module Dnd5e
 
       def add_condition(name, options = {})
         @condition_manager.add(name, options)
-        @conditions << name unless @conditions.include?(name)
       end
 
       def remove_condition(name)
         @condition_manager.remove(name)
-        @conditions.delete(name)
+      end
+
+      def conditions
+        @condition_manager.conditions.keys
       end
 
       def condition?(name)

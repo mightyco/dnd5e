@@ -33,10 +33,10 @@ module Dnd5e
         def attack_with_potential_advantage(combatant, combat, target)
           # Determine if we have advantage (from being hidden)
           options = {}
-          if combatant.statblock.conditions.include?(:hidden)
+          if combatant.condition?(:hidden)
             options[:advantage] = true
             # Attacking reveals position
-            combatant.statblock.conditions.delete(:hidden)
+            combatant.remove_condition(:hidden)
           end
 
           combat.attack(combatant, target, **options)

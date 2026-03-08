@@ -16,7 +16,7 @@ class TestConditions < Minitest::Test
   end
 
   def test_prone_attacker_has_disadvantage
-    @attacker.statblock.conditions << :prone
+    @attacker.add_condition(:prone)
     # Create a melee attack (range 5)
     attack = Dnd5e::Core::Attack.new(name: 'Sword', damage_dice: Dnd5e::Core::Dice.new(1, 6), dice_roller: @dice_roller)
     @attacker.attacks << attack
@@ -27,7 +27,7 @@ class TestConditions < Minitest::Test
   end
 
   def test_prone_defender_grants_advantage_to_melee
-    @defender.statblock.conditions << :prone
+    @defender.add_condition(:prone)
     attack = Dnd5e::Core::Attack.new(name: 'Sword', damage_dice: Dnd5e::Core::Dice.new(1, 6),
                                      dice_roller: @dice_roller, range: 5)
     @attacker.attacks << attack
@@ -38,7 +38,7 @@ class TestConditions < Minitest::Test
   end
 
   def test_prone_defender_grants_disadvantage_to_ranged
-    @defender.statblock.conditions << :prone
+    @defender.add_condition(:prone)
     attack = Dnd5e::Core::Attack.new(name: 'Bow', damage_dice: Dnd5e::Core::Dice.new(1, 6), dice_roller: @dice_roller,
                                      range: 60)
     @attacker.attacks << attack
@@ -49,7 +49,7 @@ class TestConditions < Minitest::Test
   end
 
   def test_restrained_defender_grants_advantage
-    @defender.statblock.conditions << :restrained
+    @defender.add_condition(:restrained)
     attack = Dnd5e::Core::Attack.new(name: 'Sword', damage_dice: Dnd5e::Core::Dice.new(1, 6), dice_roller: @dice_roller)
     @attacker.attacks << attack
 

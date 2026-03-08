@@ -39,6 +39,23 @@ module Dnd5e
       def start_turn
         @turn_context.reset!
       end
+
+      # --- Condition Delegation ---
+      def add_condition(name, options = {})
+        @statblock.add_condition(name, options)
+      end
+
+      def remove_condition(name)
+        @statblock.remove_condition(name)
+      end
+
+      def condition?(name)
+        @statblock.condition?(name)
+      end
+
+      def prone?
+        @statblock.prone?
+      end
     end
   end
 end

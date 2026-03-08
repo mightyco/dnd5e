@@ -9,7 +9,7 @@ module Dnd5e
       class AttackRollHelper
         def self.roll_attack(attacker, defender, attack, options)
           modifier = calculate_modifier(attacker, attack, options)
-          distance = options[:distance] || 5 # Default to 5 if not provided
+          distance = options[:distance] || 5
           adv, dis = determine_advantage_disadvantage(attacker, defender, attack, distance, options)
 
           total = execute_roll(attack, modifier, adv, dis)
@@ -23,8 +23,6 @@ module Dnd5e
 
         def self.calculate_modifier(attacker, attack, options)
           mod = attacker.statblock.ability_modifier(attack.relevant_stat)
-
-          # Use feature hooks instead of hardcoded logic
           context = { attacker: attacker, attack: attack, options: options }
           attacker.feature_manager.apply_modifier_hook(:on_attack_roll, context, mod)
         end
@@ -50,14 +48,13 @@ module Dnd5e
         end
 
         def self.vexed?(attacker, defender)
-          return false unless attacker.statblock.condition?(:vexing)
+          return false unless attacker.condition?(:vexing)
 
           context = attacker.statblock.condition_manager.get_context(:vexing)
           context && context[:target] == defender
         end
 
         def self.apply_proximity_disadvantage(attack, distance, adv, dis)
-          # Ranged attacks have disadvantage if an enemy is within 5 feet
           dis = true if attack.range > 5 && distance <= 5
           [adv, dis]
         end
@@ -67,19 +64,17 @@ module Dnd5e
         end
 
         def self.apply_attacker_conditions(attacker, adv, dis)
-          conditions = attacker.statblock.conditions
-          dis = true if conditions.include?(:prone) || conditions.include?(:restrained)
-          adv = true if conditions.include?(:hidden)
+          dis = true if attacker.prone? || attacker.condition?(:restrained)
+          adv = true if attacker.condition?(:hidden)
           [adv, dis]
         end
 
         def self.apply_defender_conditions(defender, attack, adv, dis)
-          conditions = defender.statblock.conditions
-          if conditions.include?(:prone)
+          if defender.prone?
             attack.range <= 5 ? adv = true : dis = true
           end
-          adv = true if conditions.include?(:restrained)
-          dis = true if conditions.include?(:hidden)
+          adv = true if defender.condition?(:restrained)
+          dis = true if defender.condition?(:hidden)
           [adv, dis]
         end
 

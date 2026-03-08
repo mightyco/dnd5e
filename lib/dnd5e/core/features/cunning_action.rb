@@ -20,7 +20,7 @@ module Dnd5e
 
         # For this iteration, we just mark the action used and set a flag.
         combatant.turn_context.use_bonus_action
-        combatant.statblock.conditions << :hidden
+        combatant.add_condition(:hidden)
         true
       end
     end
