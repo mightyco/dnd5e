@@ -6,6 +6,7 @@ require_relative 'helpers/attack_roll_helper'
 require_relative 'helpers/save_resolution_helper'
 require_relative 'helpers/damage_roll_helper'
 require 'logger'
+require 'ostruct'
 
 module Dnd5e
   module Core
@@ -43,10 +44,32 @@ module Dnd5e
                                        is_crit: roll_data[:is_crit],
                                        attacker: attacker, **outcome[:options])
 
+        apply_weapon_mastery(attacker, defender, attack) if outcome[:success]
+
         build_attack_result(attacker: attacker, defender: defender, attack: attack,
                             roll_data: roll_data, success: outcome[:success],
                             damage: dmg_data[:damage], is_dead: dmg_data[:is_dead],
                             damage_rolls: dmg_data[:rolls], damage_modifier: dmg_data[:modifier])
+      end
+
+      def apply_weapon_mastery(attacker, defender, attack)
+        return unless attack.mastery
+
+        case attack.mastery
+        when :vex
+          attacker.statblock.add_condition(:vexing, { target: defender, expiry: :turn_end })
+        when :topple
+          resolve_topple(attacker, defender, attack)
+        end
+      end
+
+      def resolve_topple(attacker, defender, attack)
+        dc = Helpers::SaveResolutionHelper.calculate_dc(attacker, attack)
+        # Using a simple Hash or Struct instead of OpenStruct for RuboCop
+        save_params = { save_ability: :constitution, dice_roller: attack.dice_roller }
+        save_data = Helpers::SaveResolutionHelper.roll_save(defender,
+                                                            Struct.new(*save_params.keys).new(*save_params.values))
+        defender.statblock.add_condition(:prone) if save_data[:total] < dc
       end
 
       def build_attack_result(params)

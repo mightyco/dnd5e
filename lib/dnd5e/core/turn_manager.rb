@@ -46,12 +46,9 @@ module Dnd5e
       def next_turn
         raise NoCombatantsError, 'No combatants in the turn manager' if @combatants.empty?
 
-        if @turn_order.empty?
-          # Should have sorted by now, but just in case
-          sort_by_initiative
-        end
+        sort_by_initiative if @turn_order.empty?
+        cleanup_previous_turn
 
-        # Return current, then increment (Round Robin)
         combatant = @turn_order[@current_turn_index]
         combatant.start_turn if combatant.respond_to?(:start_turn)
 
@@ -59,12 +56,19 @@ module Dnd5e
         combatant
       end
 
-      # Checks if all turns have been completed.
-      #
-      # @return [Boolean] True if all turns are complete, false otherwise.
+      def cleanup_previous_turn
+        prev_idx = (@current_turn_index - 1) % @turn_order.size
+        prev_combatant = @turn_order[prev_idx]
+        return unless prev_combatant
+
+        prev_combatant.statblock.condition_manager.end_turn
+      end
+
       def all_turns_complete?
         @current_turn_index.zero? && @turn_order.size.positive?
       end
+
+      private
 
       # Adds a combatant to the turn manager.
       #

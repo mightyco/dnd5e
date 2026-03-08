@@ -45,7 +45,15 @@ module Dnd5e
 
           adv, dis = apply_attacker_conditions(attacker, adv, dis)
           adv, dis = apply_defender_conditions(defender, attack, adv, dis)
+          adv = true if vexed?(attacker, defender)
           apply_proximity_disadvantage(attack, distance, adv, dis)
+        end
+
+        def self.vexed?(attacker, defender)
+          return false unless attacker.statblock.condition?(:vexing)
+
+          context = attacker.statblock.condition_manager.get_context(:vexing)
+          context && context[:target] == defender
         end
 
         def self.apply_proximity_disadvantage(attack, distance, adv, dis)

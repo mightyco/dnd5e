@@ -27,9 +27,9 @@ Our immediate priority is modeling and comparing the **Champion** and **Battlema
 - [x] **AOE Support**: True multi-target resolution for spells like Fireball.
 
 ### Phase 3: Subclass Implementation (In Progress)
-- [ ] **Champion (2024)**:
-    - [ ] Improved Critical (19-20)
-    - [ ] Heroic Inspiration on critical hits
+- [x] **Champion (2024)**:
+    - [x] Improved Critical (19-20)
+    - [x] Heroic Inspiration on critical hits
     - [ ] Remarkable Athlete / Additional Fighting Style
 - [ ] **Battlemaster (2024)**:
     - [ ] Combat Superiority (Superiority Dice pool)

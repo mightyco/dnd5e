@@ -8,7 +8,7 @@ module Dnd5e
     # Represents an attack action available to a combatant.
     class Attack
       attr_reader :name, :damage_dice, :relevant_stat, :dice_roller, :type, :save_ability, :half_damage_on_save,
-                  :fixed_dc, :dc_stat, :range, :scaling, :resource_cost, :area_radius
+                  :fixed_dc, :dc_stat, :range, :scaling, :resource_cost, :area_radius, :mastery
 
       # Initializes a new Attack.
       #
@@ -43,6 +43,7 @@ module Dnd5e
         @scaling = options[:scaling] || false
         @resource_cost = options[:resource_cost]
         @area_radius = options[:area_radius]
+        @mastery = options[:mastery]
       end
 
       # Returns the damage dice for a given level, applying scaling if enabled.
