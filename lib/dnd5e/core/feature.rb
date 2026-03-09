@@ -43,6 +43,13 @@ module Dnd5e
         0
       end
 
+      # Called after an attack roll is made but before success is determined.
+      # @param context [Hash] Context including :attacker, :defender, :attack, :current_value (roll_data), :options.
+      # @return [Hash, nil] Modified roll_data or nil to keep current.
+      def on_after_attack_roll(_context)
+        nil
+      end
+
       # Called when damage is about to be applied to the character.
       # @param context [Hash] Context including :attacker, :defender, :attack, :damage, :outcome.
       # @return [Integer, nil] The new damage value, or nil to keep current.

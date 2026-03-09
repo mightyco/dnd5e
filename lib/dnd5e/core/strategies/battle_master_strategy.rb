@@ -1,0 +1,63 @@
+# frozen_string_literal: true
+
+require_relative 'simple_strategy'
+
+module Dnd5e
+  module Core
+    module Strategies
+      # Strategy for Battle Master fighters.
+      class BattleMasterStrategy < SimpleStrategy
+        attr_accessor :use_precision_attack, :use_damage_maneuver, :precision_threshold
+
+        def initialize(use_precision_attack: false, use_damage_maneuver: true, precision_threshold: 4)
+          super()
+          @use_precision_attack = use_precision_attack
+          @use_damage_maneuver = use_damage_maneuver
+          @precision_threshold = precision_threshold
+        end
+
+        def execute_action(combatant, combat)
+          return unless combatant.turn_context.action_available?
+
+          target = find_target(combatant, combat)
+          return unless target
+
+          attack = select_attack(combatant, combat)
+          return unless attack
+
+          move_towards_target(combatant, target, attack, combat)
+          return unless in_range?(attack, combat)
+
+          execute_battle_master_attacks(combatant, target, attack, combat)
+          combatant.turn_context.use_action
+        end
+
+        def should_use_precision_attack?(context)
+          return false unless @use_precision_attack
+
+          roll_data = context[:current_value]
+          ac = context[:defender].statblock.armor_class
+
+          miss_by = ac - roll_data[:total]
+          miss_by.positive? && miss_by <= @precision_threshold
+        end
+
+        private
+
+        def execute_battle_master_attacks(combatant, target, attack, combat)
+          num_attacks = attack.type == :save ? 1 : 1 + combatant.statblock.extra_attacks
+          num_attacks.times do
+            break unless target.statblock.alive?
+
+            options = { attack: attack }
+            if @use_damage_maneuver && combatant.statblock.resources.available?(:superiority_dice)
+              options[:maneuver] = :menacing_attack
+            end
+
+            combat.attack(combatant, target, **options)
+          end
+        end
+      end
+    end
+  end
+end

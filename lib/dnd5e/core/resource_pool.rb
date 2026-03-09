@@ -35,6 +35,12 @@ module Dnd5e
         @resources[name] -= amount
       end
 
+      # Sets the maximum and current value of a resource.
+      def set_max(name, amount)
+        @max_resources[name] = amount
+        @resources[name] = amount
+      end
+
       # Resets all resources to their maximum values (e.g., after a Long Rest).
       def reset!
         @resources = @max_resources.dup

@@ -33,7 +33,9 @@ module Dnd5e
       # @param attacker [Combatant] The attacking combatant.
       # @return [Combatant, nil] A valid defender if one exists, nil otherwise.
       def find_valid_defender(attacker)
-        attacker.team ||= @teams.find { |t| t.members.include?(attacker) }
+        attacker.team = @teams.find { |t| t.members.include?(attacker) }
+        return nil unless attacker.team
+
         enemy_teams = @teams.reject { |team| team == attacker.team }
         potential_defenders = enemy_teams.flat_map(&:alive_members)
 
@@ -43,7 +45,7 @@ module Dnd5e
 
       def take_turn(attacker)
         # We need to preserve team context for the strategy to find targets
-        attacker.team ||= @teams.find { |t| t.members.include?(attacker) }
+        attacker.team = @teams.find { |t| t.members.include?(attacker) }
         super
       end
 

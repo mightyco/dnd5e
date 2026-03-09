@@ -31,9 +31,15 @@ module Dnd5e
 
         options[:distance] ||= options[:combat].distance if options[:combat]
         roll_data = Helpers::AttackRollHelper.roll_attack(attacker, defender, attack, options)
-        success = roll_data[:total] >= defender.statblock.armor_class || roll_data[:is_crit]
+        roll_data = apply_after_roll_hooks(attacker, defender, attack, roll_data, options)
 
+        success = roll_data[:total] >= defender.statblock.armor_class || roll_data[:is_crit]
         apply_and_build_result(attacker, defender, attack, roll_data, { success: success, options: options })
+      end
+
+      def apply_after_roll_hooks(attacker, defender, attack, roll_data, options)
+        context = { attacker: attacker, defender: defender, attack: attack, options: options }
+        attacker.feature_manager.apply_hook(:on_after_attack_roll, context, roll_data)
       end
 
       def apply_and_build_result(attacker, defender, attack, roll_data, outcome)
