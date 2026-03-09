@@ -20,11 +20,10 @@ module Dnd5e
           return unless combatant.turn_context.action_available?
 
           target = find_target(combatant, combat)
-          return unless target
-
           attack = select_attack(combatant, combat)
-          return unless attack
+          return unless target && attack
 
+          try_tactical_shift(combatant, target, attack, combat)
           move_towards_target(combatant, target, attack, combat)
           return unless in_range?(attack, combat)
 
@@ -44,6 +43,22 @@ module Dnd5e
 
         private
 
+        def try_tactical_shift(combatant, _target, attack, combat)
+          return if in_range?(attack, combat)
+          return unless combatant.turn_context.bonus_action_available?
+
+          bm_feature = combatant.feature_manager.features.find { |f| f.name == 'Battle Master' }
+          return unless bm_feature
+
+          move_dist = bm_feature.apply_tactical_shift(combatant, combat)
+          return unless move_dist
+
+          # Move towards target (1D)
+          new_dist = [0, combat.distance - move_dist].max
+          combat.move_combatant(combatant, new_dist)
+          combatant.turn_context.use_bonus_action
+        end
+
         def execute_battle_master_attacks(combatant, target, attack, combat)
           num_attacks = attack.type == :save ? 1 : 1 + combatant.statblock.extra_attacks
           num_attacks.times do
@@ -57,12 +72,20 @@ module Dnd5e
         end
 
         def execute_single_battle_master_attack(combatant, target, attack, combat)
-          options = { attack: attack }
+          options = { attack: attack, combat: combat }
           if @use_damage_maneuver && combatant.statblock.resources.available?(:superiority_dice)
-            options[:maneuver] = :menacing_attack
+            options[:maneuver] = pick_maneuver(combatant, target)
           end
 
           combat.attack(combatant, target, **options)
+        end
+
+        def pick_maneuver(combatant, target)
+          if !target.prone? && combatant.attacks.any? { |a| a.range <= 5 }
+            :trip_attack
+          else
+            :menacing_attack
+          end
         end
 
         def try_multi_attacks(combatant, target, attack, combat)

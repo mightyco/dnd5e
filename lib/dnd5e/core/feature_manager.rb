@@ -28,6 +28,15 @@ module Dnd5e
         end
       end
 
+      # Executes a hook on all features without a return value.
+      # @param hook_name [Symbol] The name of the hook method to call.
+      # @param context [Hash] Context to pass to the hook.
+      def execute_hook(hook_name, context)
+        @features.each do |feature|
+          feature.send(hook_name, context)
+        end
+      end
+
       # Specialized hook for modifiers (additive).
       def apply_modifier_hook(hook_name, context, initial_mod)
         @features.reduce(initial_mod) do |mod, feature|

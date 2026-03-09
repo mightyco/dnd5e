@@ -76,9 +76,10 @@ module Dnd5e
       #
       # @return [String] A string in the format "NdS+M" (e.g., "2d6+3").
       def to_s
-        modifier_str = @modifier.positive? ? "+#{@modifier}" : @modifier.to_s
-        modifier_str = '' if @modifier.zero?
-        "#{@count}d#{@sides}#{modifier_str}"
+        return "#{@count}d#{@sides}" if @modifier.zero?
+
+        sign = @modifier.positive? ? '+' : ''
+        "#{@count}d#{@sides}#{sign}#{@modifier}"
       end
 
       private

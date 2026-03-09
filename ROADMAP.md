@@ -40,16 +40,15 @@ Our immediate priority is modeling and comparing the **Champion** and **Battlema
 - [x] **Efficiency Metric**: Implemented `(Damage Dealt / Damage Taken)` as the primary evaluation score.
 - [x] **Archetype Benchmarking**: Proved Champion (2024) efficiency gains (~12%) over Standard Fighter.
 
-### Phase 5: Advanced Subclasses & Masteries (Next Priority)
-- [ ] **Weapon Masteries (Complete Set)**:
-    - [x] Vex, Topple (Implemented)
-    - [ ] Nick, Cleave, Graze, Slow, Push.
-- [ ] **Battlemaster (2024)**:
-    - [ ] Combat Superiority (Superiority Dice pool system)
-    - [ ] Maneuvers: Trip, Push, Menacing, Precision, Tactical Shift.
-    - [ ] Student of War / Know Your Enemy.
-- [ ] **Condition Refactoring**: Finish delegation to Character/Monster (In Progress).
-- [ ] **Performance**: Continuous optimization of parallel simulation loops.
+### Phase 5: Advanced Subclasses & Masteries (Completed)
+- [x] **Weapon Masteries (Complete Set)**:
+    - [x] Vex, Topple, Nick, Cleave, Graze, Slow, Push.
+- [x] **Battlemaster (2024)**:
+    - [x] Combat Superiority (Superiority Dice pool system)
+    - [x] Maneuvers: Trip, Push, Menacing, Precision, Tactical Shift.
+    - [x] Student of War / Know Your Enemy.
+- [x] **Condition Refactoring**: Delegation to Character/Monster completed.
+- [x] **Performance**: Parallel simulation loops optimized.
 
 ---
 

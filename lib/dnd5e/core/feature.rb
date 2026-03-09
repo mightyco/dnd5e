@@ -50,6 +50,10 @@ module Dnd5e
         nil
       end
 
+      # Called when an attack hits.
+      # @param context [Hash] Context including :attacker, :defender, :attack, :options, :result.
+      def on_attack_hit(_context); end
+
       # Called when damage is about to be applied to the character.
       # @param context [Hash] Context including :attacker, :defender, :attack, :damage, :outcome.
       # @return [Integer, nil] The new damage value, or nil to keep current.

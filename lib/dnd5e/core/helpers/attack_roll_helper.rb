@@ -78,7 +78,9 @@ module Dnd5e
 
         def self.apply_defender_conditions(defender, attack, adv, dis)
           if defender.prone?
-            attack.range <= 5 ? adv = true : dis = true
+            if attack.range <= 5 then adv = true
+            else dis = true
+            end
           end
           adv = true if defender.condition?(:restrained)
           dis = true if defender.condition?(:hidden)

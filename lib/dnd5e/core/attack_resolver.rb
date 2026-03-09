@@ -50,10 +50,17 @@ module Dnd5e
         dmg_data = apply_attack_damage(attacker, defender, attack, roll_data, outcome)
 
         handle_hit_or_miss(attacker, defender, attack, outcome, dmg_data)
+        notify_on_hit(attacker, defender, attack, outcome, dmg_data) if outcome[:success]
 
         @result_builder.build(attacker: attacker, defender: defender, attack: attack,
                               outcome: { success: outcome[:success], damage: dmg_data[:damage] },
                               details: build_details(roll_data, dmg_data, defender))
+      end
+
+      def notify_on_hit(attacker, defender, attack, outcome, dmg_data)
+        context = { attacker: attacker, defender: defender, attack: attack,
+                    options: outcome[:options], result: dmg_data, dice_roller: attack.dice_roller }
+        attacker.feature_manager.execute_hook(:on_attack_hit, context)
       end
 
       def handle_hit_or_miss(attacker, defender, attack, outcome, dmg_data)
@@ -90,11 +97,11 @@ module Dnd5e
       end
 
       def build_details(roll_data, dmg_data, defender)
-        { attack_roll: roll_data[:total], raw_roll: roll_data[:raw], modifier: roll_data[:modifier],
-          is_dead: !defender.statblock.alive?, target_ac: defender.statblock.armor_class,
-          rolls: roll_data[:rolls], advantage: roll_data[:advantage],
-          disadvantage: roll_data[:disadvantage], is_crit: roll_data[:is_crit],
-          damage_rolls: dmg_data[:rolls], damage_modifier: dmg_data[:modifier] }
+        rd = roll_data
+        { attack_roll: rd[:total], raw_roll: rd[:raw], modifier: rd[:modifier], is_dead: !defender.statblock.alive?,
+          target_ac: defender.statblock.armor_class, rolls: rd[:rolls], advantage: rd[:advantage],
+          disadvantage: rd[:disadvantage], is_crit: rd[:is_crit], damage_rolls: dmg_data[:rolls],
+          damage_modifier: dmg_data[:modifier] }
       end
 
       def handle_missing_ac(att, defn, atk)

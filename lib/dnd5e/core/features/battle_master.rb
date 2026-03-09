@@ -24,11 +24,13 @@ module Dnd5e
 
         def extra_damage_dice(context)
           options = context[:options]
-          return [] unless options[:maneuver] && options[:maneuver] != :precision_attack
+          return [] unless maneuver_with_damage?(options[:maneuver])
 
           attacker = context[:attacker]
           return [] unless attacker.statblock.resources.available?(:superiority_dice)
 
+          # NOTE: We consume the die here for damage maneuvers.
+          # If a maneuver has damage AND an effect, we must not consume it twice.
           attacker.statblock.resources.consume(:superiority_dice)
           [Dice.new(1, @die_type)]
         end
@@ -44,7 +46,55 @@ module Dnd5e
           apply_precision_attack(context, attacker)
         end
 
+        def on_attack_hit(context)
+          maneuver = context[:options][:maneuver]
+          return unless %i[trip_attack pushing_attack].include?(maneuver)
+
+          apply_hit_maneuver(maneuver, context)
+        end
+
+        def apply_tactical_shift(attacker, _combat)
+          return unless attacker.statblock.resources.available?(:superiority_dice)
+
+          attacker.statblock.resources.consume(:superiority_dice)
+          attacker.statblock.speed / 2
+        end
+
         private
+
+        def maneuver_with_damage?(maneuver)
+          %i[menacing_attack trip_attack pushing_attack].include?(maneuver)
+        end
+
+        def apply_hit_maneuver(maneuver, context)
+          case maneuver
+          when :trip_attack then apply_trip_attack(context)
+          when :pushing_attack then apply_pushing_attack(context)
+          end
+        end
+
+        def apply_trip_attack(context)
+          defender = context[:defender]
+          dc = calculate_maneuver_dc(context[:attacker])
+          mod = defender.statblock.ability_modifier(:strength)
+          roller = context[:dice_roller] || DiceRoller.new
+          save_roll = roller.roll(mod.negative? ? "1d20#{mod}" : "1d20+#{mod}")
+          defender.add_condition(:prone) if save_roll < dc
+        end
+
+        def apply_pushing_attack(context)
+          dc = calculate_maneuver_dc(context[:attacker])
+          mod = context[:defender].statblock.ability_modifier(:strength)
+          roller = context[:dice_roller] || DiceRoller.new
+          save_roll = roller.roll(mod.negative? ? "1d20#{mod}" : "1d20+#{mod}")
+          return unless save_roll < dc && context[:options][:combat]
+
+          context[:options][:combat].distance += 15
+        end
+
+        def calculate_maneuver_dc(attacker)
+          8 + attacker.statblock.proficiency_bonus + attacker.statblock.ability_modifier(:strength)
+        end
 
         def apply_precision_attack(context, attacker)
           attacker.statblock.resources.consume(:superiority_dice)
@@ -58,22 +108,16 @@ module Dnd5e
         end
 
         def calculate_dice_count(level)
-          if level >= 15
-            6
-          elsif level >= 7
-            5
-          else
-            4
+          if level >= 15 then 6
+          elsif level >= 7 then 5
+          else 4
           end
         end
 
         def calculate_die_type(level)
-          if level >= 18
-            12
-          elsif level >= 10
-            10
-          else
-            8
+          if level >= 18 then 12
+          elsif level >= 10 then 10
+          else 8
           end
         end
       end
