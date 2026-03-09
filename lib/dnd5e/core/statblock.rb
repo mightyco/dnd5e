@@ -27,7 +27,7 @@ module Dnd5e
         @name = name
         initialize_from_options(options)
         @resources = ResourcePool.new(options[:resources] || {})
-        @hit_points = calculate_hit_points
+        @hit_points = options[:hit_points] || calculate_hit_points
         @condition_manager = ConditionManager.new
         sync_initial_conditions
       end
@@ -40,10 +40,6 @@ module Dnd5e
         @condition_manager.remove(name)
       end
 
-      def conditions
-        @condition_manager.conditions.keys
-      end
-
       def condition?(name)
         @condition_manager.active?(name)
       end
@@ -53,7 +49,9 @@ module Dnd5e
       end
 
       def sync_initial_conditions
-        @conditions.each { |c| @condition_manager.add(c) }
+        return unless defined?(@conditions) && @conditions
+
+        @conditions.each { |c| add_condition(c) }
       end
 
       def armor_class
@@ -68,9 +66,11 @@ module Dnd5e
       attr_writer :armor_class
 
       def ability_modifier(ability)
-        score = instance_variable_get("@#{ability}")
-        raise ArgumentError, "Invalid ability: #{ability}" unless score
+        unless %i[strength dexterity constitution intelligence wisdom charisma].include?(ability)
+          raise ArgumentError, "Invalid ability: #{ability}"
+        end
 
+        score = send(ability)
         (score - 10) / 2
       end
 

@@ -16,12 +16,12 @@ module Dnd5e
       # @param teams [Array<Team>] The teams participating in the combat.
       # @param dice_roller [DiceRoller] The dice roller to use for rolling dice.
       # @raise [ArgumentError] if the number of teams is not exactly two.
-      def initialize(teams:, dice_roller: DiceRoller.new)
+      def initialize(teams:, dice_roller: DiceRoller.new, distance: 30)
         raise ArgumentError, 'TeamCombat requires exactly two teams' unless teams.size == 2
 
         @teams = teams
         # result_handler and logger are deprecated/ignored here, handled via observers
-        super(combatants: teams.first.members + teams.last.members, dice_roller: dice_roller)
+        super(combatants: teams.first.members + teams.last.members, dice_roller: dice_roller, distance: distance)
       end
 
       # Runs the combat and handles the results.

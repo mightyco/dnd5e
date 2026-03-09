@@ -94,7 +94,9 @@ module Dnd5e
         @last_dice_params << dice
 
         mocked_rolls = []
-        dice.count.times { mocked_rolls << next_result }
+        dice.count.times do
+          mocked_rolls << (dice.sides == 1 ? 1 : next_result)
+        end
 
         @dice.instance_variable_set(:@rolls, mocked_rolls)
         @dice.total

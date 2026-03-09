@@ -34,7 +34,7 @@ module Dnd5e
         result = @attack_handler.attack(@character1, @character2)
 
         assert result.success
-        assert_equal 5, @character2.statblock.hit_points
+        assert_equal 3, @character2.statblock.hit_points
       end
 
       def test_attack_with_dead_attacker

@@ -22,7 +22,7 @@ module Dnd5e
       end
 
       def attack(attacker, defender, **options)
-        raise InvalidAttackError, 'Cannot attack with a dead attacker' unless attacker.statblock.alive?
+        raise InvalidAttackError, 'Cannot attack a dead attacker' unless attacker.statblock.alive?
         raise InvalidAttackError, 'Cannot attack a dead defender' unless defender.statblock.alive?
 
         attack_to_use = options[:attack] || attacker.attacks.first

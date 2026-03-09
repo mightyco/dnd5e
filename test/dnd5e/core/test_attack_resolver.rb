@@ -103,7 +103,7 @@ module Dnd5e
         initial_hp = @goblin.statblock.hit_points
         result = @attack_resolver.resolve(@hero, @goblin, @attack)
 
-        assert_attack_success(result, initial_hp, 5)
+        assert_attack_success(result, initial_hp, 7)
         assert_equal :attack, result.type
         assert_equal 102, result.attack_roll # 100 + 2 (Str mod)
         assert_equal @goblin.statblock.armor_class, result.target_ac

@@ -57,6 +57,23 @@ module Dnd5e
         self
       end
 
+      # Builds the monster as a Bugbear.
+      #
+      # @return [MonsterBuilder] The MonsterBuilder instance.
+      def as_bugbear
+        @statblock = Core::Statblock.new(
+          name: @name,
+          strength: 15, dexterity: 14, constitution: 13,
+          intelligence: 8, wisdom: 11, charisma: 9,
+          hit_die: 'd8', level: 5, saving_throw_proficiencies: [],
+          extra_attacks: 1
+        )
+
+        morningstar = Core::Attack.new(name: 'Morningstar', damage_dice: Core::Dice.new(2, 8), relevant_stat: :strength)
+        with_attack(morningstar)
+        self
+      end
+
       # Builds the monster.
       #
       # @return [Monster] The built monster.

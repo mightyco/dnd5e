@@ -88,7 +88,9 @@ module Dnd5e
       end
 
       def test_combat_times_out
-        combat = Combat.new(combatants: [@hero, @goblin], dice_roller: MockDiceRoller.new([0] * 10), max_rounds: 2)
+        @hero.attacks.each { |a| a.instance_variable_set(:@dice_roller, MockDiceRoller.new([0] * 10)) }
+        @goblin.attacks.each { |a| a.instance_variable_set(:@dice_roller, MockDiceRoller.new([0] * 10)) }
+        combat = Combat.new(combatants: [@hero, @goblin], max_rounds: 2)
         assert_raises(CombatTimeoutError) { combat.run_combat }
         assert_equal 2, combat.instance_variable_get(:@round_counter)
       end

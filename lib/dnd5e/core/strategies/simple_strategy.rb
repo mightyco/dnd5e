@@ -8,13 +8,8 @@ module Dnd5e
       # A simple strategy that attacks the first available target.
       class SimpleStrategy < BaseStrategy
         def execute_turn(combatant, combat)
-          # 1. Potential Bonus Action (e.g., Second Wind)
           try_second_wind(combatant)
-
-          # 2. Main Action
           execute_action(combatant, combat)
-
-          # 3. Potential Action Surge
           try_action_surge(combatant, combat)
         end
 
@@ -24,15 +19,10 @@ module Dnd5e
           return unless combatant.turn_context.action_available?
 
           target = find_target(combatant, combat)
-          return unless target
-
           attack = select_attack(combatant, combat)
-          return unless attack
+          return unless target && attack
 
-          # Move if necessary
           move_towards_target(combatant, target, attack, combat)
-
-          # Attack if in range
           return unless in_range?(attack, combat)
 
           execute_attacks(combatant, target, attack, combat)
@@ -43,21 +33,14 @@ module Dnd5e
           return if in_range?(attack, combat) && !should_kite?(combatant, combat)
 
           speed = combatant.statblock.speed
-          new_dist = if should_kite?(combatant, combat)
-                       combat.distance + speed
-                     else
-                       [0, combat.distance - speed].max
-                     end
+          new_dist = should_kite?(combatant, combat) ? combat.distance + speed : [0, combat.distance - speed].max
 
           combat.move_combatant(combatant, new_dist)
           combatant.turn_context.use_movement(speed)
         end
 
         def should_kite?(combatant, combat)
-          # Kite if we have a ranged attack and the enemy is close
-          return false if combat.distance > 5
-
-          combatant.attacks.any? { |a| a.range > 5 }
+          combat.distance <= 5 && combatant.attacks.any? { |a| a.range > 5 }
         end
 
         def in_range?(attack, combat)
@@ -71,53 +54,88 @@ module Dnd5e
 
             combat.attack(combatant, target, attack: attack)
             combatant.statblock.resources.consume(attack.resource_cost) if attack.resource_cost
+            try_cleave_attack(combatant, target, attack, combat)
           end
+          try_extra_attacks(combatant, target, attack, combat)
+        end
+
+        def try_extra_attacks(combatant, target, attack, combat)
+          try_nick_attack(combatant, target, attack, combat)
+          try_dual_wielder_attack(combatant, target, attack, combat)
+          try_gwm_bonus_attack(combatant, target, attack, combat)
+        end
+
+        def try_cleave_attack(combatant, target, attack, combat)
+          return unless attack.mastery == :cleave && !target.statblock.alive?
+
+          new_target = (combat.combatants - [combatant, target]).find { |c| c.statblock.alive? }
+          combat.attack(combatant, new_target, attack: attack) if new_target
+        end
+
+        def try_gwm_bonus_attack(combatant, target, attack, combat)
+          return unless combatant.feature_manager.features.any? { |f| f.name == 'Great Weapon Master' }
+          return unless !target.statblock.alive? && combatant.turn_context.bonus_action_available?
+
+          new_target = target.statblock.alive? ? target : find_target(combatant, combat)
+          return unless new_target
+
+          combat.attack(combatant, new_target, attack: attack)
+          combatant.turn_context.use_bonus_action
+        end
+
+        def try_nick_attack(combatant, target, attack, combat)
+          return unless attack.properties.include?(:light) && attack.mastery == :nick
+          return unless combatant.turn_context.nick_available? && target.statblock.alive?
+
+          combat.attack(combatant, target, attack: attack, offhand: true)
+          combatant.turn_context.use_nick
+        end
+
+        def try_dual_wielder_attack(combatant, target, attack, combat)
+          return unless attack.properties.include?(:light) && target.statblock.alive?
+          return unless combatant.feature_manager.features.any? { |f| f.name == 'Dual Wielder' }
+          return unless combatant.turn_context.bonus_action_available?
+
+          combat.attack(combatant, target, attack: attack, offhand: true)
+          combatant.turn_context.use_bonus_action
         end
 
         def select_attack(combatant, combat)
-          # Select first attack that is affordable and safe (don't AOE self)
           combatant.attacks.find do |attack|
-            affordable = combatant.statblock.resources.available?(attack.resource_cost)
-            safe = !self_damage?(combatant, attack, combat)
-            affordable && safe
+            combatant.statblock.resources.available?(attack.resource_cost) &&
+              !self_damage?(combatant, attack, combat)
           end
         end
 
         def self_damage?(_combatant, attack, combat)
-          return false unless attack.area_radius
-
-          # In our simple 1D engine, we are hit if distance is less than radius
-          combat.distance < attack.area_radius
+          attack.area_radius && combat.distance < attack.area_radius
         end
 
         def try_second_wind(combatant)
           return unless combatant.statblock.resources.available?(:second_wind)
           return unless wounded?(combatant)
 
-          heal_amount = calculate_second_wind(combatant)
-          combatant.statblock.heal(heal_amount)
+          heal_combatant(combatant)
           combatant.statblock.resources.consume(:second_wind)
+        end
+
+        def heal_combatant(combatant)
+          combatant.statblock.heal(Core::DiceRoller.new.roll("1d10+#{combatant.statblock.level}"))
         end
 
         def wounded?(combatant)
           combatant.statblock.hit_points < combatant.statblock.calculate_hit_points / 2
         end
 
-        def calculate_second_wind(combatant)
-          Core::DiceRoller.new.roll("1d10+#{combatant.statblock.level}")
-        end
-
         def try_action_surge(combatant, combat)
           return unless combatant.statblock.resources.available?(:action_surge)
 
-          # Simple logic: use it if it's the first turn or someone is low
           combatant.statblock.resources.consume(:action_surge)
-          combatant.turn_context.reset! # HACK: Resetting turn context to allow another action
+          combatant.turn_context.reset!
           execute_action(combatant, combat)
         end
 
         def find_target(combatant, combat)
-          # Use the combat's defender selection logic (which handles teams)
           combat.find_valid_defender(combatant)
         end
       end

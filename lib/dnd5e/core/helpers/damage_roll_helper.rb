@@ -16,6 +16,23 @@ module Dnd5e
           Dice.new(count, base_dice.sides, modifier: base_dice.modifier)
         end
 
+        def self.calculate_modifier(attacker, attack, options)
+          # Start with weapon's built-in modifier
+          base_mod = attack.damage_dice.modifier
+
+          # Add ability modifier
+          ability_mod = attacker.statblock.ability_modifier(attack.relevant_stat)
+
+          # 2024 Two-Weapon Fighting rules:
+          # If it's an offhand attack, only add ability modifier if they have the TWF Fighting Style.
+          if options[:offhand]
+            has_twf_style = attacker.feature_manager.features.any? { |f| f.name == 'Two-Weapon Fighting' }
+            ability_mod = 0 unless has_twf_style
+          end
+
+          base_mod + ability_mod
+        end
+
         def self.roll_extra(attacker, defender, attack, options)
           context = { attacker: attacker, defender: defender, attack: attack, options: options }
           extra_dice_list = attacker.feature_manager.apply_list_hook(:extra_damage_dice, context)

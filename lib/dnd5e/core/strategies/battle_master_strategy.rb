@@ -49,13 +49,26 @@ module Dnd5e
           num_attacks.times do
             break unless target.statblock.alive?
 
-            options = { attack: attack }
-            if @use_damage_maneuver && combatant.statblock.resources.available?(:superiority_dice)
-              options[:maneuver] = :menacing_attack
-            end
-
-            combat.attack(combatant, target, **options)
+            execute_single_battle_master_attack(combatant, target, attack, combat)
+            try_cleave_attack(combatant, target, attack, combat)
           end
+
+          try_multi_attacks(combatant, target, attack, combat)
+        end
+
+        def execute_single_battle_master_attack(combatant, target, attack, combat)
+          options = { attack: attack }
+          if @use_damage_maneuver && combatant.statblock.resources.available?(:superiority_dice)
+            options[:maneuver] = :menacing_attack
+          end
+
+          combat.attack(combatant, target, **options)
+        end
+
+        def try_multi_attacks(combatant, target, attack, combat)
+          try_nick_attack(combatant, target, attack, combat)
+          try_dual_wielder_attack(combatant, target, attack, combat)
+          try_gwm_bonus_attack(combatant, target, attack, combat)
         end
       end
     end

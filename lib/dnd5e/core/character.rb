@@ -23,7 +23,7 @@ module Dnd5e
       # @param team [Object, nil] The team the character belongs to.
       # @param strategy [Strategy] The strategy to use for combat (default: SimpleStrategy).
       # @param options [Hash] Additional options (attacks, spells, team, features).
-      def initialize(name:, statblock:, strategy: Strategies::SimpleStrategy.new, **options)
+      def initialize(name:, statblock:, strategy: Strategies::SimpleStrategy.new, features: [], **options)
         @name = name
         @statblock = statblock
         @attacks = options[:attacks] || []
@@ -31,7 +31,7 @@ module Dnd5e
         @team = options[:team]
         @turn_context = TurnContext.new
         @strategy = strategy
-        @feature_manager = FeatureManager.new(options[:features] || [])
+        @feature_manager = FeatureManager.new(features)
         @feature_manager.on_character_init(self)
       end
 

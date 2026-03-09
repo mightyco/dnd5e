@@ -44,6 +44,13 @@ module Dnd5e
           adv, dis = apply_attacker_conditions(attacker, adv, dis)
           adv, dis = apply_defender_conditions(defender, attack, adv, dis)
           adv = true if vexed?(attacker, defender)
+
+          # 2024: Use Heroic Inspiration for Advantage
+          if !adv && attacker.statblock.heroic_inspiration
+            adv = true
+            attacker.statblock.heroic_inspiration = false
+          end
+
           apply_proximity_disadvantage(attack, distance, adv, dis)
         end
 
@@ -64,7 +71,7 @@ module Dnd5e
         end
 
         def self.apply_attacker_conditions(attacker, adv, dis)
-          dis = true if attacker.prone? || attacker.condition?(:restrained)
+          dis = true if attacker.prone? || attacker.condition?(:restrained) || attacker.condition?(:sapped)
           adv = true if attacker.condition?(:hidden)
           [adv, dis]
         end

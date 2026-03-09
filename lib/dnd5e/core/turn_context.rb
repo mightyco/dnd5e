@@ -4,7 +4,7 @@ module Dnd5e
   module Core
     # Tracks the usage of actions, bonus actions, and movement during a turn.
     class TurnContext
-      attr_reader :actions_used, :bonus_actions_used, :reactions_used, :movement_used
+      attr_reader :actions_used, :bonus_actions_used, :reactions_used, :movement_used, :nick_used
 
       def initialize
         reset!
@@ -16,6 +16,17 @@ module Dnd5e
         @bonus_actions_used = 0
         @reactions_used = 0
         @movement_used = 0
+        @nick_used = false
+      end
+
+      def use_nick
+        raise 'Nick already used' if @nick_used
+
+        @nick_used = true
+      end
+
+      def nick_available?
+        !@nick_used
       end
 
       def use_action
