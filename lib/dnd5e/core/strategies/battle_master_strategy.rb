@@ -89,8 +89,8 @@ module Dnd5e
         end
 
         def try_multi_attacks(combatant, target, attack, combat)
-          try_nick_attack(combatant, target, attack, combat)
-          try_dual_wielder_attack(combatant, target, attack, combat)
+          try_nick_attack(combatant, target, combat)
+          try_dual_wielder_attack(combatant, target, combat)
           try_gwm_bonus_attack(combatant, target, attack, combat)
         end
       end

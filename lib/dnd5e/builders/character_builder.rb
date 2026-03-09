@@ -41,9 +41,9 @@ module Dnd5e
         self
       end
 
-      def as_fighter(level: 1, abilities: {})
+      def as_fighter(level: 1, abilities: {}, armor_type: :heavy)
         abilities = merge_abilities(abilities)
-        @statblock = build_fighter_statblock(level, abilities)
+        @statblock = build_fighter_statblock(level, abilities, armor_type)
         add_fighter_equipment
         self
       end
@@ -68,12 +68,23 @@ module Dnd5e
         { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 }.merge(abilities)
       end
 
-      def build_fighter_statblock(level, abilities)
-        chain_mail = Core::Armor.new(name: 'Chain Mail', base_ac: 16, type: :heavy, max_dex_bonus: 0,
-                                     stealth_disadvantage: true)
+      def build_fighter_statblock(level, abilities, armor_type)
+        armor = create_armor(armor_type)
         extra_attacks = level >= 5 ? 1 : 0
         resources = { action_surge: 1, second_wind: 1 }
-        create_fighter_statblock(level, abilities, chain_mail, extra_attacks, resources)
+        create_fighter_statblock(level, abilities, armor, extra_attacks, resources)
+      end
+
+      def create_armor(type)
+        case type
+        when :light
+          Core::Armor.new(name: 'Studded Leather', base_ac: 12, type: :light, max_dex_bonus: 99)
+        when :medium
+          Core::Armor.new(name: 'Breastplate', base_ac: 14, type: :medium, max_dex_bonus: 2)
+        else
+          Core::Armor.new(name: 'Chain Mail', base_ac: 16, type: :heavy, max_dex_bonus: 0,
+                          stealth_disadvantage: true)
+        end
       end
 
       def create_fighter_statblock(level, abilities, armor, extra, resources)

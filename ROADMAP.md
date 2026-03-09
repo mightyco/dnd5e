@@ -46,8 +46,9 @@ Our immediate priority is modeling and comparing the **Champion** and **Battlema
 - [x] **Battlemaster (2024)**:
     - [x] Combat Superiority (Superiority Dice pool system)
     - [x] Maneuvers: Trip, Push, Menacing, Precision, Tactical Shift.
-    - [x] Student of War / Know Your Enemy.
+    - [x] Optimized Tactical AI for maneuver selection.
 - [x] **Condition Refactoring**: Delegation to Character/Monster completed.
+- [x] **Build Science**: Verified optimized stats and equipment (Dex vs Str) impact on survival.
 - [x] **Performance**: Parallel simulation loops optimized.
 
 ---
