@@ -45,6 +45,23 @@ module Dnd5e
 
         assert_equal 1, monster_builder.instance_variable_get(:@attacks).count
       end
+
+      def test_as_goblin
+        monster = MonsterBuilder.new(name: 'Gobby').as_goblin.build
+
+        assert_equal 'Gobby', monster.name
+        assert_equal 12, monster.statblock.armor_class
+        assert_equal 'Scimitar', monster.attacks.first.name
+      end
+
+      def test_as_bugbear
+        monster = MonsterBuilder.new(name: 'Buggy').as_bugbear.build
+
+        assert_equal 'Buggy', monster.name
+        assert_equal 12, monster.statblock.armor_class
+        assert_equal 'Morningstar', monster.attacks.first.name
+        assert_equal 1, monster.statblock.extra_attacks
+      end
     end
   end
 end

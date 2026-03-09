@@ -58,12 +58,34 @@ module Dnd5e
         roller = DiceRoller.new
 
         assert_includes 1..20, roller.roll_with_advantage(20)
+        assert_includes 6..25, roller.roll_with_advantage(20, modifier: 5)
       end
 
       def test_roll_with_disadvantage
         roller = DiceRoller.new
 
         assert_includes 1..20, roller.roll_with_disadvantage(20)
+        assert_includes 6..25, roller.roll_with_disadvantage(20, modifier: 5)
+      end
+
+      def test_mock_roll_with_advantage
+        mock = MockDiceRoller.new([10, 15])
+
+        assert_equal 15, mock.roll_with_advantage(20)
+
+        mock = MockDiceRoller.new([10, 15])
+
+        assert_equal 20, mock.roll_with_advantage(20, modifier: 5)
+      end
+
+      def test_mock_roll_with_disadvantage
+        mock = MockDiceRoller.new([10, 15])
+
+        assert_equal 10, mock.roll_with_disadvantage(20)
+
+        mock = MockDiceRoller.new([10, 15])
+
+        assert_equal 15, mock.roll_with_disadvantage(20, modifier: 5)
       end
 
       def test_mock_dice_roller

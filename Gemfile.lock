@@ -5,6 +5,7 @@ GEM
     afm (1.0.0)
     ast (2.4.3)
     bigdecimal (3.3.1)
+    docile (1.4.1)
     hashery (2.1.2)
     json (2.18.0)
     language_server-protocol (3.17.0.5)
@@ -60,6 +61,12 @@ GEM
       rubocop-ast (>= 1.44.0, < 2.0)
     ruby-progressbar (1.13.0)
     ruby-rc4 (0.1.5)
+    simplecov (0.22.0)
+      docile (~> 1.1)
+      simplecov-html (~> 0.11)
+      simplecov_json_formatter (~> 0.1)
+    simplecov-html (0.13.2)
+    simplecov_json_formatter (0.1.4)
     ttfunk (1.8.0)
       bigdecimal (~> 3.1)
     unicode-display_width (3.2.0)
@@ -80,6 +87,7 @@ DEPENDENCIES
   rubocop-rake
   rubocop-rspec
   rubocop-thread_safety
+  simplecov
 
 BUNDLED WITH
    2.7.2
