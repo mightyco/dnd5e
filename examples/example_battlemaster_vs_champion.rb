@@ -76,12 +76,16 @@ TARGET_AC = 15
 DAYS_TO_SIMULATE = 100
 ENCOUNTERS = 3
 ROUNDS = 4
-SHORT_RESTS = [1].freeze # After 1st encounter (0-indexed)
+SHORT_REST_SCENARIOS = {
+  0 => [],
+  1 => [1],
+  2 => [1, 2]
+}.freeze
 
 puts "=== Battle Master vs Champion Simulation (Level #{LEVEL}) ==="
-puts "Adventuring Day: #{ENCOUNTERS} encounters, #{ROUNDS} rounds each, #{SHORT_RESTS.size} short rest(s)"
+puts "Adventuring Day: #{ENCOUNTERS} encounters, #{ROUNDS} rounds each"
 puts "Target AC: #{TARGET_AC}"
-puts "Simulating #{DAYS_TO_SIMULATE} days..."
+puts "Simulating #{DAYS_TO_SIMULATE} days per scenario..."
 puts ''
 
 def run_simulations(days, level, params)
@@ -132,21 +136,24 @@ def calculate_averages(res, days)
   }
 end
 
-sim_params = { encounters: ENCOUNTERS, rounds: ROUNDS, short_rests: SHORT_RESTS, target_ac: TARGET_AC }
-results = run_simulations(DAYS_TO_SIMULATE, LEVEL, sim_params)
+SHORT_REST_SCENARIOS.each do |num_rests, rests_array|
+  puts "\n--- Scenario: #{num_rests} Short Rest(s) ---"
+  sim_params = { encounters: ENCOUNTERS, rounds: ROUNDS, short_rests: rests_array, target_ac: TARGET_AC }
+  results = run_simulations(DAYS_TO_SIMULATE, LEVEL, sim_params)
 
-print_results(:champion, results[:champion], DAYS_TO_SIMULATE)
-print_results(:bm_damage, results[:bm_damage], DAYS_TO_SIMULATE)
-print_results(:bm_precision, results[:bm_precision], DAYS_TO_SIMULATE)
+  print_results(:champion, results[:champion], DAYS_TO_SIMULATE)
+  print_results(:bm_damage, results[:bm_damage], DAYS_TO_SIMULATE)
+  print_results(:bm_precision, results[:bm_precision], DAYS_TO_SIMULATE)
 
-puts ''
-puts 'Findings:'
-bm_lead = (results[:bm_damage][:damage] - results[:champion][:damage]).to_f / results[:champion][:damage] * 100
-puts "Battle Master (Damage) lead: #{bm_lead.round(1)}%"
+  puts ''
+  puts 'Findings:'
+  bm_lead = (results[:bm_damage][:damage] - results[:champion][:damage]).to_f / results[:champion][:damage] * 100
+  puts "Battle Master (Damage) lead: #{bm_lead.round(1)}%"
 
-prec_lead = (results[:bm_precision][:damage] - results[:champion][:damage]).to_f / results[:champion][:damage] * 100
-puts "Battle Master (Precision) lead: #{prec_lead.round(1)}%"
+  prec_lead = (results[:bm_precision][:damage] - results[:champion][:damage]).to_f / results[:champion][:damage] * 100
+  puts "Battle Master (Precision) lead: #{prec_lead.round(1)}%"
 
-champ_dmg = results[:champion][:damage] / results[:champion][:attacks]
-catchup = (results[:bm_damage][:damage] - results[:champion][:damage]).to_f / champ_dmg
-puts "Champion needs approx. #{(catchup / (ENCOUNTERS * ROUNDS)).round(1)}x longer days to catch up."
+  champ_dmg = results[:champion][:damage] / results[:champion][:attacks]
+  catchup = (results[:bm_damage][:damage] - results[:champion][:damage]).to_f / champ_dmg
+  puts "Champion needs approx. #{(catchup / (ENCOUNTERS * ROUNDS)).round(1)}x longer days to catch up."
+end
