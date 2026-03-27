@@ -44,6 +44,12 @@ module Dnd5e
         @scenario.num_simulations.times { run_battle }
       end
 
+      def export_json(path)
+        return unless @result_handler.respond_to?(:to_json)
+
+        File.write(path, @result_handler.to_json)
+      end
+
       def generate_report
         puts 'Simulation Report'
         puts '-----------------'
