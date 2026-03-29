@@ -48,13 +48,13 @@ export const RollInspector = ({ data }) => {
                   {event.is_crit && <span style={{ fontWeight: 'bold', color: '#ff9800' }}> CRIT!</span>}
                   <br/>
                   <small style={{ color: '#666' }}>
-                    Roll: {event.metadata.attack_roll} (Raw: {event.metadata.raw_rolls?.join(',')} + {event.metadata.modifier}) vs AC {event.metadata.target_ac}
+                    Roll: {event.metadata.attack_roll} (Raw: [{event.metadata.raw_rolls?.join(', ') || '?'}] + {event.metadata.modifier}) vs AC {event.metadata.target_ac}
                     {event.damage > 0 && ` | Damage: ${event.damage} (${event.metadata.damage_rolls?.join('+')} + ${event.metadata.damage_modifier})`}
                     {event.metadata.current_hp !== undefined && ` | Target HP: ${event.metadata.current_hp}/${event.metadata.max_hp}`}
                   </small>
                 </div>
               );
-            })}}
+            })}
           </div>
         ))}
       </div>

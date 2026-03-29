@@ -1,0 +1,51 @@
+---
+title: "Simulation Lab: Interpreting Results"
+sidebar_label: Simulation Lab
+sidebar_position: 5
+---
+
+# Simulation Lab: Interpreting Results
+
+The Simulation Laboratory is designed to move beyond simple "Who won?" questions and into deep mechanical analysis. This guide explains how to use the UI components to find balance issues and optimize character builds.
+
+## Key Metrics
+
+### 1. Damage Per Round (DPR)
+The DPR chart shows the average damage dealt by each combatant in each round of combat.
+- **Steady DPR**: Indicates a consistent damage dealer (e.g., a Rogue with Sneak Attack).
+- **Front-Loaded DPR**: High damage in Round 1 that drops off (e.g., a Fighter using Action Surge).
+- **Escalating DPR**: Damage that increases over time (e.g., a Wizard set up with concentration spells).
+
+**What to look for**: If a "consistent" class has highly volatile DPR, it may indicate that their primary mechanic (like Advantage or a specific Trigger) isn't activating as often as expected.
+
+### 2. Win Distribution
+The Survival Chart shows the percentage of combats won by each team.
+- **50/50 Split**: Indicates a perfectly balanced encounter.
+- **90/10 Stomp**: Indicates a significant power disparity.
+
+**Statistical Tip**: Look for the "Confidence Interval" (planned feature). If you only run 10 simulations, a 60/40 split might just be luck. Run at least 100 simulations for reliable balance data.
+
+### 3. Combat Length (Efficiency)
+Average rounds per combat is a critical measure of "efficiency."
+- **Short Combats (< 3 rounds)**: High lethality. Small changes in initiative or a single missed attack can swing the entire result.
+- **Long Combats (> 10 rounds)**: These are "Slogs." They often indicate low accuracy or high defensive values (AC/HP) on both sides.
+
+## Interpreting "The Swing"
+If two characters have the same average DPR, but one has a 70% win rate and the other has 30%, look at the **Roll Inspector**.
+- **High Variance**: One character might rely on a "big hit" (like a crit-fishing build). If they miss that hit, they lose.
+- **Low Variance**: The other character might have "guaranteed" damage (like the Magic Missile spell or the Graze mastery). They win through attrition.
+
+## Step-by-Step: Running a Balance Experiment
+
+1. **Setup**: Use the **Scenario Configurator** to create two identical encounters, changing only one variable (e.g., give one Fighter a Greatsword and the other a Maul with Topple).
+2. **Execute**: Run both simulations (at least 100 iterations each).
+3. **Compare**: Use the **Lab History** to select both runs. The **DPR Chart** will enter **Comparison Mode**.
+4. **Analyze**: 
+   - Does the Topple mastery actually increase DPR for the rest of the team? 
+   - Does the higher base damage of the Greatsword outweigh the tactical advantage of Topple?
+   - Check the **Roll Inspector** to see how often the "Prone" condition was actually applied.
+
+## Common "Red Flags"
+- **Curly Braces in Output**: If you see raw `}` characters in the Roll Inspector, this is a known UI bug (fixed in v1.1) indicating a metadata leak.
+- **Zero Damage Rounds**: If a combatant consistently has rounds with 0 damage, check their **Strategy**. They might be stuck in a "Kiting" loop or have no valid targets within range.
+- **Unused Resources**: If a Fighter ends a combat without using **Action Surge**, their strategy is under-utilizing their power budget.

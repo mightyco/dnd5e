@@ -1,11 +1,15 @@
-## Rules Management for AI Agents
+# Developer Guide
+
+This document covers rule management, code quality, and benchmarking for the D&D 2024 Combat Simulator.
+
+## 📜 Rules Management for AI Agents
 
 To support the AI coding assistant's "Rules Sage" persona, we maintain a text-based reference of the D&D 2024 rules.
 
 ### Setup
-1.  **Obtain PDFs:** Place your legally obtained D&D 2024 Core Rulebook PDFs into the `rules_reference/` directory.
-    *   *Note:* This directory is `.gitignored` to prevent copyright infringement. Do not commit these files.
-2.  **Extract Text:** Run the extraction script to convert PDFs to lightweight text files.
+1.  **Obtain PDFs**: Place your legally obtained D&D 2024 Core Rulebook PDFs into the `rules_reference/` directory.
+    *   *Note*: This directory is `.gitignored` to prevent copyright infringement. Do not commit these files.
+2.  **Extract Text**: Run the extraction script to convert PDFs to lightweight text files.
     ```bash
     ruby extract_rules.rb
     ```
@@ -15,9 +19,18 @@ To support the AI coding assistant's "Rules Sage" persona, we maintain a text-ba
 *   The `.cursorrules` file instructs the AI to read `rules_reference/*.txt` when answering rules questions.
 *   This ensures the AI uses the actual text of the rules rather than potentially hallucinated or outdated training data.
 
-## Code Quality & Linting
+## 🛠 Code Quality & Linting
 
-We adhere to the Ruby Style Guide as enforced by **RuboCop**.
+We adhere to a strict Ruby Style Guide enforced by **RuboCop**.
+
+### Strict Enforcement
+All contributors and AI assistants **MUST** strictly adhere to the project's [STYLE_GUIDE.md](STYLE_GUIDE.md). This guide captures complexity, naming, and formatting rules that ensure a clean and maintainable engine.
+
+Key mandates from the guide include:
+- **Frozen String Literals**: Mandatory in every Ruby file.
+- **Complexity**: Hard limit of 10 lines per method and 100 lines per class.
+- **Boolean Naming**: Methods returning booleans must end in `?`.
+- **Testing**: Use predicate assertions (`assert_predicate`) instead of standard boolean checks.
 
 ### Running the Linter
 You MUST run RuboCop before committing any code.
@@ -32,53 +45,19 @@ To automatically fix safe offenses:
 rubocop -A
 ```
 
-### AI Style Guide (Strict Enforcement)
-To avoid wasted cycles on linting errors, the AI Assistant must strictly adhere to the following rules **during generation**:
+## 📊 Benchmarking
 
-1.  **Frozen String Literals (MANDATORY)**
-    *   **Every** Ruby file must start with: `# frozen_string_literal: true`
-    *   This includes test files, helper files, and scripts.
+The project includes a utility script to time the execution of all examples. This is useful for detecting performance regressions in the core simulation loop.
 
-2.  **Quote Style**
-    *   Use single quotes `'string'` by default.
-    *   Use double quotes `"string"` **only** when string interpolation (`"#{val}"`) is required.
+### Performance Testing
+Run the benchmarking script:
 
-3.  **Method Length & Complexity**
-    *   **Max Lines:** 10 lines per method.
-    *   **Strategy:** Extract logic into private helper methods *before* writing the main method.
-    *   **Parameter Lists:** Use keyword arguments (`**options`) if a method takes more than 3 arguments.
+```bash
+./time_examples.sh
+```
 
-4.  **Testing Best Practices (Minitest)**
-    *   **Boolean Assertions:**
-        *   Allowed: `assert_predicate object, :valid?`
-        *   BANNED: `assert object.valid?`
-    *   **Refutations:**
-        *   Allowed: `refute_predicate object, :valid?`
-        *   BANNED: `refute object.valid?`
+This will output timing data to `execution_times.txt`. For fast validation during development, use the `FAST_SIM=true` environment variable to skip slow simulations (> 5s).
 
-5.  **Naming Conventions**
-    *   Methods that return a boolean must end in `?` (e.g., `def valid?`, not `def valid`).
-
-6.  **Formatting**
-    *   **Line Length:** Hard limit of 120 characters. Break long lines (especially comments and method calls).
-    *   **Trailing Whitespace:** Ensure no trailing whitespace exists.
-    *   **Alignment:** Align hash keys and method arguments vertically if they span multiple lines.
-
-7.  **Documentation**
-    *   Public classes and methods must have RDoc comments explaining parameters and return values.
-
-8.  **Example Scripts**
-    *   Follow the guidelines in `examples/README.md`.
-    *   Focus on clear output, concise setup using Builders, and informative mechanics.
-
-### Common Style Mistakes & Guidelines
-(Legacy section kept for reference)
-
-1.  **Class/Method Length:**
-    *   Keep classes under 100 lines and methods under 10 lines where possible.
-    *   Extract complex logic (like `setup` methods in tests) into helper methods.
-    *   Use the Builder pattern to simplify object construction logic.
-
-2.  **Complexity (ABC Size):**
-    *   Avoid methods that do too much (Assignment, Branching, Conditionals).
-    *   Split methods that parse, calculate, and report into separate, focused methods.
+```bash
+FAST_SIM=true bundle exec rake all
+```

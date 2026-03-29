@@ -66,3 +66,4 @@ data/simulations/custom/
 log/
 results.json
 
+execution_times.txt

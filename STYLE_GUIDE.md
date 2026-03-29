@@ -16,11 +16,13 @@ This guide is derived from actual RuboCop failures encountered during the implem
 *   **Variable Numbers**: Avoid numbers in method or variable names (e.g., use `test_critical_at_nineteen` instead of `test_critical_on_19`).
 *   **Duplicate Methods**: Never define a method that is already handled by `attr_accessor` or `attr_reader`.
 
-## 3. Complexity & Size (Strict)
-*   **Method Length**: Maximum **10 lines** per method. Extract helpers liberally.
-*   **Class Length**: Maximum **100 lines** per class. Use Mixins/Modules for initialization or specialized logic.
+## 3. Complexity & Size (HARD MANDATE)
+*   **Method Length**: Maximum **10 lines** per method. Extract logic into private helper methods liberally.
+*   **Class Length**: Maximum **100 lines** per class. Use Mixins, Modules, or dedicated service classes for initialization or specialized logic.
 *   **ABC Size**: Maximum **17.0**. Keep assignments, branches, and conditionals minimal.
 *   **Block Chains**: Avoid multi-line chains of blocks (e.g., `.map { ... }.select { ... }` across 10 lines). Assign to a variable first.
+*   **No RuboCop Disables**: Disabling RuboCop checks is considered a code smell. You SHALL NOT use `rubocop:disable` comments without explicitly asking for permission and providing a strong technical justification.
+*   **Math Transparency**: Ensure all resolution objects (like `AttackResult`) carry enough metadata to support deep simulation analysis. Logic must be extracted into small, focused methods (< 10 lines) even in experimental scripts.
 
 ## 4. Specific Object Usage
 *   **OpenStruct**: NEVER use `OpenStruct`. It is slow and prone to bugs. Use `Struct.new`, `Hash`, or a dedicated data class.

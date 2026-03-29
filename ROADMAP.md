@@ -3,12 +3,13 @@
 This document tracks the implementation of D&D combat mechanics and the scientific goals of the simulation engine.
 
 ## Scientific Goal: The 2024 Fighter Duel
-Our immediate priority is modeling and comparing the **Champion** and **Battlemaster** Fighter archetypes using the 2024 Ruleset. We want to verify findings similar to the [Reddit math analysis](https://www.reddit.com/r/dndnext/comments/hi5t2q/comparing_the_champion_and_battlemaster_through/), but updated for the new edition's mechanics (Weapon Masteries, Heroic Inspiration on crits, etc.).
+Our primary scientific goal is to model and compare the **Champion** and **Battlemaster** Fighter archetypes using the 2024 Ruleset. We want to determine the exact mathematical impact of the new edition's mechanics (Weapon Masteries, Heroic Inspiration on crits, etc.) on class balance.
 
 ### Current Progress
 *   **Core Engine**: Action Economy, Multi-Attack, Resources (Slots/Features), and Movement are fully functional.
-*   **Rules Ingestion**: Class tables and spell slots are dynamically ingested from SRD data.
-*   **Advanced AI**: Kiting, self-preservation, and priority targeting implemented.
+*   **Tactical AI**: Intelligent kiting, self-preservation, and priority targeting implemented.
+*   **Subclasses**: Full 2024 implementations for Champion and Battlemaster.
+*   **Scientific Dashboard**: Interactive DPR, survival, and roll-level analysis.
 
 ---
 
@@ -27,29 +28,25 @@ Our immediate priority is modeling and comparing the **Champion** and **Battlema
 - [x] **AOE Support**: True multi-target resolution for spells like Fireball.
 
 ### Phase 3: Subclass Implementation (Completed)
-- [x] **Champion (2024)**:
-    - [x] Improved Critical (19-20)
-    - [x] Heroic Inspiration on critical hits
-    - [x] Remarkable Athlete / Additional Fighting Style
+- [x] **Champion (2024)**: Improved Critical, Heroic Inspiration on crits.
+- [x] **Standardized Encounter Suite (SES)**: Boss, Pack, and Swarm scenarios.
 
-### Phase 4: Standardized Encounter Suite (SES) (Completed)
-- [x] **Lab Runner**: Created a standardized harness to run a class through three scenarios:
-    - **The Boss**: 1 High AC/HP target.
-    - **The Pack**: 5 Medium targets.
-    - **The Swarm**: 15 Low targets.
-- [x] **Efficiency Metric**: Implemented `(Damage Dealt / Damage Taken)` as the primary evaluation score.
-- [x] **Archetype Benchmarking**: Proved Champion (2024) efficiency gains (~12%) over Standard Fighter.
+### Phase 4: Advanced Subclasses & Masteries (Completed)
+- [x] **Weapon Masteries (Complete Set)**: Vex, Topple, Nick, Cleave, Graze, Slow, Push.
+- [x] **Battlemaster (2024)**: Combat Superiority, Maneuvers (Trip, Push, Menacing, Precision, Tactical Shift).
+- [x] **Tactical AI**: Optimized maneuver selection logic.
 
-### Phase 5: Advanced Subclasses & Masteries (Completed)
-- [x] **Weapon Masteries (Complete Set)**:
-    - [x] Vex, Topple, Nick, Cleave, Graze, Slow, Push.
-- [x] **Battlemaster (2024)**:
-    - [x] Combat Superiority (Superiority Dice pool system)
-    - [x] Maneuvers: Trip, Push, Menacing, Precision, Tactical Shift.
-    - [x] Optimized Tactical AI for maneuver selection.
-- [x] **Condition Refactoring**: Delegation to Character/Monster completed.
-- [x] **Build Science**: Verified optimized stats and equipment (Dex vs Str) impact on survival.
-- [x] **Performance**: Parallel simulation loops optimized.
+### Phase 5: Dashboard & Portal Integration (Completed)
+- [x] **Scientific Visualization**: DPR Chart, Survival distribution.
+- [x] **Lab Runner**: UI for running and saving batch simulations.
+- [x] **Roll Inspector**: Math transparency for deep result analysis.
+- [x] **CI Automation**: GitHub Actions for automated testing and linting.
+
+### Phase 6: Simulation Analysis Lab (In Progress)
+- [ ] **Statistical Significance**: Implementing 95% Confidence Intervals for win rates.
+- [ ] **Delta Analysis**: Automatic comparison of DPR and survival between two runs.
+- [ ] **Combat Categorization**: Qualitative labeling of results (Stomp, Close, Slog).
+- [ ] **Balance Regression Testing**: Automated CI failure if a build's DPR drops below expectations.
 
 ---
 
@@ -61,7 +58,5 @@ Our immediate priority is modeling and comparing the **Champion** and **Battlema
 ---
 
 ## Future Vision
-*   **Party Composition Testing**: Simulating full 4-person parties through Level 5.
-*   **Reporting**: CSV/JSON export for DPR and survival rate analysis.
-*   **UI/CLI**: A more interactive way to configure and run batch experiments.
-
+*   **Party Composition Testing**: Simulating full 4-person parties through Level 10.
+- **Rules Ingestion Refactoring**: Dynamic parsing of rule text into JSON models.

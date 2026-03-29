@@ -163,8 +163,16 @@ function transformSpec(srcPath, destPath, domain, fileType, domainConfig, flat) 
   content = transformSpecReferences(content, { specMapping: SPEC_MAPPING, specEmojis: SPEC_EMOJIS, baseUrl: BASE_URL });
   content = transformAdrReferences(content, { adrMapping: ADR_MAPPING, adrEmoji: ADR_EMOJI, baseUrl: BASE_URL });
 
-  const sidebarLabel = flat ? config.label : (fileType === 'spec' ? 'Specification' : 'Design');
-  const sidebarPosition = flat ? config.order : (fileType === 'spec' ? 1 : 2);
+  let sidebarLabel = flat ? config.label : (fileType === 'spec' ? 'Specification' : 'Design');
+  let sidebarPosition = flat ? config.order : (fileType === 'spec' ? 1 : 2);
+
+  if (fileType === 'dashboard') {
+    sidebarLabel = 'Live Dashboard \ud83d\udcca';
+    sidebarPosition = 3;
+  } else if (fileType === 'other') {
+    sidebarLabel = title;
+    sidebarPosition = 4;
+  }
 
   const metadataHeader = `
 <FieldGroup>
@@ -249,7 +257,10 @@ function main() {
       const srcPath = path.join(domainPath, file);
       const destName = file.replace(/\.md$/, '.mdx');
       const destPath = path.join(destDomainPath, destName);
-      const fileType = file.includes('spec') ? 'spec' : (file.includes('design') ? 'design' : 'other');
+      let fileType = 'other';
+      if (file.includes('spec')) fileType = 'spec';
+      else if (file.includes('design')) fileType = 'design';
+      else if (file.includes('dashboard')) fileType = 'dashboard';
       
       transformSpec(srcPath, destPath, domain, fileType, domainConfig, false);
       fileCount++;
