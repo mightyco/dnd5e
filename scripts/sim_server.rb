@@ -140,7 +140,9 @@ def build_member(member_cfg, level)
 end
 
 def build_fighter(builder, member_cfg, level)
-  builder.as_fighter(level: level)
+  abilities = member_cfg['abilities'] || {}
+  symbolized_abilities = abilities.transform_keys(&:to_sym)
+  builder.as_fighter(level: level, abilities: symbolized_abilities)
   add_subclass_features(builder, member_cfg['subclass'], level) if member_cfg['subclass']
   builder.build
 end

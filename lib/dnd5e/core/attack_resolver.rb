@@ -16,17 +16,21 @@ module Dnd5e
         @result_builder = AttackResultBuilder.new
       end
 
-      def resolve(attacker, defender, attack, **options)
-        if attack.type == :save
-          res = Helpers::SaveResolutionHelper.resolve(attacker, defender, attack)
-          return @result_builder.build(attacker: attacker, defender: defender, attack: attack,
-                                       outcome: res[:outcome], details: res[:details])
-        end
+      def resolve(attacker, defender, attack, **opts)
+        return resolve_attack_roll(attacker, defender, attack, opts) unless attack.type == :save
 
-        resolve_attack_roll(attacker, defender, attack, options)
+        res = Helpers::SaveResolutionHelper.resolve(attacker, defender, attack)
+        details = res[:details].merge(hp_and_prof_details(attacker, defender))
+        @result_builder.build(attacker: attacker, defender: defender, attack: attack,
+                              outcome: res[:outcome], details: details)
       end
 
       private
+
+      def hp_and_prof_details(att, defn)
+        { current_hp: defn.statblock.hit_points, max_hp: defn.statblock.calculate_hit_points,
+          proficiency_bonus: att.statblock.proficiency_bonus }
+      end
 
       def resolve_attack_roll(attacker, defender, attack, options)
         return handle_missing_ac(attacker, defender, attack) if defender.statblock.armor_class.nil?
@@ -54,7 +58,7 @@ module Dnd5e
 
         @result_builder.build(attacker: attacker, defender: defender, attack: attack,
                               outcome: { success: outcome[:success], damage: dmg_data[:damage] },
-                              details: build_details(roll_data, dmg_data, defender))
+                              details: build_details(roll_data, dmg_data, defender, attacker))
       end
 
       def notify_on_hit(attacker, defender, attack, outcome, dmg_data)
@@ -71,11 +75,10 @@ module Dnd5e
         end
       end
 
-      def apply_graze(attacker, defender, attack, dmg_data)
-        damage = [1, attacker.statblock.ability_modifier(attack.relevant_stat)].max
-        defender.statblock.take_damage(damage)
-        attacker.statblock.record_damage_dealt(damage)
-        dmg_data[:damage] = damage
+      def apply_graze(att, defn, atk, dmg_data)
+        dmg_data[:damage] = [1, att.statblock.ability_modifier(atk.relevant_stat)].max
+        defn.statblock.take_damage(dmg_data[:damage])
+        att.statblock.record_damage_dealt(dmg_data[:damage])
       end
 
       def apply_weapon_mastery(attacker, defender, attack, options)
@@ -88,20 +91,18 @@ module Dnd5e
         end
       end
 
-      def resolve_topple(attacker, defender, attack)
-        dc = Helpers::SaveResolutionHelper.calculate_dc(attacker, attack)
-        save_params = { save_ability: :constitution, dice_roller: attack.dice_roller }
-        save_data = Helpers::SaveResolutionHelper.roll_save(defender,
-                                                            Struct.new(*save_params.keys).new(*save_params.values))
-        defender.add_condition(:prone) if save_data[:total] < dc
+      def resolve_topple(att, defn, atk)
+        dc = Helpers::SaveResolutionHelper.calculate_dc(att, atk)
+        struct = Struct.new(:save_ability, :dice_roller).new(:constitution, atk.dice_roller)
+        defn.add_condition(:prone) if Helpers::SaveResolutionHelper.roll_save(defn, struct)[:total] < dc
       end
 
-      def build_details(roll_data, dmg_data, defender)
+      def build_details(roll_data, dmg_data, defender, attacker)
         rd = roll_data
         { attack_roll: rd[:total], raw_roll: rd[:raw], modifier: rd[:modifier], is_dead: !defender.statblock.alive?,
           target_ac: defender.statblock.armor_class, rolls: rd[:rolls], advantage: rd[:advantage],
           disadvantage: rd[:disadvantage], is_crit: rd[:is_crit], damage_rolls: dmg_data[:rolls],
-          damage_modifier: dmg_data[:modifier] }
+          damage_modifier: dmg_data[:modifier] }.merge(hp_and_prof_details(attacker, defender))
       end
 
       def handle_missing_ac(att, defn, atk)
@@ -124,8 +125,8 @@ module Dnd5e
 
       def calculate_base_damage(attacker, attack, is_crit, options, mod)
         dice = Helpers::DamageRollHelper.calculate_dice(attacker, attack, is_crit, options)
-        damage = attack.dice_roller.roll_with_dice(Dice.new(dice.count, dice.sides, modifier: mod))
-        [damage, attack.dice_roller.dice.rolls.dup]
+        [attack.dice_roller.roll_with_dice(Dice.new(dice.count, dice.sides, modifier: mod)),
+         attack.dice_roller.dice.rolls.dup]
       end
 
       def apply_additional_damage(base_damage, base_rolls, ctx)

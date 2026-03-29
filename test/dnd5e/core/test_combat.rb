@@ -106,19 +106,27 @@ module Dnd5e
         assert_raises(InvalidWinnerError) { @combat.winner }
       end
 
-      def test_combat_emits_events
-        # Reset to ensure clean state and specific dice
-        @mock_dice_roller1.rolls = [15, 100]
-        # Ensure fast combat
-        @goblin.statblock.hit_points = 1
+      def test_combat_emits_turn_and_resource_events
+        combat, observer = setup_fighter_combat
 
-        @combat.run_combat
+        # Force use of Action Surge by ensuring Fighter goes first and hits
+        # Actually Action Surge in SimpleStrategy is used after the first action
+        combat.take_turn(combat.combatants.first)
 
-        events = @observer.events.map { |e| e[:event] }
+        events = observer.events.map { |e| e[:event] }
 
-        assert_includes events, :combat_start
-        assert_includes events, :round_start
-        assert_includes events, :combat_end
+        assert_includes events, :turn_start
+        assert_includes events, :resource_used
+        assert_equal :action_surge, observer.events.find { |e| e[:event] == :resource_used }[:data][:resource]
+      end
+
+      def setup_fighter_combat
+        fighter = Builders::CharacterBuilder.new(name: 'Fighter').as_fighter(level: 2).build
+        goblin = Builders::MonsterBuilder.new(name: 'Goblin').as_goblin.build
+        combat = Combat.new(combatants: [fighter, goblin])
+        observer = MockObserver.new
+        combat.add_observer(observer)
+        [combat, observer]
       end
 
       # Simple MockObserver defined here to avoid dependency issues if moved

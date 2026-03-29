@@ -19,6 +19,8 @@ module Dnd5e
         case event
         when :combat_start then handle_combat_start(data)
         when :round_start then handle_round_start(data)
+        when :turn_start then handle_turn_start(data)
+        when :resource_used then handle_resource_used(data)
         when :attack_resolved then handle_attack_resolved(data)
         when :combat_end then handle_combat_end(data)
         end
@@ -36,6 +38,15 @@ module Dnd5e
 
       def handle_round_start(data)
         @current_combat[:rounds] << { number: data[:round], events: [] }
+      end
+
+      def handle_turn_start(data)
+        @current_combat[:rounds].last[:events] << { type: 'turn_start', combatant: data[:combatant].name }
+      end
+
+      def handle_resource_used(data)
+        @current_combat[:rounds].last[:events] << { type: 'resource_used', combatant: data[:combatant].name,
+                                                    resource: data[:resource] }
       end
 
       def handle_attack_resolved(data)
@@ -56,16 +67,10 @@ module Dnd5e
       end
 
       def format_attack_event(result)
-        {
-          type: result.type,
-          attacker: result.attacker.name,
-          defender: result.defender.name,
-          attack_name: result.attack.name,
-          success: result.success,
-          damage: result.damage,
-          is_crit: result.is_crit,
-          metadata: extract_metadata(result)
-        }
+        base = { type: result.type, attacker: result.attacker.name, defender: result.defender.name,
+                 attack_name: result.attack.name, success: result.success }
+        base.merge(damage: result.damage, is_crit: result.is_crit, is_dead: result.is_dead,
+                   metadata: extract_metadata(result))
       end
 
       def extract_metadata(result)
@@ -73,15 +78,14 @@ module Dnd5e
       end
 
       def extract_roll_metadata(result)
-        {
-          attack_roll: result.attack_roll,
-          picked_roll: result.raw_roll,
-          raw_rolls: result.rolls,
-          modifier: result.modifier,
-          target_ac: result.target_ac,
-          damage_rolls: result.damage_rolls,
-          damage_modifier: result.damage_modifier
-        }
+        { attack_roll: result.attack_roll, picked_roll: result.raw_roll, raw_rolls: result.rolls,
+          modifier: result.modifier, proficiency_bonus: result.proficiency_bonus,
+          target_ac: result.target_ac }.merge(extract_damage_metadata(result))
+      end
+
+      def extract_damage_metadata(result)
+        { damage_rolls: result.damage_rolls, damage_modifier: result.damage_modifier,
+          current_hp: result.current_hp, max_hp: result.max_hp }
       end
 
       def extract_save_metadata(result)

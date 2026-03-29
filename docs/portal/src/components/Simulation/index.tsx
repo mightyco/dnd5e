@@ -76,7 +76,7 @@ export const SimulationDashboard = () => {
                     <ul>
                       <li>Total Simulations: {currentRun.length}</li>
                       <li>Average Rounds: {(currentRun.reduce((acc, c) => acc + c.rounds.length, 0) / currentRun.length).toFixed(1)}</li>
-                      <li>Total Crits: {currentRun.flatMap(c => c.rounds.flatMap(r => r.events)).filter(e => e.is_crit).length}</li>
+                      <li>Total Crits: {currentRun.flatMap(c => c.rounds.flatMap(r => r.events)).filter(e => e.type === 'attack' && e.is_crit).length}</li>
                     </ul>
                   </div>
                 </div>

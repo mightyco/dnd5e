@@ -58,7 +58,8 @@ class E2EFlowTest < Minitest::Test
   end
 
   def verify_event_math(event, round_num)
-    return unless event['damage'].positive?
+    return unless %w[attack save].include?(event['type'])
+    return unless event['damage']&.positive?
 
     meta = event['metadata']
     actual = event['damage']

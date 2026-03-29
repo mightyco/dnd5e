@@ -7,7 +7,8 @@ module Dnd5e
       attr_reader :attacker, :defender, :attack, :success, :damage, :type,
                   :attack_roll, :raw_roll, :modifier, :target_ac,
                   :save_roll, :save_dc, :is_dead, :rolls, :advantage, :disadvantage,
-                  :damage_rolls, :damage_modifier, :is_crit
+                  :damage_rolls, :damage_modifier, :is_crit, :current_hp, :max_hp,
+                  :proficiency_bonus
 
       # Initializes a new AttackResult.
       #
@@ -33,6 +34,9 @@ module Dnd5e
         assign_save_details(details)
         assign_damage_details(details)
         @is_dead = details[:is_dead] || false
+        @current_hp = details[:current_hp]
+        @max_hp = details[:max_hp]
+        @proficiency_bonus = details[:proficiency_bonus]
       end
 
       def assign_roll_details(details)

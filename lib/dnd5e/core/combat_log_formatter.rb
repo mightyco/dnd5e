@@ -5,14 +5,24 @@ module Dnd5e
     # Formatting logic for the CombatLogger.
     module CombatLogFormatter
       def format_roll_info(result)
+        prof = result.proficiency_bonus
+        mod = result.modifier - prof
+        base_str = "#{'+' if mod.positive?}#{mod} Mod +#{prof} Prof"
+
         if result.advantage || result.disadvantage
-          type = result.advantage ? 'Adv' : 'Dis'
-          picked = result.raw_roll
-          others = result.rolls.reject.with_index { |_, i| i == result.rolls.index(picked) }
-          "(#{type}: [#{picked}, #{others.join(', ')}] -> #{picked} + #{result.modifier})"
+          format_adv_dis_roll(result, base_str)
         else
-          "(#{result.raw_roll} + #{result.modifier})"
+          "(#{result.raw_roll} #{base_str})"
         end
+      end
+
+      private
+
+      def format_adv_dis_roll(result, base_str)
+        type = result.advantage ? 'Adv' : 'Dis'
+        picked = result.raw_roll
+        others = result.rolls.reject.with_index { |_, i| i == result.rolls.index(picked) }
+        "(#{type}: [#{picked}, #{others.join(', ')}] -> #{picked} #{base_str})"
       end
 
       def format_damage_info(result)

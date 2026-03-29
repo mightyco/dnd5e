@@ -29,6 +29,7 @@ export const DPRChart = ({ datasets }) => {
         if (!roundStats[round.number]) roundStats[round.number] = {};
         
         round.events.forEach(event => {
+          if (!['attack', 'save'].includes(event.type)) return;
           const key = runs.length > 1 ? `${runLabel}: ${event.attacker}` : event.attacker;
           if (!roundStats[round.number][key]) {
             roundStats[round.number][key] = { totalDamage: 0 };

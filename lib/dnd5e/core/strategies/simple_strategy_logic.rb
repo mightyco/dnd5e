@@ -96,11 +96,12 @@ module Dnd5e
           attack.area_radius && combat.distance < attack.area_radius
         end
 
-        def try_second_wind(combatant)
+        def try_second_wind(combatant, combat)
           return unless second_wind_available?(combatant)
 
-          heal_combatant(combatant)
           combatant.statblock.resources.consume(:second_wind)
+          combat.notify_observers(:resource_used, { combatant: combatant, resource: :second_wind })
+          heal_combatant(combatant)
         end
 
         def second_wind_available?(combatant)
@@ -116,6 +117,7 @@ module Dnd5e
           return unless combatant.statblock.resources.available?(:action_surge)
 
           combatant.statblock.resources.consume(:action_surge)
+          combat.notify_observers(:resource_used, { combatant: combatant, resource: :action_surge })
           combatant.turn_context.reset!
           execute_action(combatant, combat)
         end

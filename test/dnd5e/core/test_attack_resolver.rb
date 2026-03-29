@@ -84,14 +84,14 @@ module Dnd5e
     class TestAttackResolver < AttackResolverTestBase
       def test_resolve_critical_hit
         # Attack roll (20), Damage (simulated 2d8=11)
-        # 20 + 2 (Str mod) = 22
+        # 20 + 2 (Str mod) + 2 (Prof) = 24
         @mock_dice_roller = MockDiceRoller.new([20, 11])
         @attack.instance_variable_set(:@dice_roller, @mock_dice_roller)
 
         result = @attack_resolver.resolve(@hero, @goblin, @attack)
 
         assert result.success
-        assert_equal 22, result.attack_roll
+        assert_equal 24, result.attack_roll
 
         last_dice = @mock_dice_roller.last_dice_params.last
 
@@ -105,7 +105,7 @@ module Dnd5e
 
         assert_attack_success(result, initial_hp, 7)
         assert_equal :attack, result.type
-        assert_equal 102, result.attack_roll # 100 + 2 (Str mod)
+        assert_equal 104, result.attack_roll # 100 + 2 (Str mod) + 2 (Prof)
         assert_equal @goblin.statblock.armor_class, result.target_ac
       end
 
@@ -115,11 +115,11 @@ module Dnd5e
         @attack.instance_variable_set(:@dice_roller, @mock_dice_roller)
         result = @attack_resolver.resolve(@goblin, @hero, @attack)
 
-        # 1 + 2 (Str mod) = 3
+        # 1 + 2 (Str mod) + 2 (Prof) = 5
         assert_equal initial_hp, @hero.statblock.hit_points
         refute result.success
         assert_equal 0, result.damage
-        assert_equal 3, result.attack_roll
+        assert_equal 5, result.attack_roll
       end
 
       def test_resolve_heroic_inspiration_gain
@@ -144,7 +144,7 @@ module Dnd5e
         result = @attack_resolver.resolve(@hero, @goblin, @attack)
 
         assert result.success
-        assert_equal 19 + 2, result.attack_roll
+        assert_equal 19 + 2 + 2, result.attack_roll
 
         # Check if damage was doubled (2d8 instead of 1d8)
         last_dice = @mock_dice_roller.last_dice_params.last

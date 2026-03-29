@@ -29,7 +29,7 @@ module Dnd5e
           result = @resolver.resolve(@character, @defender, @attack)
 
           assert result.success
-          assert_equal 19 + 3, result.attack_roll
+          assert_equal 19 + 3 + 2, result.attack_roll
 
           # Damage should be doubled (4d6 instead of 2d6)
           last_dice = @mock_dice_roller.last_dice_params.last

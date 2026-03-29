@@ -16,7 +16,7 @@ puts '=== Team Combat Example ==='
 # Heroes: 2 Fighters
 longsword = Dnd5e::Core::Attack.new(name: 'Longsword', damage_dice: Dnd5e::Core::Dice.new(1, 8),
                                     relevant_stat: :strength)
-hero_stats = Dnd5e::Core::Statblock.new(name: 'Hero Template', strength: 16, hit_points: 20)
+hero_stats = Dnd5e::Core::Statblock.new(name: 'Hero Template', strength: 16, hit_points: 20, hit_die: 'd10')
 
 hero1 = Dnd5e::Core::Character.new(name: 'Fighter 1', statblock: hero_stats, attacks: [longsword])
 hero2 = Dnd5e::Core::Character.new(name: 'Fighter 2', statblock: hero_stats, attacks: [longsword])

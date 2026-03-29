@@ -8,8 +8,8 @@
         "type": "array",
         "items": { "type": "string" }
       },
-      "winner": { "type": "string" },
-      "initiative_winner": { "type": "string" },
+      "winner": { "type": ["string", "null"] },
+      "initiative_winner": { "type": ["string", "null"] },
       "rounds": {
         "type": "array",
         "items": {
@@ -21,7 +21,7 @@
               "type": "array",
               "items": {
                 "type": "object",
-                "required": ["type", "attacker", "defender", "attack_name", "success", "damage", "is_crit", "metadata"],
+                "required": ["type"],
                 "properties": {
                   "type": { "type": "string" },
                   "attacker": { "type": "string" },
@@ -30,17 +30,22 @@
                   "success": { "type": "boolean" },
                   "damage": { "type": "integer" },
                   "is_crit": { "type": "boolean" },
+                  "is_dead": { "type": "boolean" },
+                  "combatant": { "type": "string" },
+                  "resource": { "type": "string" },
                   "metadata": {
                     "type": "object",
-                    "required": ["attack_roll", "picked_roll", "raw_rolls", "modifier", "target_ac", "damage_rolls", "damage_modifier"],
                     "properties": {
                       "attack_roll": { "type": ["integer", "null"] },
                       "picked_roll": { "type": ["integer", "null"] },
                       "raw_rolls": { "type": ["array", "null"], "items": { "type": "integer" } },
                       "modifier": { "type": ["integer", "null"] },
+                      "proficiency_bonus": { "type": "integer" },
                       "target_ac": { "type": ["integer", "null"] },
                       "damage_rolls": { "type": ["array", "null"], "items": { "type": "integer" } },
-                      "damage_modifier": { "type": ["integer", "null"] }
+                      "damage_modifier": { "type": ["integer", "null"] },
+                      "current_hp": { "type": "integer" },
+                      "max_hp": { "type": "integer" }
                     }
                   }
                 }

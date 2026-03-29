@@ -11,7 +11,7 @@ module Dnd5e
         include SimpleStrategyLogic
 
         def execute_turn(combatant, combat)
-          try_second_wind(combatant)
+          try_second_wind(combatant, combat)
           execute_action(combatant, combat)
           try_action_surge(combatant, combat)
         end

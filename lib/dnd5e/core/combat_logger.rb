@@ -15,18 +15,25 @@ module Dnd5e
 
       def update(event, data)
         case event
-        when :combat_start
-          log_combat_start(data)
-        when :round_start
-          log_round_start(data)
-        when :combat_end
-          log_combat_end(data)
-        when :attack_resolved
-          log_attack_resolved(data)
+        when :combat_start then log_combat_start(data)
+        when :round_start then log_round_start(data)
+        when :turn_start then log_turn_start(data)
+        when :resource_used then log_resource_used(data)
+        when :combat_end then log_combat_end(data)
+        when :attack_resolved then log_attack_resolved(data)
         end
       end
 
       private
+
+      def log_turn_start(data)
+        @logger.info "--- #{data[:combatant].name}'s Turn ---"
+      end
+
+      def log_resource_used(data)
+        resource_name = data[:resource].to_s.split('_').map(&:capitalize).join(' ')
+        @logger.info "[RESOURCE] #{data[:combatant].name} used #{resource_name}!"
+      end
 
       def log_combat_start(data)
         names = data[:combatants].map(&:name).join(', ')
@@ -65,20 +72,9 @@ module Dnd5e
         @logger.debug msg
 
         # Attacker success means Save Fail
-        if result.success
-          log_save_failure(result)
-        else
-          log_save_success(result)
-        end
-      end
-
-      def log_save_failure(result)
-        @logger.info "#{result.defender.name} fails #{result.attack.save_ability} save against #{result.attack.name}!"
-      end
-
-      def log_save_success(result)
-        msg = "#{result.defender.name} succeeds on #{result.attack.save_ability} save against #{result.attack.name}!"
-        @logger.info msg
+        status = result.success ? 'fails' : 'succeeds on'
+        msg2 = "#{result.defender.name} #{status} #{result.attack.save_ability} save against #{result.attack.name}!"
+        @logger.info msg2
       end
 
       def log_attack_roll_resolution(result)
@@ -102,8 +98,9 @@ module Dnd5e
 
       def log_attack_hit(result)
         roll_info = format_damage_info(result)
+        hp_info = "| #{result.defender.name} HP: #{result.current_hp}/#{result.max_hp}"
         @logger.info "#{result.attacker.name} hits #{result.defender.name} with #{result.attack.name} " \
-                     "for #{result.damage} damage! #{roll_info}"
+                     "for #{result.damage} damage! #{roll_info} #{hp_info}"
       end
 
       def log_attack_miss(result)
@@ -113,7 +110,7 @@ module Dnd5e
       def log_damage_and_defeat(result)
         log_damage(result) if result.damage.positive?
         log_no_damage(result) if result.damage.zero? && result.type == :save
-        @logger.info "#{result.defender.name} is defeated!" if result.is_dead
+        @logger.info "[DEFEATED] #{result.defender.name} has been defeated!" if result.is_dead
       end
 
       def log_damage(result)

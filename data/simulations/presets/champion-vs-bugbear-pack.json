@@ -8,7 +8,7 @@
     {
       "name": "Heroes",
       "members": [
-        { "name": "Champ Hero", "type": "fighter", "subclass": "champion" }
+        { "name": "Champ Hero", "type": "fighter", "subclass": "champion", "abilities": { "strength": 16, "dexterity": 14, "constitution": 14 } }
       ]
     },
     {
