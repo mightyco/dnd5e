@@ -5,6 +5,12 @@ module Dnd5e
     module Strategies
       # Base class for combat strategies.
       class BaseStrategy
+        attr_reader :name
+
+        def initialize
+          @name = 'Base'
+        end
+
         # Executes the turn for the given combatant.
         #
         # @param combatant [Character, Monster] The combatant taking the turn.

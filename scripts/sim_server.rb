@@ -9,8 +9,6 @@ require_relative '../lib/dnd5e/simulation/scenario_builder'
 require_relative '../lib/dnd5e/simulation/json_combat_result_handler'
 require_relative '../lib/dnd5e/builders/character_builder'
 require_relative '../lib/dnd5e/builders/monster_builder'
-require_relative '../lib/dnd5e/core/features/improved_critical'
-require_relative '../lib/dnd5e/core/features/battle_master'
 
 set :bind, '0.0.0.0'
 set :port, 4567
@@ -143,17 +141,8 @@ def build_fighter(builder, member_cfg, level)
   abilities = member_cfg['abilities'] || {}
   symbolized_abilities = abilities.transform_keys(&:to_sym)
   builder.as_fighter(level: level, abilities: symbolized_abilities)
-  add_subclass_features(builder, member_cfg['subclass'], level) if member_cfg['subclass']
+  builder.with_subclass(member_cfg['subclass'], level: level) if member_cfg['subclass']
   builder.build
-end
-
-def add_subclass_features(builder, subclass, level)
-  case subclass
-  when 'champion'
-    builder.with_feature(Dnd5e::Core::Features::ImprovedCritical.new)
-  when 'battlemaster'
-    builder.with_feature(Dnd5e::Core::Features::BattleMaster.new(level: level))
-  end
 end
 
 puts 'Simulation API Server running on http://localhost:4567'

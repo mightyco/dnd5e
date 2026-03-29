@@ -36,8 +36,17 @@ module Dnd5e
       end
 
       def log_combat_start(data)
-        names = data[:combatants].map(&:name).join(', ')
-        @logger.info "Combat begins between #{names}"
+        descriptions = data[:combatants].map { |c| combatant_description(c) }.join(', ')
+        @logger.info "Combat begins between #{descriptions}"
+      end
+
+      def combatant_description(combatant)
+        return combatant.name unless combatant.respond_to?(:strategy)
+
+        strategy = combatant.strategy
+        return combatant.name unless strategy.respond_to?(:name)
+
+        "#{combatant.name} [#{strategy.name}]"
       end
 
       def log_round_start(data)

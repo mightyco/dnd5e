@@ -5,6 +5,8 @@ require_relative '../../../lib/dnd5e/builders/character_builder'
 require_relative '../../../lib/dnd5e/core/statblock'
 require_relative '../../../lib/dnd5e/core/attack'
 require_relative '../../../lib/dnd5e/core/dice'
+require_relative '../../../lib/dnd5e/core/strategies/battle_master_strategy'
+require_relative '../../../lib/dnd5e/core/strategies/simple_strategy'
 
 module Dnd5e
   module Builders
@@ -35,6 +37,44 @@ module Dnd5e
                                     .build
 
         verify_wizard_stats(character)
+      end
+
+      def test_with_subclass_battlemaster_sets_features_and_strategy
+        character = CharacterBuilder.new(name: 'BM')
+                                    .as_fighter(level: 3)
+                                    .with_subclass(:battlemaster)
+                                    .build
+
+        assert_instance_of Core::Strategies::BattleMasterStrategy, character.strategy
+        assert(character.feature_manager.features.any? { |f| f.name == 'Battle Master' })
+      end
+
+      def test_with_subclass_champion_sets_feature
+        character = CharacterBuilder.new(name: 'Champ')
+                                    .as_fighter(level: 5)
+                                    .with_subclass(:champion)
+                                    .build
+
+        assert(character.feature_manager.features.any? { |f| f.is_a?(Core::Features::ImprovedCritical) })
+      end
+
+      def test_with_strategy_override_takes_precedence_over_subclass
+        custom = Core::Strategies::SimpleStrategy.new
+        character = CharacterBuilder.new(name: 'BM Custom')
+                                    .as_fighter(level: 3)
+                                    .with_subclass(:battlemaster)
+                                    .with_strategy(custom)
+                                    .build
+
+        assert_same custom, character.strategy
+      end
+
+      def test_build_without_subclass_uses_simple_strategy
+        character = CharacterBuilder.new(name: 'Plain')
+                                    .as_fighter(level: 1)
+                                    .build
+
+        assert_instance_of Core::Strategies::SimpleStrategy, character.strategy
       end
 
       private

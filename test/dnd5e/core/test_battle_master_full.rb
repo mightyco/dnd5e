@@ -12,9 +12,7 @@ module Dnd5e
   module Core
     class TestBattleMasterFull < Minitest::Test
       def setup
-        @bm_feature = Features::BattleMaster.new(level: 3)
-        @hero = create_hero(@bm_feature)
-        @hero.strategy = Strategies::BattleMasterStrategy.new
+        @hero = create_hero
         @hero.statblock.resources.set_max(:action_surge, 0)
 
         @target = Builders::MonsterBuilder.new(name: 'Target').as_goblin.build
@@ -43,6 +41,10 @@ module Dnd5e
         assert_predicate @target, :prone?
       end
 
+      def test_builder_assigns_battle_master_strategy
+        assert_instance_of Strategies::BattleMasterStrategy, @hero.strategy
+      end
+
       def test_pushing_attack
         @hero.strategy.define_singleton_method(:pick_maneuver) { |*_args| :pushing_attack }
 
@@ -59,10 +61,10 @@ module Dnd5e
 
       private
 
-      def create_hero(feature)
+      def create_hero
         Builders::CharacterBuilder.new(name: 'BM Hero')
                                   .as_fighter(level: 3, abilities: { strength: 20, dexterity: 14 })
-                                  .with_feature(feature)
+                                  .with_subclass(:battlemaster, level: 3)
                                   .build
       end
 

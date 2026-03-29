@@ -11,6 +11,7 @@ module Dnd5e
 
         def initialize(use_precision_attack: false, use_damage_maneuver: true, precision_threshold: 4)
           super()
+          @name = 'BattleMaster'
           @use_precision_attack = use_precision_attack
           @use_damage_maneuver = use_damage_maneuver
           @precision_threshold = precision_threshold

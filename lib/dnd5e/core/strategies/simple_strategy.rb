@@ -10,6 +10,11 @@ module Dnd5e
       class SimpleStrategy < BaseStrategy
         include SimpleStrategyLogic
 
+        def initialize
+          super
+          @name = 'Simple'
+        end
+
         def execute_turn(combatant, combat)
           try_second_wind(combatant, combat)
           execute_action(combatant, combat)
