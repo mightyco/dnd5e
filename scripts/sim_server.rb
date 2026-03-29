@@ -35,14 +35,19 @@ end
 # --- APP ROUTES ---
 
 get '/' do
-  # Return JSON for tests/API health, or serve UI if file exists
-  if request.accept?('application/json')
-    content_type :json
-    return { status: 'online', message: 'D&D 2024 Simulation API' }.to_json
-  end
-
+  # Serve UI if it exists, otherwise fall back to API health for tests
   index = File.join(UI_DIST_DIR, 'index.html')
-  File.exist?(index) ? send_file(index) : halt(404, 'UI not built. Run rake unify:build')
+  if File.exist?(index) && !request.xhr? && request.preferred_type(['text/html', 'application/json']) == 'text/html'
+    send_file index
+  else
+    content_type :json
+    { status: 'online', message: 'D&D 2024 Simulation API', ui_ready: File.exist?(index) }.to_json
+  end
+end
+
+get '/api/health' do
+  content_type :json
+  { status: 'online', message: 'D&D 2024 Simulation API' }.to_json
 end
 
 get '/docs/?*' do
