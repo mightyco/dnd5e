@@ -74,6 +74,22 @@ module Dnd5e
         self
       end
 
+      # Builds the monster as an Ogre.
+      #
+      # @return [MonsterBuilder] The MonsterBuilder instance.
+      def as_ogre
+        @statblock = Core::Statblock.new(
+          name: @name,
+          strength: 19, dexterity: 8, constitution: 16,
+          intelligence: 5, wisdom: 7, charisma: 7,
+          hit_die: 'd10', level: 4, saving_throw_proficiencies: []
+        )
+
+        greatclub = Core::Attack.new(name: 'Greatclub', damage_dice: Core::Dice.new(2, 8), relevant_stat: :strength)
+        with_attack(greatclub)
+        self
+      end
+
       # Builds the monster.
       #
       # @return [Monster] The built monster.

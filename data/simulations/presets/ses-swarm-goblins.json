@@ -1,0 +1,32 @@
+{
+  "id": "ses-swarm-goblins",
+  "name": "SES: The Swarm (Level 4)",
+  "description": "A Level 4 Battlemaster Fighter against a swarm of 12 Goblins.",
+  "num_simulations": 100,
+  "level": 4,
+  "teams": [
+    {
+      "name": "Heroes",
+      "members": [
+        { "name": "Tactical Hero", "type": "fighter", "subclass": "battlemaster", "abilities": { "strength": 16, "dexterity": 14, "constitution": 14 } }
+      ]
+    },
+    {
+      "name": "Monsters",
+      "members": [
+        { "name": "Goblin 1", "type": "goblin" },
+        { "name": "Goblin 2", "type": "goblin" },
+        { "name": "Goblin 3", "type": "goblin" },
+        { "name": "Goblin 4", "type": "goblin" },
+        { "name": "Goblin 5", "type": "goblin" },
+        { "name": "Goblin 6", "type": "goblin" },
+        { "name": "Goblin 7", "type": "goblin" },
+        { "name": "Goblin 8", "type": "goblin" },
+        { "name": "Goblin 9", "type": "goblin" },
+        { "name": "Goblin 10", "type": "goblin" },
+        { "name": "Goblin 11", "type": "goblin" },
+        { "name": "Goblin 12", "type": "goblin" }
+      ]
+    }
+  ]
+}

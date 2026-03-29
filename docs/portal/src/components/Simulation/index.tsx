@@ -4,6 +4,7 @@ import { SurvivalChart } from './SurvivalChart';
 import { RollInspector } from './RollInspector';
 import { ScenarioConfigurator } from './ScenarioConfigurator';
 import { SimulationLibrary } from './SimulationLibrary';
+import { DeltaAnalysis } from './LabAnalysis';
 
 export const SimulationDashboard = () => {
   const [history, setHistory] = useState([]);
@@ -82,7 +83,12 @@ export const SimulationDashboard = () => {
                 </div>
               </>
             ) : (
-              <p>Survival comparison coming soon. Using DPR overlay below.</p>
+              <div>
+                <DeltaAnalysis datasets={selectedDatasets} />
+                <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#666' }}>
+                  * Comparisons are based on Team A vs Team B. Mixed compositions may yield unpredictable deltas.
+                </p>
+              </div>
             )}
           </div>
           

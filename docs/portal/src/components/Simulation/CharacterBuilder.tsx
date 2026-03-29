@@ -22,10 +22,17 @@ export const CharacterBuilder = ({ onSave }) => {
           <input type="text" name="name" value={char.name} onChange={handleChange} style={{ width: '100%' }} />
         </div>
         <div>
-          <label>Class: </label>
+          <label>Class / Monster: </label>
           <select name="type" value={char.type} onChange={handleChange} style={{ width: '100%' }}>
-            <option value="fighter">Fighter</option>
-            <option value="wizard">Wizard</option>
+            <optgroup label="Classes">
+              <option value="fighter">Fighter</option>
+              <option value="wizard">Wizard</option>
+            </optgroup>
+            <optgroup label="Monsters">
+              <option value="goblin">Goblin (CR 1/4)</option>
+              <option value="bugbear">Bugbear (CR 1)</option>
+              <option value="ogre">Ogre (CR 2)</option>
+            </optgroup>
           </select>
         </div>
         <div>

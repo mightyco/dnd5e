@@ -1,0 +1,21 @@
+{
+  "id": "fighter-duel-bm-vs-champ",
+  "name": "Fighter Duel: BM vs Champion (Level 5)",
+  "description": "The primary scientific goal: Battlemaster vs Champion (2024 Rules).",
+  "num_simulations": 100,
+  "level": 5,
+  "teams": [
+    {
+      "name": "Battlemaster",
+      "members": [
+        { "name": "Tactician", "type": "fighter", "subclass": "battlemaster", "abilities": { "strength": 16, "dexterity": 14, "constitution": 14 } }
+      ]
+    },
+    {
+      "name": "Champion",
+      "members": [
+        { "name": "Athlete", "type": "fighter", "subclass": "champion", "abilities": { "strength": 16, "dexterity": 14, "constitution": 14 } }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "id": "ses-boss-ogre",
+  "name": "SES: The Boss (Level 3)",
+  "description": "A Level 3 Fighter against a single high-HP Ogre Boss.",
+  "num_simulations": 100,
+  "level": 3,
+  "teams": [
+    {
+      "name": "Heroes",
+      "members": [
+        { "name": "Standard Hero", "type": "fighter", "abilities": { "strength": 16, "dexterity": 14, "constitution": 14 } }
+      ]
+    },
+    {
+      "name": "Monsters",
+      "members": [
+        { "name": "Ogre Boss", "type": "ogre" }
+      ]
+    }
+  ]
+}

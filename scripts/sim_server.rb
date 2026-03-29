@@ -130,12 +130,20 @@ def add_teams_to_builder(builder, teams, level)
 end
 
 def build_member(member_cfg, level)
-  builder = Dnd5e::Builders::CharacterBuilder.new(name: member_cfg['name'])
+  name = member_cfg['name']
   case member_cfg['type']
-  when 'fighter' then build_fighter(builder, member_cfg, level)
-  when 'wizard' then builder.as_wizard(level: level).build
-  when 'goblin' then Dnd5e::Builders::MonsterBuilder.new(name: member_cfg['name']).as_goblin.build
-  when 'bugbear' then Dnd5e::Builders::MonsterBuilder.new(name: member_cfg['name']).as_bugbear.build
+  when 'fighter' then build_fighter(Dnd5e::Builders::CharacterBuilder.new(name: name), member_cfg, level)
+  when 'wizard' then Dnd5e::Builders::CharacterBuilder.new(name: name).as_wizard(level: level).build
+  else build_monster(member_cfg)
+  end
+end
+
+def build_monster(cfg)
+  builder = Dnd5e::Builders::MonsterBuilder.new(name: cfg['name'])
+  case cfg['type']
+  when 'goblin' then builder.as_goblin.build
+  when 'bugbear' then builder.as_bugbear.build
+  when 'ogre' then builder.as_ogre.build
   end
 end
 

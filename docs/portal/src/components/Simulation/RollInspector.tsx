@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { OutcomeLabel } from './LabAnalysis';
 
 export const RollInspector = ({ data }) => {
   if (!data || data.length === 0) return null;
@@ -10,13 +11,14 @@ export const RollInspector = ({ data }) => {
   return (
     <div style={{ marginTop: '2rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '8px' }}>
       <h3>Math Transparency: Roll Inspector</h3>
-      <div style={{ marginBottom: '1rem' }}>
-        <label>Select Sample Combat: </label>
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
+        <label style={{ marginRight: '0.5rem' }}>Select Sample Combat: </label>
         <select onChange={(e) => setSelectedCombat(parseInt(e.target.value))} value={selectedCombat}>
           {data.map((_, index) => (
             <option key={index} value={index}>Combat #{index + 1} (Winner: {data[index].winner})</option>
           ))}
         </select>
+        <OutcomeLabel combat={combat} />
       </div>
 
       <div style={{ maxHeight: '400px', overflowY: 'auto', background: '#f9f9f9', padding: '1rem', fontFamily: 'monospace' }}>
