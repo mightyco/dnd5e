@@ -3,7 +3,7 @@
 require 'minitest/autorun'
 require 'rack/test'
 require 'json'
-require 'json-schema'
+require_relative 'ui_test_helper'
 require_relative '../../scripts/sim_server'
 
 # Integration tests for the Simulation API server including Schema and Math Validation

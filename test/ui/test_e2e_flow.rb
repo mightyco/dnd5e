@@ -2,7 +2,7 @@
 
 require 'minitest/autorun'
 require 'json'
-require 'json-schema'
+require_relative 'ui_test_helper'
 require_relative '../../lib/dnd5e/simulation/runner'
 require_relative '../../lib/dnd5e/simulation/scenario_builder'
 require_relative '../../lib/dnd5e/simulation/json_combat_result_handler'
