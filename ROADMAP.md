@@ -42,21 +42,20 @@ Our primary scientific goal is to model and compare the **Champion** and **Battl
 - [x] **Roll Inspector**: Math transparency for deep result analysis.
 - [x] **CI Automation**: GitHub Actions for automated testing and linting.
 
-### Phase 6: Simulation Analysis Lab (In Progress)
-- [ ] **Statistical Significance**: Implementing 95% Confidence Intervals for win rates.
-- [ ] **Delta Analysis**: Automatic comparison of DPR and survival between two runs.
-- [ ] **Combat Categorization**: Qualitative labeling of results (Stomp, Close, Slog).
+### Phase 6: Simulation Analysis Lab (Completed)
+- [x] **Statistical Significance**: Implementing 95% Confidence Intervals for win rates.
+- [x] **Delta Analysis**: Automatic comparison of DPR and survival between two runs.
+- [x] **Combat Categorization**: Qualitative labeling of results (Stomp, Close, Slog).
+- [x] **Unified Architecture**: Single-binary feel serving UI, Docs, and API.
+
+### Phase 7: Automated Governance (In Progress)
 - [ ] **Balance Regression Testing**: Automated CI failure if a build's DPR drops below expectations.
-
----
-
-## Historical Findings (5e Baseline)
-*   **Initiative vs AC**: Initiative dominates Levels 1-4; AC dominates Level 5+.
-*   **Str vs Dex**: Naked Dexterity wins 70%; Equipped Strength (Plate) wins 60%.
-*   **Offense vs Defense**: High-damage (Greatsword) archetypes generally outperform high-AC (Shield) archetypes in 1v1 attrition.
+- [ ] **Rules Ingestion Refactoring**: Dynamic parsing of rule text into JSON models.
+- [ ] **Feature Audit**: Validation of implemented features against SRD text.
 
 ---
 
 ## Future Vision
 *   **Party Composition Testing**: Simulating full 4-person parties through Level 10.
-- **Rules Ingestion Refactoring**: Dynamic parsing of rule text into JSON models.
+*   **Multi-Classing Support**: Implementation of multi-class level scaling.
+
