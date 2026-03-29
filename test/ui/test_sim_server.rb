@@ -3,24 +3,38 @@
 require 'minitest/autorun'
 require 'rack/test'
 require 'json'
+require 'json-schema'
 require_relative '../../scripts/sim_server'
 
-# Integration tests for the Simulation API server
+# Integration tests for the Simulation API server including Schema and Math Validation
 class SimServerTest < Minitest::Test
   include Rack::Test::Methods
+
+  SCHEMA_PATH = File.expand_path('schemas/simulation_response.json', __dir__)
 
   def app
     Sinatra::Application
   end
 
-  def test_run_simulation_endpoint
+  def test_root_route
+    get '/'
+
+    assert_predicate last_response, :ok?
+    results = JSON.parse(last_response.body)
+
+    assert_equal 'online', results['status']
+  end
+
+  def test_run_simulation_contract_and_math
     payload = build_valid_payload
     header 'Content-Type', 'application/json'
     post '/run', payload.to_json
 
     assert_predicate last_response, :ok?
     results = JSON.parse(last_response.body)
-    verify_results(results)
+
+    JSON::Validator.validate!(SCHEMA_PATH, results)
+    audit_math_consistency(results)
   end
 
   def test_invalid_payload_handling
@@ -42,14 +56,34 @@ class SimServerTest < Minitest::Test
     }
   end
 
-  def verify_results(results)
-    assert_kind_of Array, results
-    assert_equal 2, results.length
-    first_combat = results.first
+  def audit_math_consistency(results)
+    results.each do |combat|
+      combat['rounds'].each do |round|
+        round['events'].each do |event|
+          next unless event['type'] == 'attack'
 
-    assert_includes first_combat['teams'], 'Hero'
-    assert_includes first_combat['teams'], 'Goblin'
-    refute_nil first_combat['winner']
-    assert_kind_of Array, first_combat['rounds']
+          verify_attack_roll(event, round['number'])
+          verify_damage_math(event, round['number'])
+        end
+      end
+    end
+  end
+
+  def verify_attack_roll(event, round_num)
+    meta = event['metadata']
+    return unless meta['attack_roll']
+
+    expected_roll = meta['picked_roll'] + meta['modifier']
+
+    assert_equal expected_roll, meta['attack_roll'], "Attack roll mismatch in Round #{round_num}"
+  end
+
+  def verify_damage_math(event, round_num)
+    return unless event['damage'].positive?
+
+    meta = event['metadata']
+    expected_damage = meta['damage_rolls'].sum + meta['damage_modifier']
+
+    assert_equal expected_damage, event['damage'], "Damage calculation mismatch in Round #{round_num}"
   end
 end

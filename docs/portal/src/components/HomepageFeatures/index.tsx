@@ -2,7 +2,7 @@ import type {ReactNode} from 'react';
 import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import Heading from '@theme/Heading';
-import {FileText, ScrollText, SearchCheck, ListTodo} from 'lucide-react';
+import {Calculator, Microscope, ScrollText, ShieldCheck} from 'lucide-react';
 import styles from './styles.module.css';
 
 type FeatureItem = {
@@ -14,50 +14,46 @@ type FeatureItem = {
 
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Architecture Decisions',
-    Icon: FileText,
-    link: '/guides/commands#adr',
+    title: 'Math Transparency',
+    Icon: Calculator,
+    link: '/guides/project-overview#math-transparency',
     description: (
       <>
-        Record decisions using the MADR format with structured sections for
-        context, options, consequences, and Mermaid diagrams. Every choice
-        gets the rationale it deserves.
+        Every dice roll and modifier is logged with full metadata. Verify the 
+        mathematical integrity of the simulation engine down to the individual 1d20.
       </>
     ),
   },
   {
-    title: 'OpenSpec Specifications',
+    title: 'Simulation Lab',
+    Icon: Microscope,
+    link: '/specs/simulation-dashboard/dashboard',
+    description: (
+      <>
+        Run batch simulations directly from the dashboard. Visualize DPR trends, 
+        survival rates, and win distributions across different builds.
+      </>
+    ),
+  },
+  {
+    title: 'Class Specifications',
     Icon: ScrollText,
-    link: '/guides/commands#spec',
+    link: '/specs',
     description: (
       <>
-        Formal requirements with RFC 2119 keywords and WHEN/THEN scenarios.
-        Paired spec + design documents separate the &quot;what&quot; from
-        the &quot;how&quot; so each can evolve independently.
+        Detailed requirements for 2024 D&D mechanics. From Weapon Masteries to 
+        Fighter maneuvers, every feature is documented using OpenSpec.
       </>
     ),
   },
   {
-    title: 'Sprint Planning',
-    Icon: ListTodo,
-    link: '/guides/commands#plan',
+    title: 'Design Governance',
+    Icon: ShieldCheck,
+    link: '/decisions',
     description: (
       <>
-        Break specifications into actionable sprint issues. Supports
-        Beads, GitHub, GitLab, Gitea, Jira, and Linear so your
-        architecture flows straight into your tracker.
-      </>
-    ),
-  },
-  {
-    title: 'Drift Detection',
-    Icon: SearchCheck,
-    link: '/guides/commands#drift',
-    description: (
-      <>
-        Quick-check files against specs or run a full audit across
-        the project. Catch when code drifts from decisions before
-        it becomes technical debt.
+        Architecture Decision Records (ADRs) document every technical choice, 
+        ensuring the simulator remains robust, modular, and maintainable.
       </>
     ),
   },

@@ -68,3 +68,15 @@ task :coverage do
   ENV['COVERAGE'] = 'true'
   Rake::Task['test'].invoke
 end
+
+desc 'Start all simulator services'
+task start: 'services:start'
+
+desc 'Stop all simulator services'
+task stop: 'services:stop'
+
+desc 'Restart all simulator services'
+task restart: 'services:restart'
+
+desc 'Show status of simulator services'
+task status: 'services:status'

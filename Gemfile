@@ -3,6 +3,7 @@
 source 'https://rubygems.org'
 
 group :development, :test do
+  gem 'json-schema'
   gem 'minitest'
   gem 'pdf-reader'
   gem 'rake'

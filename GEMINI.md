@@ -42,7 +42,8 @@ To ensure consistency and minimize linting overhead, adhere to these rules durin
     - Max 100 lines per class (where possible).
     - Use keyword arguments (`**options`) for methods with more than 3 parameters.
 4. **Naming**: Methods returning booleans MUST end in `?` (e.g., `alive?`).
-5. **Testing (Minitest)**:
+5. **No RuboCop Disables**: Disabling RuboCop checks is considered a code smell. You SHALL NOT use `rubocop:disable` comments without explicitly asking the user for permission and providing a strong technical justification.
+6. **Testing (Minitest)**:
     - Use `assert_predicate object, :method?` instead of `assert object.method?`.
     - Use `refute_predicate object, :method?` instead of `refute object.method?`.
 

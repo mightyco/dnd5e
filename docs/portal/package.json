@@ -13,7 +13,9 @@
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
     "serve": "docusaurus serve",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@docusaurus/core": "3.9.2",
@@ -31,9 +33,14 @@
     "@docusaurus/module-type-aliases": "3.9.2",
     "@docusaurus/tsconfig": "3.9.2",
     "@docusaurus/types": "3.9.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@vitejs/plugin-react": "^6.0.1",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^9.0.0",
-    "typescript": "~5.6.2"
+    "jsdom": "^29.0.1",
+    "typescript": "~5.6.2",
+    "vitest": "^4.1.2"
   },
   "browserslist": {
     "production": [

@@ -1,0 +1,40 @@
+# SPEC-0002: Automated Testing & Validation Framework
+
+## Overview
+
+This specification defines the requirements for a comprehensive testing and validation framework for the D&D 2024 Combat Simulator. It extends the existing Ruby unit tests to include API contract validation, UI component verification, and end-to-end (E2E) simulation flows.
+
+## Requirements
+
+### Requirement: API Contract Validation
+
+The Simulation API SHALL adhere to a strict JSON schema to ensure compatibility between the Ruby backend and the React frontend.
+
+#### Scenario: Verify /run Response
+- **WHEN** a valid simulation request is posted to `/run`
+- **THEN** the response MUST contain `teams`, `rounds`, and `winner` keys.
+- **AND** every event in `rounds` MUST include `metadata` for Math Transparency.
+
+### Requirement: UI Component Robustness
+
+React visualization components SHALL correctly render diverse statistical distributions, including edge cases.
+
+#### Scenario: Empty Data Handling
+- **WHEN** the `DPRChart` receives an empty results array
+- **THEN** it SHALL display a user-friendly "No data available" message instead of crashing.
+
+### Requirement: End-to-End Simulation Validation
+
+The system SHALL provide a way to verify the entire "Configure -> Run -> Visualize" journey.
+
+#### Scenario: Full Lab Runner Flow
+- **WHEN** an automated test triggers a simulation via the `sim_server.rb`
+- **THEN** it MUST verify that the generated data is ingestible by the `SimulationDashboard`.
+
+### Requirement: Math Transparency Audit
+
+The testing framework SHALL audit simulation results to ensure that roll metadata is logically consistent with game rules.
+
+#### Scenario: Audit Critical Hits
+- **WHEN** an event is marked as `is_crit: true`
+- **THEN** the `metadata.attack_roll` MUST match the character's `crit_threshold` (e.g., 19 or 20).

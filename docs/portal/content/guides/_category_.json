@@ -1,8 +1,8 @@
 {
-  "label": "Guides",
+  "label": "Overview",
   "position": 1,
   "link": {
     "type": "generated-index",
-    "description": "Getting started with the design plugin."
+    "description": "Project overview and research goals."
   }
 }

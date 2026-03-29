@@ -1,0 +1,54 @@
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["teams", "rounds", "winner", "initiative_winner"],
+    "properties": {
+      "teams": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "winner": { "type": "string" },
+      "initiative_winner": { "type": "string" },
+      "rounds": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["number", "events"],
+          "properties": {
+            "number": { "type": "integer" },
+            "events": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["type", "attacker", "defender", "attack_name", "success", "damage", "is_crit", "metadata"],
+                "properties": {
+                  "type": { "type": "string" },
+                  "attacker": { "type": "string" },
+                  "defender": { "type": "string" },
+                  "attack_name": { "type": "string" },
+                  "success": { "type": "boolean" },
+                  "damage": { "type": "integer" },
+                  "is_crit": { "type": "boolean" },
+                  "metadata": {
+                    "type": "object",
+                    "required": ["attack_roll", "picked_roll", "raw_rolls", "modifier", "target_ac", "damage_rolls", "damage_modifier"],
+                    "properties": {
+                      "attack_roll": { "type": ["integer", "null"] },
+                      "picked_roll": { "type": ["integer", "null"] },
+                      "raw_rolls": { "type": ["array", "null"], "items": { "type": "integer" } },
+                      "modifier": { "type": ["integer", "null"] },
+                      "target_ac": { "type": ["integer", "null"] },
+                      "damage_rolls": { "type": ["array", "null"], "items": { "type": "integer" } },
+                      "damage_modifier": { "type": ["integer", "null"] }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

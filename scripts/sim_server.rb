@@ -29,6 +29,11 @@ options '*' do
   200
 end
 
+get '/' do
+  content_type :json
+  { status: 'online', message: 'D&D 2024 Simulation API' }.to_json
+end
+
 # Helper to build a member from configuration
 def build_member(member_cfg, level)
   case member_cfg['type']

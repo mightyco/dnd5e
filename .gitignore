@@ -63,3 +63,6 @@ build-iPhoneSimulator/
 /vendor/bundle/
 
 data/
+log/
+results.json
+

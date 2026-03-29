@@ -20,8 +20,14 @@ function HomepageHeader() {
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="/overview">
-            Browse Documentation
+            to="/specs/simulation-dashboard/dashboard"
+            style={{ marginRight: '1rem' }}>
+            Open Live Dashboard 📊
+          </Link>
+          <Link
+            className="button button--secondary button--outline button--lg"
+            to="/decisions">
+            View ADRs
           </Link>
         </div>
       </div>
@@ -34,67 +40,23 @@ function SkillsSection() {
     <section className={styles.skills}>
       <div className="container">
         <Heading as="h2" className="text--center">
-          Skills
+          Project Governance
         </Heading>
         <p className="text--center">
-          Claude Code slash commands for managing your architecture artifacts.
+          Gemini CLI skills used to maintain the mathematical and architectural integrity of the simulator.
         </p>
-        <div className={styles.skillGrid}>
-          <div className={styles.skillCard}>
+        <div className={styles.skillGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginTop: '2rem' }}>
+          <div className={styles.skillCard} style={{ padding: '1rem', border: '1px solid #ddd', borderRadius: '8px' }}>
             <code>/design:adr</code>
-            <span>Create a new Architecture Decision Record</span>
+            <p>Document architectural choices using the MADR format.</p>
           </div>
-          <div className={styles.skillCard}>
+          <div className={styles.skillCard} style={{ padding: '1rem', border: '1px solid #ddd', borderRadius: '8px' }}>
             <code>/design:spec</code>
-            <span>Create a new specification</span>
+            <p>Formalize requirements with RFC 2119 standards.</p>
           </div>
-          <div className={styles.skillCard}>
+          <div className={styles.skillCard} style={{ padding: '1rem', border: '1px solid #ddd', borderRadius: '8px' }}>
             <code>/design:plan</code>
-            <span>Break specs into sprint issues</span>
-          </div>
-          <div className={styles.skillCard}>
-            <code>/design:organize</code>
-            <span>Group issues into tracker projects</span>
-          </div>
-          <div className={styles.skillCard}>
-            <code>/design:enrich</code>
-            <span>Add branch/PR conventions to issues</span>
-          </div>
-          <div className={styles.skillCard}>
-            <code>/design:work</code>
-            <span>Implement issues in parallel worktrees</span>
-          </div>
-          <div className={styles.skillCard}>
-            <code>/design:check</code>
-            <span>Quick-check code for drift</span>
-          </div>
-          <div className={styles.skillCard}>
-            <code>/design:audit</code>
-            <span>Comprehensive alignment audit</span>
-          </div>
-          <div className={styles.skillCard}>
-            <code>/design:discover</code>
-            <span>Discover implicit architecture</span>
-          </div>
-          <div className={styles.skillCard}>
-            <code>/design:docs</code>
-            <span>Generate this documentation site</span>
-          </div>
-          <div className={styles.skillCard}>
-            <code>/design:prime</code>
-            <span>Load architecture context into session</span>
-          </div>
-          <div className={styles.skillCard}>
-            <code>/design:init</code>
-            <span>Set up CLAUDE.md for the plugin</span>
-          </div>
-          <div className={styles.skillCard}>
-            <code>/design:list</code>
-            <span>List all ADRs and specs with status</span>
-          </div>
-          <div className={styles.skillCard}>
-            <code>/design:status</code>
-            <span>Update the status of an ADR or spec</span>
+            <p>Decompose specifications into GitHub issues.</p>
           </div>
         </div>
       </div>
@@ -107,7 +69,7 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title={siteConfig.title}
-      description="Architecture governance for Claude Code. Record decisions, write specs, detect drift, and generate documentation.">
+      description="D&D 2024 Combat Simulator - Scientific analysis of game mechanics with built-in design governance.">
       <HomepageHeader />
       <main>
         <HomepageFeatures />

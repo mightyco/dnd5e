@@ -31,17 +31,11 @@ module Dnd5e
       private
 
       def handle_combat_start(data)
-        @current_combat = {
-          teams: data[:combatants].map(&:name),
-          rounds: []
-        }
+        @current_combat = { teams: data[:combatants].map(&:name), rounds: [] }
       end
 
       def handle_round_start(data)
-        @current_combat[:rounds] << {
-          number: data[:round],
-          events: []
-        }
+        @current_combat[:rounds] << { number: data[:round], events: [] }
       end
 
       def handle_attack_resolved(data)
@@ -75,13 +69,23 @@ module Dnd5e
       end
 
       def extract_metadata(result)
+        extract_roll_metadata(result).merge(extract_save_metadata(result))
+      end
+
+      def extract_roll_metadata(result)
         {
           attack_roll: result.attack_roll,
+          picked_roll: result.raw_roll,
           raw_rolls: result.rolls,
           modifier: result.modifier,
           target_ac: result.target_ac,
           damage_rolls: result.damage_rolls,
-          damage_modifier: result.damage_modifier,
+          damage_modifier: result.damage_modifier
+        }
+      end
+
+      def extract_save_metadata(result)
+        {
           save_roll: result.save_roll,
           save_dc: result.save_dc
         }

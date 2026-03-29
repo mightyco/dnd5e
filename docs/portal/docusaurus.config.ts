@@ -67,13 +67,13 @@ const config: Config = {
           type: 'docSidebar',
           sidebarId: 'guidesSidebar',
           position: 'left',
-          label: 'Guides',
+          label: 'Overview',
         },
         {
           type: 'docSidebar',
           sidebarId: 'decisionsSidebar',
           position: 'left',
-          label: 'ADRs',
+          label: 'Decisions (ADRs)',
         },
         {
           type: 'docSidebar',
@@ -92,19 +92,11 @@ const config: Config = {
       style: 'dark',
       links: [
         {
-          title: 'Documentation',
+          title: 'Simulator Resources',
           items: [
             {
-              label: 'Workflow',
-              to: '/guides/workflow',
-            },
-            {
-              label: 'Commands',
-              to: '/guides/commands',
-            },
-            {
-              label: 'Sprint Planning',
-              to: '/guides/sprint-planning',
+              label: 'Project Overview',
+              to: '/guides/project-overview',
             },
             {
               label: 'Architecture Decisions',
@@ -113,6 +105,10 @@ const config: Config = {
             {
               label: 'Specifications',
               to: '/specs',
+            },
+            {
+              label: 'Live Dashboard',
+              to: '/specs/simulation-dashboard/dashboard',
             },
           ],
         },

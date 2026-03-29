@@ -2,6 +2,8 @@ GEM
   remote: https://rubygems.org/
   specs:
     Ascii85 (2.0.1)
+    addressable (2.8.9)
+      public_suffix (>= 2.0.2, < 8.0)
     afm (1.0.0)
     ast (2.4.3)
     base64 (0.3.0)
@@ -9,6 +11,9 @@ GEM
     docile (1.4.1)
     hashery (2.1.2)
     json (2.18.0)
+    json-schema (6.2.0)
+      addressable (~> 2.8)
+      bigdecimal (>= 3.1, < 5)
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
     logger (1.7.0)
@@ -28,6 +33,7 @@ GEM
       ruby-rc4
       ttfunk
     prism (1.7.0)
+    public_suffix (7.0.5)
     puma (7.2.0)
       nio4r (~> 2.0)
     racc (1.8.1)
@@ -107,6 +113,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  json-schema
   minitest
   pdf-reader
   puma (~> 7.2)
