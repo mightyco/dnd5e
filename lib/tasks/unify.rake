@@ -24,6 +24,19 @@ namespace :docs do
   task :install do
     sh 'npm install --prefix docs/portal'
   end
+
+  desc 'Reload documentation (rebuild MDX)'
+  task :reload do
+    puts 'Reloading documentation artifacts...'
+    system('cd docs/portal && node scripts/build-docs.js')
+    puts 'Documentation reloaded.'
+  end
+
+  desc 'Start Docusaurus dev server (Port 3000)'
+  task :dev do
+    puts 'Starting Docusaurus dev server...'
+    sh 'npm start --prefix docs/portal'
+  end
 end
 
 namespace :unify do

@@ -23,6 +23,8 @@ DOCS_BUILD_DIR = File.expand_path('../docs/portal/build', __dir__)
 configure do
   enable :cross_origin
   disable :protection
+  # Allow all hosts in development/test to prevent Rack::Protection::HostAuthorization errors
+  set :host_authorization, { permitted_hosts: [] } if development?
   set :public_folder, UI_DIST_DIR
 end
 
