@@ -9,71 +9,89 @@ require_relative '../lib/dnd5e/simulation/scenario_builder'
 require_relative '../lib/dnd5e/simulation/json_combat_result_handler'
 require_relative '../lib/dnd5e/builders/character_builder'
 require_relative '../lib/dnd5e/builders/monster_builder'
+require_relative '../lib/dnd5e/core/features/improved_critical'
+require_relative '../lib/dnd5e/core/features/battle_master'
 
 set :bind, '0.0.0.0'
 set :port, 4567
 
 PRESETS_DIR = File.expand_path('../data/simulations/presets', __dir__)
 CUSTOM_DIR = File.expand_path('../data/simulations/custom', __dir__)
+UI_DIST_DIR = File.expand_path('../ui/dist', __dir__)
+DOCS_BUILD_DIR = File.expand_path('../docs/portal/build', __dir__)
 
 configure do
   enable :cross_origin
   disable :protection
-  set :host_authorization, { permitted_hosts: [] }
+  # Allow all hosts in development/test to prevent Rack::Protection::HostAuthorization errors
+  set :host_authorization, { permitted_hosts: [] } if development?
+  set :public_folder, UI_DIST_DIR
 end
 
 before do
   response.headers['Access-Control-Allow-Origin'] = '*'
 end
 
-options '*' do
-  response.headers['Allow'] = 'GET, PUT, POST, DELETE, OPTIONS'
-  response.headers['Access-Control-Allow-Headers'] = 'Authorization, Content-Type, Accept, X-User-Email, X-Auth-Token'
-  response.headers['Access-Control-Allow-Origin'] = '*'
-  200
-end
+# --- APP ROUTES ---
 
 get '/' do
+  # Serve UI if it exists, otherwise fall back to API health for tests
+  index = File.join(UI_DIST_DIR, 'index.html')
+  if File.exist?(index) && !request.xhr? && request.preferred_type(['text/html', 'application/json']) == 'text/html'
+    send_file index
+  else
+    content_type :json
+    { status: 'online', message: 'D&D 2024 Simulation API', ui_ready: File.exist?(index) }.to_json
+  end
+end
+
+get '/api/health' do
   content_type :json
   { status: 'online', message: 'D&D 2024 Simulation API' }.to_json
 end
 
-# List all available simulations
-get '/simulations' do
-  content_type :json
-  presets = list_simulations(PRESETS_DIR, 'preset')
-  custom = list_simulations(CUSTOM_DIR, 'custom')
-  (presets + custom).to_json
+get '/docs/?*' do
+  path = params[:splat].first
+  path = 'index.html' if path.nil? || path.empty?
+  file_path = File.join(DOCS_BUILD_DIR, path)
+  file_path = File.join(file_path, 'index.html') if File.directory?(file_path)
+  File.exist?(file_path) ? send_file(file_path) : halt(404, 'Docs not built. Run rake unify:build')
 end
 
-# Run a specific simulation by ID
-post '/simulations/run/:id' do
-  content_type :json
-  sim = find_simulation(params[:id])
-  halt 404, { error: 'Simulation not found' }.to_json unless sim
+# --- API ROUTES (Compatible with both /api prefix and legacy paths) ---
 
-  run_sim_payload(sim)
+['/simulations', '/api/simulations'].each do |path|
+  get path do
+    content_type :json
+    (list_simulations(PRESETS_DIR, 'preset') + list_simulations(CUSTOM_DIR, 'custom')).to_json
+  end
 end
 
-# Main simulation run endpoint (direct payload)
-post '/run' do
-  content_type :json
-  payload = JSON.parse(request.body.read)
-  run_sim_payload(payload)
-rescue StandardError => e
-  halt 500, { error: e.message }.to_json
+['/simulations/run/:id', '/api/simulations/run/:id'].each do |path|
+  post path do
+    content_type :json
+    sim = find_simulation(params[:id])
+    halt 404, { error: 'Simulation not found' }.to_json unless sim
+    run_sim_payload(sim)
+  end
 end
 
-# Save a custom trial
-post '/simulations/save' do
-  content_type :json
-  payload = JSON.parse(request.body.read)
-  halt 400, { error: 'ID is required' }.to_json unless payload['id']
+['/run', '/api/run'].each do |path|
+  post path do
+    content_type :json
+    run_sim_payload(JSON.parse(request.body.read))
+  rescue StandardError => e
+    halt 500, { error: e.message }.to_json
+  end
+end
 
-  FileUtils.mkdir_p(CUSTOM_DIR)
-  path = File.join(CUSTOM_DIR, "#{payload['id']}.json")
-  File.write(path, JSON.pretty_generate(payload))
-  { status: 'success', path: path }.to_json
+['/simulations/save', '/api/simulations/save'].each do |path|
+  post path do
+    content_type :json
+    payload = JSON.parse(request.body.read)
+    halt 400, { error: 'ID is required' }.to_json unless payload['id']
+    save_custom_sim(payload)
+  end
 end
 
 # --- HELPERS ---
@@ -81,21 +99,12 @@ end
 def list_simulations(dir, type)
   return [] unless Dir.exist?(dir)
 
-  Dir.glob("#{dir}/*.json").map do |path|
-    data = JSON.parse(File.read(path))
-    format_sim_metadata(path, data, type)
-  end
+  Dir.glob("#{dir}/*.json").map { |p| format_sim_metadata(p, JSON.parse(File.read(p)), type) }
 end
 
 def format_sim_metadata(path, data, type)
-  {
-    id: File.basename(path, '.json'),
-    name: data['name'],
-    description: data['description'],
-    type: type,
-    level: data['level'],
-    num_simulations: data['num_simulations']
-  }
+  { id: File.basename(path, '.json'), name: data['name'], description: data['description'],
+    type: type, level: data['level'], num_simulations: data['num_simulations'] }
 end
 
 def find_simulation(id)
@@ -106,6 +115,13 @@ def find_simulation(id)
   nil
 end
 
+def save_custom_sim(payload)
+  FileUtils.mkdir_p(CUSTOM_DIR)
+  path = File.join(CUSTOM_DIR, "#{payload['id']}.json")
+  File.write(path, JSON.pretty_generate(payload))
+  { status: 'success', path: path }.to_json
+end
+
 def run_sim_payload(payload)
   builder = build_scenario_from_payload(payload)
   handler = Dnd5e::Simulation::JSONCombatResultHandler.new
@@ -114,25 +130,19 @@ def run_sim_payload(payload)
 end
 
 def build_scenario_from_payload(payload)
-  num_sims = payload['num_simulations'] || 100
-  builder = Dnd5e::Simulation::ScenarioBuilder.new(num_simulations: num_sims)
-  add_teams_to_builder(builder, payload['teams'], payload['level'] || 1)
+  builder = Dnd5e::Simulation::ScenarioBuilder.new(num_simulations: payload['num_simulations'] || 100)
+  payload['teams'].each do |team_cfg|
+    members = team_cfg['members'].map { |m| build_member(m, payload['level'] || 1) }
+    builder.with_team(Dnd5e::Core::Team.new(name: team_cfg['name'], members: members))
+  end
   builder
 end
 
-def add_teams_to_builder(builder, teams, level)
-  teams.each do |team_cfg|
-    members = team_cfg['members'].map { |m| build_member(m, level) }
-    builder.with_team(Dnd5e::Core::Team.new(name: team_cfg['name'], members: members))
-  end
-end
-
-def build_member(member_cfg, level)
-  name = member_cfg['name']
-  case member_cfg['type']
-  when 'fighter' then build_fighter(Dnd5e::Builders::CharacterBuilder.new(name: name), member_cfg, level)
-  when 'wizard' then Dnd5e::Builders::CharacterBuilder.new(name: name).as_wizard(level: level).build
-  else build_monster(member_cfg)
+def build_member(cfg, level)
+  case cfg['type']
+  when 'fighter' then build_fighter(Dnd5e::Builders::CharacterBuilder.new(name: cfg['name']), cfg, level)
+  when 'wizard' then Dnd5e::Builders::CharacterBuilder.new(name: cfg['name']).as_wizard(level: level).build
+  else build_monster(cfg)
   end
 end
 
@@ -145,12 +155,15 @@ def build_monster(cfg)
   end
 end
 
-def build_fighter(builder, member_cfg, level)
-  abilities = member_cfg['abilities'] || {}
-  symbolized_abilities = abilities.transform_keys(&:to_sym)
-  builder.as_fighter(level: level, abilities: symbolized_abilities)
-  builder.with_subclass(member_cfg['subclass'], level: level) if member_cfg['subclass']
+def build_fighter(builder, cfg, level)
+  builder.as_fighter(level: level, abilities: (cfg['abilities'] || {}).transform_keys(&:to_sym))
+  add_subclass_features(builder, cfg['subclass'], level) if cfg['subclass']
   builder.build
 end
 
-puts 'Simulation API Server running on http://localhost:4567'
+def add_subclass_features(builder, subclass, level)
+  case subclass
+  when 'champion' then builder.with_feature(Dnd5e::Core::Features::ImprovedCritical.new)
+  when 'battlemaster' then builder.with_feature(Dnd5e::Core::Features::BattleMaster.new(level: level))
+  end
+end

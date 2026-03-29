@@ -5,8 +5,7 @@ require 'fileutils'
 # Helper methods for service management to keep Rake tasks lean
 module ServiceHelpers
   PID_DIR = File.expand_path('../../tmp/pids', __dir__)
-  API_PID = File.join(PID_DIR, 'sim_server.pid')
-  DOCS_PID = File.join(PID_DIR, 'docusaurus.pid')
+  SERVER_PID = File.join(PID_DIR, 'sim_server.pid')
 
   def self.running?(pid_file)
     return false unless File.exist?(pid_file)
@@ -46,38 +45,38 @@ module ServiceHelpers
     end
   end
 
-  def self.start_api
+  def self.start_server
     FileUtils.mkdir_p(PID_DIR)
-    return puts "API Server is already running (PID: #{read_pid(API_PID)})" if running?(API_PID)
+    return puts "Simulator Server is already running (PID: #{read_pid(SERVER_PID)})" if running?(SERVER_PID)
 
-    puts 'Starting API Server...'
+    puts 'Starting Unified Simulator Server...'
     pid = spawn('ruby scripts/sim_server.rb > log/api.log 2>&1', pgroup: true)
-    File.write(API_PID, pid)
-    puts "API Server started (PID: #{pid})"
-  end
-
-  def self.start_docs
-    FileUtils.mkdir_p(PID_DIR)
-    return puts "Docs Portal is already running (PID: #{read_pid(DOCS_PID)})" if running?(DOCS_PID)
-
-    puts 'Starting Docs Portal...'
-    system('cd docs/portal && node scripts/build-docs.js > /dev/null 2>&1')
-    pid = spawn('cd docs/portal && npm run start > ../../log/docs.log 2>&1', pgroup: true)
-    File.write(DOCS_PID, pid)
-    puts "Docs Portal started (PID: #{pid})"
+    File.write(SERVER_PID, pid)
+    puts "Simulator Server started (PID: #{pid})"
+    puts 'Access Simulation Lab: http://localhost:4567/'
+    puts 'Access Documentation:  http://localhost:4567/docs'
   end
 end
 
 namespace :services do
-  desc 'Start all simulator services (API and Docs)'
-  task start: %i[api:start docs:start]
+  desc 'Start the unified simulator server'
+  task start: :start_unified
 
-  desc 'Stop all simulator services'
-  task stop: %i[api:stop docs:stop]
+  desc 'Stop the simulator server'
+  task stop: :stop_unified
 
-  desc 'Restart all simulator services'
+  desc 'Restart the simulator server'
   task restart: %i[stop start]
 
-  desc 'Show status of simulator services'
-  task status: %i[api:status docs:status]
+  desc 'Show server status'
+  task status: :status_unified
+
+  desc 'Internal: Start the unified server'
+  task(:start_unified) { ServiceHelpers.start_server }
+
+  desc 'Internal: Stop the unified server'
+  task(:stop_unified) { ServiceHelpers.stop_process(ServiceHelpers::SERVER_PID, 'Simulator Server') }
+
+  desc 'Internal: Show server status'
+  task(:status_unified) { ServiceHelpers.check_status(ServiceHelpers::SERVER_PID, 'Simulator Server') }
 end
