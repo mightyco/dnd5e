@@ -6,6 +6,7 @@ require_relative '../core/statblock'
 require_relative '../core/attack'
 require_relative '../core/dice'
 require_relative '../core/armor'
+require_relative '../core/subclass_registry'
 
 module Dnd5e
   module Builders
@@ -19,6 +20,8 @@ module Dnd5e
         @attacks = []
         @spells = []
         @features = []
+        @subclass_strategy = nil
+        @strategy_override = nil
       end
 
       def with_statblock(statblock)
@@ -41,10 +44,27 @@ module Dnd5e
         self
       end
 
+      # Applies the canonical features and strategy for a known subclass.
+      # Call after as_fighter (or as_wizard etc.) so @statblock is available for level resolution.
+      # Pass level: explicitly if calling before the class method, or if you need to override.
+      def with_subclass(subclass, level: nil)
+        resolved_level = level || @statblock&.level || 1
+        Core::SubclassRegistry.features_for(subclass, resolved_level).each { |f| with_feature(f) }
+        @subclass_strategy = Core::SubclassRegistry.strategy_for(subclass, resolved_level)
+        self
+      end
+
+      # Explicitly sets a strategy, overriding any subclass default.
+      def with_strategy(strategy)
+        @strategy_override = strategy
+        self
+      end
+
       def as_fighter(level: 1, abilities: {}, armor_type: :heavy)
         abilities = merge_abilities(abilities)
         @statblock = build_fighter_statblock(level, abilities, armor_type)
-        add_fighter_equipment
+        longsword = Core::Attack.new(name: 'Longsword', damage_dice: Core::Dice.new(1, 8), relevant_stat: :strength)
+        with_attack(longsword) unless @attacks.any? { |a| a.name == 'Longsword' }
         self
       end
 
@@ -59,7 +79,9 @@ module Dnd5e
         raise InvalidCharacterError, 'Character must have a name' if @name.nil? || @name.empty?
         raise InvalidCharacterError, 'Character must have a statblock' if @statblock.nil?
 
-        Core::Character.new(name: @name, statblock: @statblock, attacks: @attacks, spells: @spells, features: @features)
+        opts = { attacks: @attacks, spells: @spells, features: @features }
+        opts[:strategy] = @strategy_override || @subclass_strategy if @strategy_override || @subclass_strategy
+        Core::Character.new(name: @name, statblock: @statblock, **opts)
       end
 
       private
@@ -69,10 +91,14 @@ module Dnd5e
       end
 
       def build_fighter_statblock(level, abilities, armor_type)
-        armor = create_armor(armor_type)
-        extra_attacks = level >= 5 ? 1 : 0
-        resources = { action_surge: 1, second_wind: 1 }
-        create_fighter_statblock(level, abilities, armor, extra_attacks, resources)
+        Core::Statblock.new(
+          name: @name, strength: abilities[:strength], dexterity: abilities[:dexterity],
+          constitution: abilities[:constitution], intelligence: abilities[:intelligence],
+          wisdom: abilities[:wisdom], charisma: abilities[:charisma], hit_die: 'd10',
+          level: level, saving_throw_proficiencies: %i[strength constitution],
+          equipped_armor: create_armor(armor_type), extra_attacks: (level >= 5 ? 1 : 0),
+          resources: { action_surge: 1, second_wind: 1 }
+        )
       end
 
       def create_armor(type)
@@ -85,23 +111,6 @@ module Dnd5e
           Core::Armor.new(name: 'Chain Mail', base_ac: 16, type: :heavy, max_dex_bonus: 0,
                           stealth_disadvantage: true)
         end
-      end
-
-      def create_fighter_statblock(level, abilities, armor, extra, resources)
-        Core::Statblock.new(
-          name: @name, strength: abilities[:strength], dexterity: abilities[:dexterity],
-          constitution: abilities[:constitution], intelligence: abilities[:intelligence],
-          wisdom: abilities[:wisdom], charisma: abilities[:charisma], hit_die: 'd10',
-          level: level, saving_throw_proficiencies: %i[strength constitution],
-          equipped_armor: armor, extra_attacks: extra, resources: resources
-        )
-      end
-
-      def add_fighter_equipment
-        return if @attacks.any? { |a| a.name == 'Longsword' }
-
-        longsword = Core::Attack.new(name: 'Longsword', damage_dice: Core::Dice.new(1, 8), relevant_stat: :strength)
-        with_attack(longsword)
       end
 
       def build_wizard_statblock(level, abilities)
@@ -119,7 +128,6 @@ module Dnd5e
         firebolt = Core::Attack.new(name: 'Firebolt', damage_dice: Core::Dice.new(1, 10), relevant_stat: :intelligence,
                                     type: :attack, scaling: true, range: 120)
         with_attack(firebolt)
-
         return if @attacks.any? { |a| a.name == 'Quarterstaff' }
 
         staff = Core::Attack.new(name: 'Quarterstaff', damage_dice: Core::Dice.new(1, 6), relevant_stat: :strength)

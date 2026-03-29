@@ -7,6 +7,8 @@ module Dnd5e
   module Core
     class TestCombatLogger < Minitest::Test
       MockCombatant = Struct.new(:name)
+      MockStrategy = Struct.new(:name)
+      MockCombatantWithStrategy = Struct.new(:name, :strategy)
       MockAttack = Struct.new(:name, :save_ability)
       MockResult = Struct.new(:attacker, :defender, :attack, :success, :damage, :type, :attack_roll,
                               :target_ac, :raw_roll, :modifier, :rolls, :damage_rolls, :damage_modifier,
@@ -45,7 +47,16 @@ module Dnd5e
         combatants = [@hero, @goblin]
         @combat_logger.update(:combat_start, combatants: combatants)
 
+        # MockCombatant has no :strategy method — names are shown without annotation
         assert_includes @logger.logs, 'INFO: Combat begins between Hero, Goblin'
+      end
+
+      def test_combat_start_shows_strategy_name_when_available
+        bm = MockCombatantWithStrategy.new('Hero', MockStrategy.new('BattleMaster'))
+        champ = MockCombatantWithStrategy.new('Goblin', MockStrategy.new('Simple'))
+        @combat_logger.update(:combat_start, combatants: [bm, champ])
+
+        assert_includes @logger.logs, 'INFO: Combat begins between Hero [BattleMaster], Goblin [Simple]'
       end
 
       def test_round_start

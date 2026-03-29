@@ -10,6 +10,11 @@ module Dnd5e
       class RogueStrategy < BaseStrategy
         include Dnd5e::Core::CunningAction
 
+        def initialize
+          super
+          @name = 'Rogue'
+        end
+
         def execute_turn(combatant, combat)
           # 1. Try to Hide (Bonus Action) to gain Advantage
           try_cunning_action_hide?(combatant, combat)
