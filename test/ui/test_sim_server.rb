@@ -3,7 +3,7 @@
 require 'minitest/autorun'
 require 'rack/test'
 require 'json'
-require_relative 'ui_test_helper'
+require 'json-schema'
 require_relative '../../scripts/sim_server'
 
 # Integration tests for the Simulation API server including Schema and Math Validation
@@ -23,6 +23,25 @@ class SimServerTest < Minitest::Test
     results = JSON.parse(last_response.body)
 
     assert_equal 'online', results['status']
+  end
+
+  def test_list_simulations
+    get '/simulations'
+
+    assert_predicate last_response, :ok?
+    results = JSON.parse(last_response.body)
+
+    assert_kind_of Array, results
+    assert(results.any? { |s| s['id'] == 'fighter-vs-goblin' })
+  end
+
+  def test_run_preset_simulation
+    post '/simulations/run/fighter-vs-goblin'
+
+    assert_predicate last_response, :ok?
+    results = JSON.parse(last_response.body)
+
+    assert_kind_of Array, results
   end
 
   def test_run_simulation_contract_and_math

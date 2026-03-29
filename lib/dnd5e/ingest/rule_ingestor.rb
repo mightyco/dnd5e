@@ -34,6 +34,8 @@ module Dnd5e
         paths = path.is_a?(Array) ? path : [path]
 
         paths.each do |p|
+          next unless File.exist?(p)
+
           files = File.directory?(p) ? Dir.glob("#{p}/*.txt") : [p]
           files.each do |file|
             # Enforce UTF-8 encoding

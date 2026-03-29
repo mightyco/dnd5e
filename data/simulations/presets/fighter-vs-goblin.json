@@ -1,0 +1,21 @@
+{
+  "id": "fighter-vs-goblin",
+  "name": "Fighter vs Goblin (Level 1)",
+  "description": "A basic Level 1 Fighter against a single Goblin. Tests baseline accuracy and survival.",
+  "num_simulations": 100,
+  "level": 1,
+  "teams": [
+    {
+      "name": "Heroes",
+      "members": [
+        { "name": "Hero", "type": "fighter" }
+      ]
+    },
+    {
+      "name": "Monsters",
+      "members": [
+        { "name": "Goblin", "type": "goblin" }
+      ]
+    }
+  ]
+}

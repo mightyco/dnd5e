@@ -62,7 +62,7 @@ build-iPhoneSimulator/
 # Local gem storage
 /vendor/bundle/
 
-data/
+data/simulations/custom/
 log/
 results.json
 

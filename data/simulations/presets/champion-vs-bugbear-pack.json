@@ -1,0 +1,22 @@
+{
+  "id": "champion-vs-bugbear-pack",
+  "name": "Champion vs Bugbear Pack (Level 5)",
+  "description": "Level 5 Champion Fighter with 2024 rules (Improved Critical) against a pack of 2 Bugbears.",
+  "num_simulations": 100,
+  "level": 5,
+  "teams": [
+    {
+      "name": "Heroes",
+      "members": [
+        { "name": "Champ Hero", "type": "fighter", "subclass": "champion" }
+      ]
+    },
+    {
+      "name": "Monsters",
+      "members": [
+        { "name": "Bugbear 1", "type": "bugbear" },
+        { "name": "Bugbear 2", "type": "bugbear" }
+      ]
+    }
+  ]
+}

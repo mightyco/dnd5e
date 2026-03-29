@@ -8,28 +8,12 @@ namespace :rules do
   desc 'Ingest rules from text files and build the JSON cache'
   task :build do
     puts 'Building rules cache...'
-
     ingestor = Dnd5e::Ingest::RuleIngestor.new
-    # Ingest from the standard reference directory and SRD
     rules = ingestor.ingest(%w[rules_reference srd_reference])
 
-    # Serialize rules to simple hash structure
-    # This requires our model objects to be serializable or we map them manually here
-    serializable_rules = {
-      spells: rules[:spells].map { |s| object_to_hash(s) },
-      conditions: rules[:conditions].map { |c| object_to_hash(c) },
-      items: rules[:items].map { |i| object_to_hash(i) },
-      mechanics: rules[:mechanics].map { |m| object_to_hash(m) },
-      class_tables: rules[:class_tables]
-    }
-
-    File.write(Dnd5e::Core::RuleRepository::CACHE_FILE, JSON.pretty_generate(serializable_rules))
-    puts "Cache written to #{Dnd5e::Core::RuleRepository::CACHE_FILE}"
-    puts 'Stats:'
-    puts "  Spells: #{serializable_rules[:spells].count}"
-    puts "  Conditions: #{serializable_rules[:conditions].count}"
-    puts "  Items: #{serializable_rules[:items].count}"
-    puts "  Class Tables: #{serializable_rules[:class_tables].count}"
+    serializable_rules = build_serializable_rules(rules)
+    save_rules_cache(serializable_rules)
+    print_rules_stats(serializable_rules)
   end
 
   desc 'Clear the rules cache'
@@ -37,6 +21,30 @@ namespace :rules do
     FileUtils.rm_f(Dnd5e::Core::RuleRepository::CACHE_FILE)
     puts 'Rules cache cleared.'
   end
+end
+
+def build_serializable_rules(rules)
+  {
+    spells: rules[:spells].map { |s| object_to_hash(s) },
+    conditions: rules[:conditions].map { |c| object_to_hash(c) },
+    items: rules[:items].map { |i| object_to_hash(i) },
+    mechanics: rules[:mechanics].map { |m| object_to_hash(m) },
+    class_tables: rules[:class_tables]
+  }
+end
+
+def save_rules_cache(rules)
+  FileUtils.mkdir_p(File.dirname(Dnd5e::Core::RuleRepository::CACHE_FILE))
+  File.write(Dnd5e::Core::RuleRepository::CACHE_FILE, JSON.pretty_generate(rules))
+  puts "Cache written to #{Dnd5e::Core::RuleRepository::CACHE_FILE}"
+end
+
+def print_rules_stats(rules)
+  puts 'Stats:'
+  puts "  Spells: #{rules[:spells].count}"
+  puts "  Conditions: #{rules[:conditions].count}"
+  puts "  Items: #{rules[:items].count}"
+  puts "  Class Tables: #{rules[:class_tables].count}"
 end
 
 def object_to_hash(obj)

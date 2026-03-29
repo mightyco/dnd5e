@@ -5,12 +5,12 @@ import { DPRChart } from '../DPRChart';
 
 describe('DPRChart', () => {
   it('renders "No data available" when data is empty', () => {
-    render(<DPRChart data={[]} />);
+    render(<DPRChart datasets={[]} />);
     expect(screen.getByText(/No data available/i)).toBeInTheDocument();
   });
 
   it('renders "No data available" when data is null', () => {
-    render(<DPRChart data={null} />);
+    render(<DPRChart datasets={[null]} />);
     expect(screen.getByText(/No data available/i)).toBeInTheDocument();
   });
 
@@ -28,7 +28,7 @@ describe('DPRChart', () => {
         ]
       }
     ];
-    render(<DPRChart data={mockData} />);
+    render(<DPRChart datasets={[mockData]} />);
     expect(screen.getByText(/Average Damage Per Round/i)).toBeInTheDocument();
   });
 });

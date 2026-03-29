@@ -10,42 +10,54 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-export const DPRChart = ({ data }) => {
-  if (!data || data.length === 0) return <div>No data available</div>;
+export const DPRChart = ({ datasets }) => {
+  if (!datasets || datasets.length === 0) return <div>No data available</div>;
 
-  // Process data to calculate average DPR per round per team
-  const roundStats = {}; // { roundNumber: { teamName: { totalDamage: 0, count: 0 } } }
+  // Normalize datasets to always be an array of result sets
+  const rawRuns = Array.isArray(datasets[0]) ? datasets : [datasets];
+  const runs = rawRuns.filter(r => !!r && Array.isArray(r));
+  
+  if (runs.length === 0) return <div>No data available</div>;
 
-  data.forEach(combat => {
-    combat.rounds.forEach(round => {
-      if (!roundStats[round.number]) roundStats[round.number] = {};
-      
-      round.events.forEach(event => {
-        if (!roundStats[round.number][event.attacker]) {
-          roundStats[round.number][event.attacker] = { totalDamage: 0, count: 0 };
-        }
-        roundStats[round.number][event.attacker].totalDamage += event.damage;
+  const roundStats = {}; // { roundNumber: { label: { totalDamage: 0 } } }
+
+  runs.forEach((run, runIdx) => {
+    const runLabel = `Run ${runIdx + 1}`;
+    run.forEach(combat => {
+      if (!combat || !combat.rounds) return;
+      combat.rounds.forEach(round => {
+        if (!roundStats[round.number]) roundStats[round.number] = {};
+        
+        round.events.forEach(event => {
+          const key = runs.length > 1 ? `${runLabel}: ${event.attacker}` : event.attacker;
+          if (!roundStats[round.number][key]) {
+            roundStats[round.number][key] = { totalDamage: 0 };
+          }
+          roundStats[round.number][key].totalDamage += event.damage;
+        });
       });
     });
   });
 
-  // Transform into Recharts format: [{ round: 1, TeamA: 10, TeamB: 5 }, ...]
+  if (Object.keys(roundStats).length === 0) return <div>No data available</div>;
+
   const chartData = Object.keys(roundStats).map(roundNum => {
     const entry = { round: parseInt(roundNum) };
-    Object.keys(roundStats[roundNum]).forEach(attacker => {
-      // Average damage for this round across all simulations
-      // Note: This is simplified; real DPR would divide by total simulations that reached this round
-      entry[attacker] = parseFloat((roundStats[roundNum][attacker].totalDamage / data.length).toFixed(2));
+    Object.keys(roundStats[roundNum]).forEach(key => {
+      // Find which run this key belongs to to get the correct divisor
+      const runIdxMatch = key.match(/^Run (\d+):/);
+      const runIdx = runIdxMatch ? parseInt(runIdxMatch[1]) - 1 : 0;
+      entry[key] = parseFloat((roundStats[roundNum][key].totalDamage / runs[runIdx].length).toFixed(2));
     });
     return entry;
   }).sort((a, b) => a.round - b.round);
 
-  const attackers = Array.from(new Set(data.flatMap(c => c.teams)));
-  const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300'];
+  const keys = Object.keys(chartData[0] || {}).filter(k => k !== 'round');
+  const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#0088FE', '#00C49F'];
 
   return (
     <div style={{ width: '100%', height: 400, marginTop: '2rem' }}>
-      <h3>Average Damage Per Round (DPR)</h3>
+      <h3>Average Damage Per Round (DPR) {runs.length > 1 && '(Comparison Mode)'}</h3>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -53,11 +65,11 @@ export const DPRChart = ({ data }) => {
           <YAxis label={{ value: 'Avg Damage', angle: -90, position: 'insideLeft' }} />
           <Tooltip />
           <Legend />
-          {attackers.map((attacker, index) => (
+          {keys.map((key, index) => (
             <Line
-              key={attacker}
+              key={key}
               type="monotone"
-              dataKey={attacker}
+              dataKey={key}
               stroke={colors[index % colors.length]}
               activeDot={{ r: 8 }}
             />
