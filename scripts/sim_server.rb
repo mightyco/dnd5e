@@ -7,6 +7,7 @@ require 'fileutils'
 require_relative '../lib/dnd5e/simulation/runner'
 require_relative '../lib/dnd5e/simulation/scenario_builder'
 require_relative '../lib/dnd5e/simulation/json_combat_result_handler'
+require_relative '../lib/dnd5e/simulation/variable_expander'
 require_relative '../lib/dnd5e/builders/character_builder'
 require_relative '../lib/dnd5e/builders/monster_builder'
 require_relative '../lib/dnd5e/core/features/improved_critical'
@@ -23,7 +24,6 @@ DOCS_BUILD_DIR = File.expand_path('../docs/portal/build', __dir__)
 configure do
   enable :cross_origin
   disable :protection
-  # Allow all hosts in development/test to prevent Rack::Protection::HostAuthorization errors
   set :host_authorization, { permitted_hosts: [] } if development?
   set :public_folder, UI_DIST_DIR
 end
@@ -35,14 +35,13 @@ end
 # --- APP ROUTES ---
 
 get '/' do
-  # Serve UI if it exists, otherwise fall back to API health for tests
-  index = File.join(UI_DIST_DIR, 'index.html')
-  if File.exist?(index) && !request.xhr? && request.preferred_type(['text/html', 'application/json']) == 'text/html'
-    send_file index
-  else
+  if request.accept?('application/json')
     content_type :json
-    { status: 'online', message: 'D&D 2024 Simulation API', ui_ready: File.exist?(index) }.to_json
+    return { status: 'online', message: 'D&D 2024 Simulation API' }.to_json
   end
+
+  index = File.join(UI_DIST_DIR, 'index.html')
+  File.exist?(index) ? send_file(index) : halt(404, 'UI not built. Run rake unify:build')
 end
 
 get '/api/health' do
@@ -58,7 +57,7 @@ get '/docs/?*' do
   File.exist?(file_path) ? send_file(file_path) : halt(404, 'Docs not built. Run rake unify:build')
 end
 
-# --- API ROUTES (Compatible with both /api prefix and legacy paths) ---
+# --- API ROUTES ---
 
 ['/simulations', '/api/simulations'].each do |path|
   get path do
@@ -72,14 +71,14 @@ end
     content_type :json
     sim = find_simulation(params[:id])
     halt 404, { error: 'Simulation not found' }.to_json unless sim
-    run_sim_payload(sim)
+    run_sim_batch(sim)
   end
 end
 
 ['/run', '/api/run'].each do |path|
   post path do
     content_type :json
-    run_sim_payload(JSON.parse(request.body.read))
+    run_sim_batch(JSON.parse(request.body.read))
   rescue StandardError => e
     halt 500, { error: e.message }.to_json
   end
@@ -104,7 +103,8 @@ end
 
 def format_sim_metadata(path, data, type)
   { id: File.basename(path, '.json'), name: data['name'], description: data['description'],
-    type: type, level: data['level'], num_simulations: data['num_simulations'] }
+    type: type, level: data['level'], num_simulations: data['num_simulations'],
+    is_variable: !data['variables']&.empty? }
 end
 
 def find_simulation(id)
@@ -122,20 +122,36 @@ def save_custom_sim(payload)
   { status: 'success', path: path }.to_json
 end
 
-def run_sim_payload(payload)
-  builder = build_scenario_from_payload(payload)
-  handler = Dnd5e::Simulation::JSONCombatResultHandler.new
-  Dnd5e::Simulation::Runner.new(scenario: builder.build, result_handler: handler, logger: Logger.new(nil)).run
-  handler.to_json
+def run_sim_batch(preset)
+  expander = Dnd5e::Simulation::VariableExpander.new
+  scenarios = expander.expand(preset)
+
+  results = scenarios.map do |payload|
+    handler = Dnd5e::Simulation::JSONCombatResultHandler.new
+    builder = build_scenario_from_payload(payload)
+    Dnd5e::Simulation::Runner.new(scenario: builder.build, result_handler: handler, logger: Logger.new(nil)).run
+    { parameters: payload['sweep_parameters'], data: JSON.parse(handler.to_json) }
+  end
+
+  { is_batch: scenarios.length > 1, results: results }.to_json
 end
 
 def build_scenario_from_payload(payload)
   builder = Dnd5e::Simulation::ScenarioBuilder.new(num_simulations: payload['num_simulations'] || 100)
   payload['teams'].each do |team_cfg|
-    members = team_cfg['members'].map { |m| build_member(m, payload['level'] || 1) }
+    members = build_team_members(team_cfg, payload['level'] || 1)
     builder.with_team(Dnd5e::Core::Team.new(name: team_cfg['name'], members: members))
   end
   builder
+end
+
+def build_team_members(team_cfg, level)
+  count = (team_cfg['count'] || 1).to_i
+  if team_cfg['template']
+    Array.new(count) { build_member(team_cfg['template'], level) }
+  else
+    team_cfg['members'].map { |m| build_member(m, level) }
+  end
 end
 
 def build_member(cfg, level)
