@@ -17,7 +17,7 @@ class SimServerTest < Minitest::Test
   end
 
   def test_root_route
-    get '/'
+    get '/api/health'
 
     assert_predicate last_response, :ok?
     results = JSON.parse(last_response.body)
