@@ -4,7 +4,7 @@ namespace :ui do
   desc 'Build the React application'
   task :build do
     puts 'Building React application...'
-    sh 'npm run build --prefix ui'
+    sh 'cd ui && npx vite build'
   end
 
   desc 'Install UI dependencies'

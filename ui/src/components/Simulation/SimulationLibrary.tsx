@@ -40,14 +40,21 @@ export const SimulationLibrary = ({ onRun }) => {
           <div key={sim.id} style={{ padding: '1rem', border: '1px solid #ddd', borderRadius: '8px', background: '#fff' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
               <strong>{sim.name}</strong>
-              <span style={{ 
-                fontSize: '0.7rem', 
-                padding: '2px 6px', 
-                background: sim.type === 'preset' ? '#e3f2fd' : '#f3e5f5',
-                borderRadius: '4px'
-              }}>
-                {sim.type.toUpperCase()}
-              </span>
+              <div style={{ display: 'flex', gap: '0.25rem' }}>
+                {sim.is_variable && (
+                  <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: '#e8f5e9', color: '#2e7d32', borderRadius: '4px' }}>
+                    VARIABLE
+                  </span>
+                )}
+                <span style={{ 
+                  fontSize: '0.7rem', 
+                  padding: '2px 6px', 
+                  background: sim.type === 'preset' ? '#e3f2fd' : '#f3e5f5',
+                  borderRadius: '4px'
+                }}>
+                  {sim.type.toUpperCase()}
+                </span>
+              </div>
             </div>
             <p style={{ fontSize: '0.9rem', margin: '0.5rem 0', color: '#666' }}>{sim.description}</p>
             <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '1rem' }}>

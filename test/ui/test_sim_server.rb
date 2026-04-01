@@ -26,7 +26,7 @@ class SimServerTest < Minitest::Test
   end
 
   def test_list_simulations
-    get '/simulations'
+    get '/api/simulations'
 
     assert_predicate last_response, :ok?
     results = JSON.parse(last_response.body)
@@ -36,28 +36,30 @@ class SimServerTest < Minitest::Test
   end
 
   def test_run_preset_simulation
-    post '/simulations/run/fighter-vs-goblin'
+    post '/api/simulations/run/fighter-vs-goblin'
 
     assert_predicate last_response, :ok?
-    results = JSON.parse(last_response.body)
+    batch = JSON.parse(last_response.body)
 
-    assert_kind_of Array, results
+    assert_kind_of Array, batch['results']
+    refute batch['is_batch']
   end
 
   def test_run_simulation_contract_and_math
     payload = build_valid_payload
     header 'Content-Type', 'application/json'
-    post '/run', payload.to_json
+    post '/api/run', payload.to_json
 
     assert_predicate last_response, :ok?
-    results = JSON.parse(last_response.body)
+    batch = JSON.parse(last_response.body)
+    results = batch['results'][0]['data']
 
     JSON::Validator.validate!(SCHEMA_PATH, results)
     audit_math_consistency(results)
   end
 
   def test_invalid_payload_handling
-    post '/run', { invalid: 'data' }.to_json, { 'CONTENT_TYPE' => 'application/json' }
+    post '/api/run', { invalid: 'data' }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
     assert_equal 500, last_response.status
   end

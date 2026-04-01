@@ -1,14 +1,14 @@
 {
   "id": "fighter-vs-goblin",
   "name": "Fighter vs Goblin (Level 1)",
-  "description": "A basic Level 1 Fighter against a single Goblin. Tests baseline accuracy and survival.",
+  "description": "Standard Level 1 Fighter against a single Goblin.",
   "num_simulations": 100,
   "level": 1,
   "teams": [
     {
       "name": "Heroes",
       "members": [
-        { "name": "Hero", "type": "fighter" }
+        { "name": "Hero", "type": "fighter", "abilities": { "strength": 16, "dexterity": 14, "constitution": 14 } }
       ]
     },
     {
@@ -17,5 +17,9 @@
         { "name": "Goblin", "type": "goblin" }
       ]
     }
+  ],
+  "expectations": [
+    { "combatant": "Hero", "metric": "dpr", "min": 4.0, "max": 8.0 },
+    { "combatant": "Heroes", "metric": "win_rate", "min": 60.0, "max": 100.0 }
   ]
 }
