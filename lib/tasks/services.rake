@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
 require 'fileutils'
+require 'net/http'
 
 # Helper methods for service management to keep Rake tasks lean
 module ServiceHelpers
   PID_DIR = File.expand_path('../../tmp/pids', __dir__)
   SERVER_PID = File.join(PID_DIR, 'sim_server.pid')
+  UI_INDEX = File.expand_path('../../ui/dist/index.html', __dir__)
 
   def self.running?(pid_file)
     return false unless File.exist?(pid_file)
@@ -32,7 +34,7 @@ module ServiceHelpers
   end
 
   def self.kill_process_group(pid)
-    Process.kill('-TERM', pid)
+    Process.kill('-TERM', -pid) # Kill process group
   rescue Errno::ESRCH
     Process.kill('TERM', pid)
   end
@@ -40,21 +42,67 @@ module ServiceHelpers
   def self.check_status(pid_file, name)
     if running?(pid_file)
       puts "#{name}: RUNNING (PID: #{read_pid(pid_file)})"
+      verify_ui_accessibility if name == 'Simulator Server'
     else
       puts "#{name}: STOPPED"
     end
   end
 
+  def self.verify_ui_accessibility
+    uri = URI('http://localhost:4567/')
+    response = Net::HTTP.get_response(uri)
+    if response.content_type == 'text/html'
+      puts '  UI Status: ACCESSIBLE (HTML)'
+    else
+      puts "  UI Status: \e[31mERROR\e[0m (Got #{response.content_type} instead of HTML)"
+      puts '  Warning: Stale process detected. Run rake restart to fix.'
+    end
+  rescue StandardError => e
+    puts "  UI Status: \e[31mUNREACHABLE\e[0m (#{e.message})"
+  end
+
   def self.start_server
+    validate_build_artifacts
     FileUtils.mkdir_p(PID_DIR)
-    return puts "Simulator Server is already running (PID: #{read_pid(SERVER_PID)})" if running?(SERVER_PID)
+
+    if running?(SERVER_PID)
+      puts "Simulator Server is already running (PID: #{read_pid(SERVER_PID)})"
+      return
+    end
 
     puts 'Starting Unified Simulator Server...'
     pid = spawn('ruby scripts/sim_server.rb > log/api.log 2>&1', pgroup: true)
     File.write(SERVER_PID, pid)
-    puts "Simulator Server started (PID: #{pid})"
-    puts 'Access Simulation Lab: http://localhost:4567/'
-    puts 'Access Documentation:  http://localhost:4567/docs'
+    wait_for_startup
+  end
+
+  def self.validate_build_artifacts
+    return if File.exist?(UI_INDEX)
+
+    puts "\e[31mError: UI build artifacts missing!\e[0m"
+    puts "Expected: #{UI_INDEX}"
+    puts 'Run `bundle exec rake unify:build` first.'
+    exit 1
+  end
+
+  def self.wait_for_startup
+    puts 'Waiting for server to initialize...'
+    10.times do
+      sleep 1
+      next unless server_responding_correctly?
+
+      puts "Simulator Server started (PID: #{read_pid(SERVER_PID)})"
+      puts 'Access Simulation Lab: http://localhost:4567/'
+      return
+    end
+    puts "\e[31mWarning: Server started but UI is not yet accessible.\e[0m"
+  end
+
+  def self.server_responding_correctly?
+    uri = URI('http://localhost:4567/')
+    Net::HTTP.get_response(uri).content_type == 'text/html'
+  rescue StandardError
+    false
   end
 end
 

@@ -32,24 +32,14 @@ before do
   response.headers['Access-Control-Allow-Origin'] = '*'
 end
 
-# --- APP ROUTES ---
+# --- UI ROUTES (Strict Isolation) ---
 
+# The root route is EXCLUSIVELY for the Human UI.
+# It will never return JSON to prevent browser content negotiation bugs.
 get '/' do
   index = File.join(UI_DIST_DIR, 'index.html')
-
-  # Serve UI if browser prefers HTML and UI is built
-  if request.preferred_type(['text/html', 'application/json']) == 'text/html' && File.exist?(index)
-    return send_file index
-  end
-
-  # Fallback to API status for scripts or if UI is missing
-  content_type :json
-  { status: 'online', message: 'D&D 2024 Simulation API', ui_ready: File.exist?(index) }.to_json
-end
-
-get '/api/health' do
-  content_type :json
-  { status: 'online', message: 'D&D 2024 Simulation API' }.to_json
+  halt 404, 'UI Build Missing. Run rake unify:build' unless File.exist?(index)
+  send_file index
 end
 
 get '/docs/?*' do
@@ -57,10 +47,16 @@ get '/docs/?*' do
   path = 'index.html' if path.nil? || path.empty?
   file_path = File.join(DOCS_BUILD_DIR, path)
   file_path = File.join(file_path, 'index.html') if File.directory?(file_path)
-  File.exist?(file_path) ? send_file(file_path) : halt(404, 'Docs not built. Run rake unify:build')
+  File.exist?(file_path) ? send_file(file_path) : halt(404, 'Docs Missing. Run rake unify:build')
 end
 
-# --- API ROUTES ---
+# --- API ROUTES (Prefix Enforcement) ---
+
+get '/api/health' do
+  content_type :json
+  { status: 'online', message: 'D&D 2024 Simulation API',
+    ui_built: File.exist?(File.join(UI_DIST_DIR, 'index.html')) }.to_json
+end
 
 ['/simulations', '/api/simulations'].each do |path|
   get path do

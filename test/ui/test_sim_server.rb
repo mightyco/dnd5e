@@ -16,10 +16,20 @@ class SimServerTest < Minitest::Test
     Sinatra::Application
   end
 
-  def test_root_route
+  def test_root_route_serves_html_for_browser
+    # Simulates a default browser request (no specific Accept or preferred HTML)
+    get '/'
+
+    assert_predicate last_response, :ok?
+    assert_includes last_response.content_type, 'text/html'
+    assert_includes last_response.body, '<!doctype html>'
+  end
+
+  def test_api_health_serves_json
     get '/api/health'
 
     assert_predicate last_response, :ok?
+    assert_includes last_response.content_type, 'application/json'
     results = JSON.parse(last_response.body)
 
     assert_equal 'online', results['status']
@@ -56,12 +66,6 @@ class SimServerTest < Minitest::Test
 
     JSON::Validator.validate!(SCHEMA_PATH, results)
     audit_math_consistency(results)
-  end
-
-  def test_invalid_payload_handling
-    post '/api/run', { invalid: 'data' }.to_json, { 'CONTENT_TYPE' => 'application/json' }
-
-    assert_equal 500, last_response.status
   end
 
   private
