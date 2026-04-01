@@ -22,13 +22,14 @@ The system SHALL support placeholders in the `teams` configuration that referenc
 - **WHEN** a team member uses `{ "count": "{{goblin_count}}" }`.
 - **THEN** The system SHALL duplicate that member template the specified number of times.
 
-### Requirement: Sweep Visualization
+### Requirement: Variable Expression Control (UI)
 
-The UI SHALL provide a "Sweep Chart" (Line or Area) showing the change in DPR or Win Rate across the variable range.
+The UI SHALL provide an interface for users to define parameter sweeps (variables) without editing JSON files.
 
-#### Scenario: Trend Analysis
-- **WHEN** multiple simulations from a sweep are selected.
-- **THEN** The UI SHALL display a chart where the X-axis is the variable (e.g., Goblin Count) and the Y-axis is the Win Rate.
+#### Scenario: Defining a Sweep in UI
+- **WHEN** using the Scenario Configurator.
+- **THEN** The user MUST be able to add a variable (e.g., `goblin_count`) and a list of values (e.g., `[1, 2, 4]`).
+- **THEN** The user MUST be able to reference that variable in team member counts or fields using `{{variable_name}}`.
 
 ### Requirement: Script/UI Parity
 

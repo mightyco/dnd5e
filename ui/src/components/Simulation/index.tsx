@@ -6,6 +6,7 @@ import { ScenarioConfigurator } from './ScenarioConfigurator';
 import { SimulationLibrary } from './SimulationLibrary';
 import { DeltaAnalysis } from './LabAnalysis';
 import { TrendChart } from './TrendChart';
+import { LuckAnalyzer } from './LuckAnalyzer';
 
 export const SimulationDashboard = () => {
   const [history, setHistory] = useState([]);
@@ -76,30 +77,34 @@ export const SimulationDashboard = () => {
           {currentRun.isBatch && selectedIndices.length === 1 ? (
             <TrendChart batchResults={currentRun.payload} />
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-              {selectedIndices.length === 1 ? (
-                <>
-                  <SurvivalChart data={currentRun.payload.results[0].data} />
-                  <div>
-                    <h3>Quick Stats</h3>
-                    <div style={{ padding: '1rem', background: '#fff', border: '1px solid #ddd', borderRadius: '8px' }}>
-                      <ul>
-                        <li>Total Simulations: {currentRun.payload.results[0].data.length}</li>
-                        <li>Average Rounds: {(currentRun.payload.results[0].data.reduce((acc, c) => acc + c.rounds.length, 0) / currentRun.payload.results[0].data.length).toFixed(1)}</li>
-                        <li>Total Crits: {currentRun.payload.results[0].data.flatMap(c => c.rounds.flatMap(r => r.events)).filter(e => e.type === 'attack' && e.is_crit).length}</li>
-                      </ul>
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                {selectedIndices.length === 1 ? (
+                  <>
+                    <SurvivalChart data={currentRun.payload.results[0].data} />
+                    <div>
+                      <h3>Quick Stats</h3>
+                      <div style={{ padding: '1rem', background: '#fff', border: '1px solid #ddd', borderRadius: '8px' }}>
+                        <ul>
+                          <li>Total Simulations: {currentRun.payload.results[0].data.length}</li>
+                          <li>Average Rounds: {(currentRun.payload.results[0].data.reduce((acc, c) => acc + c.rounds.length, 0) / currentRun.payload.results[0].data.length).toFixed(1)}</li>
+                          <li>Total Crits: {currentRun.payload.results[0].data.flatMap(c => c.rounds.flatMap(r => r.events)).filter(e => e.type === 'attack' && e.is_crit).length}</li>
+                        </ul>
+                      </div>
                     </div>
+                  </>
+                ) : (
+                  <div>
+                    <DeltaAnalysis datasets={selectedDatasets} />
+                    <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#666' }}>
+                      * Comparisons are based on Team A vs Team B. Mixed compositions may yield unpredictable deltas.
+                    </p>
                   </div>
-                </>
-              ) : (
-                <div>
-                  <DeltaAnalysis datasets={selectedDatasets} />
-                  <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#666' }}>
-                    * Comparisons are based on Team A vs Team B. Mixed compositions may yield unpredictable deltas.
-                  </p>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+              
+              {selectedIndices.length === 1 && <LuckAnalyzer data={currentRun.payload.results[0].data} />}
+            </>
           )}
           
           {!currentRun.isBatch && <DPRChart datasets={selectedDatasets} />}

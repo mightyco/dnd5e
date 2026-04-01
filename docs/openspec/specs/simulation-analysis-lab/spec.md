@@ -38,11 +38,18 @@ The system SHOULD categorize combat results into qualitative buckets (Stomp, Clo
 - **WHEN** A combat lasts more than 10 rounds.
 - **THEN** The system SHALL label it as a "Slog".
 
-### Requirement: Automated Balance Regression Testing
+### Requirement: Math Transparency (Luck Tracking)
 
-The system SHALL allow users to set "Expectations" for saved simulations that can be run in CI to detect balance regressions.
+The system SHALL calculate a "Luck Rating" for each combatant, comparing their actual d20 roll average against the statistical expectation (10.5).
 
-#### Scenario: DPR Regression
+#### Scenario: Visualizing Luck
+- **WHEN** A simulation is analyzed in the Lab.
+- **THEN** The UI SHALL display a "Luck Rating" (e.g., +1.2 above avg) for each team.
 
-- **WHEN** A change to the engine causes a saved simulation's avg DPR to drop by > 10%.
-- **THEN** The CI task SHALL fail and report the regression.
+### Requirement: Roll Distribution Visualization
+
+The system SHALL provide a histogram visualization of all d20 rolls in a simulation run to verify dice engine fairness and identify "swingy" results.
+
+#### Scenario: Dice Histogram
+- **WHEN** the Roll Inspector is opened.
+- **THEN** The system SHALL display a chart showing the frequency of results from 1 to 20.
