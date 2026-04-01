@@ -5,16 +5,19 @@ import { RollInspector } from './RollInspector';
 import { ScenarioConfigurator } from './ScenarioConfigurator';
 import { SimulationLibrary } from './SimulationLibrary';
 import { DeltaAnalysis } from './LabAnalysis';
+import { TrendChart } from './TrendChart';
 
 export const SimulationDashboard = () => {
   const [history, setHistory] = useState([]);
   const [selectedIndices, setSelectedIndices] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const handleResults = (results) => {
+  const handleResults = (payload) => {
+    // payload is now { is_batch: boolean, results: [{ parameters: {}, data: [] }] }
     const newHistory = [...history, { 
       timestamp: new Date().toLocaleTimeString(), 
-      data: results,
+      payload: payload,
+      isBatch: payload.is_batch,
       name: `Run ${history.length + 1}` 
     }];
     setHistory(newHistory);
@@ -26,8 +29,11 @@ export const SimulationDashboard = () => {
     }, 100);
   };
 
-  const currentRun = history[selectedIndices[0]]?.data;
-  const selectedDatasets = selectedIndices.map(i => history[i].data);
+  const currentRun = history[selectedIndices[0]];
+  const selectedDatasets = selectedIndices.map(i => {
+    const run = history[i];
+    return run.isBatch ? run.payload.results[0].data : run.payload.results[0].data;
+  });
 
   return (
     <div className="simulation-dashboard">
@@ -49,7 +55,7 @@ export const SimulationDashboard = () => {
                     }
                   }}
                 />
-                <span>{run.name} ({run.timestamp})</span>
+                <span>{run.name} {run.isBatch ? '(Sweep)' : ''} ({run.timestamp})</span>
               </div>
             ))}
           </div>
@@ -63,38 +69,42 @@ export const SimulationDashboard = () => {
 
       {loading && <p>Processing data...</p>}
 
-      {selectedDatasets.length > 0 && (
+      {currentRun && (
         <div id="simulation-results" style={{ marginTop: '3rem', borderTop: '2px solid #eee', paddingTop: '2rem' }}>
-          <h2>Analysis: {selectedIndices.length > 1 ? 'Comparative' : history[selectedIndices[0]].name}</h2>
+          <h2>Analysis: {selectedIndices.length > 1 ? 'Comparative' : currentRun.name}</h2>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-            {selectedIndices.length === 1 ? (
-              <>
-                <SurvivalChart data={currentRun} />
-                <div>
-                  <h3>Quick Stats</h3>
-                  <div style={{ padding: '1rem', background: '#fff', border: '1px solid #ddd', borderRadius: '8px' }}>
-                    <ul>
-                      <li>Total Simulations: {currentRun.length}</li>
-                      <li>Average Rounds: {(currentRun.reduce((acc, c) => acc + c.rounds.length, 0) / currentRun.length).toFixed(1)}</li>
-                      <li>Total Crits: {currentRun.flatMap(c => c.rounds.flatMap(r => r.events)).filter(e => e.type === 'attack' && e.is_crit).length}</li>
-                    </ul>
+          {currentRun.isBatch && selectedIndices.length === 1 ? (
+            <TrendChart batchResults={currentRun.payload} />
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+              {selectedIndices.length === 1 ? (
+                <>
+                  <SurvivalChart data={currentRun.payload.results[0].data} />
+                  <div>
+                    <h3>Quick Stats</h3>
+                    <div style={{ padding: '1rem', background: '#fff', border: '1px solid #ddd', borderRadius: '8px' }}>
+                      <ul>
+                        <li>Total Simulations: {currentRun.payload.results[0].data.length}</li>
+                        <li>Average Rounds: {(currentRun.payload.results[0].data.reduce((acc, c) => acc + c.rounds.length, 0) / currentRun.payload.results[0].data.length).toFixed(1)}</li>
+                        <li>Total Crits: {currentRun.payload.results[0].data.flatMap(c => c.rounds.flatMap(r => r.events)).filter(e => e.type === 'attack' && e.is_crit).length}</li>
+                      </ul>
+                    </div>
                   </div>
+                </>
+              ) : (
+                <div>
+                  <DeltaAnalysis datasets={selectedDatasets} />
+                  <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#666' }}>
+                    * Comparisons are based on Team A vs Team B. Mixed compositions may yield unpredictable deltas.
+                  </p>
                 </div>
-              </>
-            ) : (
-              <div>
-                <DeltaAnalysis datasets={selectedDatasets} />
-                <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#666' }}>
-                  * Comparisons are based on Team A vs Team B. Mixed compositions may yield unpredictable deltas.
-                </p>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
           
-          <DPRChart datasets={selectedDatasets} />
+          {!currentRun.isBatch && <DPRChart datasets={selectedDatasets} />}
           
-          {selectedIndices.length === 1 && <RollInspector data={currentRun} />}
+          {!currentRun.isBatch && selectedIndices.length === 1 && <RollInspector data={currentRun.payload.results[0].data} />}
         </div>
       )}
     </div>
