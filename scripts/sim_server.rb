@@ -172,13 +172,6 @@ end
 
 def build_fighter(builder, cfg, level)
   builder.as_fighter(level: level, abilities: (cfg['abilities'] || {}).transform_keys(&:to_sym))
-  add_subclass_features(builder, cfg['subclass'], level) if cfg['subclass']
+  builder.with_subclass(cfg['subclass'], level: level) if cfg['subclass']
   builder.build
-end
-
-def add_subclass_features(builder, subclass, level)
-  case subclass
-  when 'champion' then builder.with_feature(Dnd5e::Core::Features::ImprovedCritical.new)
-  when 'battlemaster' then builder.with_feature(Dnd5e::Core::Features::BattleMaster.new(level: level))
-  end
 end

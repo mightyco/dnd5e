@@ -25,38 +25,44 @@ module Dnd5e
         def extra_damage_dice(context)
           options = context[:options]
           return [] unless maneuver_with_damage?(options[:maneuver])
+          return [] if options[:maneuver_used]
 
           attacker = context[:attacker]
           return [] unless attacker.statblock.resources.available?(:superiority_dice)
 
-          # NOTE: We consume the die here for damage maneuvers.
-          # If a maneuver has damage AND an effect, we must not consume it twice.
           attacker.statblock.resources.consume(:superiority_dice)
+          options[:maneuver_used] = true
           [Dice.new(1, @die_type)]
         end
 
         def on_after_attack_roll(context)
+          options = context[:options] || {}
+          return if options[:maneuver] || options[:maneuver_used]
+
           attacker = context[:attacker]
           return unless attacker.statblock.resources.available?(:superiority_dice)
-
-          # Check if strategy wants to use precision attack
           return unless attacker.strategy.respond_to?(:should_use_precision_attack?) &&
                         attacker.strategy.should_use_precision_attack?(context)
 
+          options[:maneuver_used] = true
           apply_precision_attack(context, attacker)
         end
 
         def on_attack_hit(context)
-          maneuver = context[:options][:maneuver]
+          options = context[:options]
+          maneuver = options[:maneuver]
           return unless %i[trip_attack pushing_attack].include?(maneuver)
 
+          # If it didn't have damage (and thus didn't consume a die yet), consume now.
+          # Note: trip and pushing DO have damage in maneuver_with_damage?
           apply_hit_maneuver(maneuver, context)
         end
 
         def apply_tactical_shift(attacker, _combat)
-          return unless attacker.statblock.resources.available?(:superiority_dice)
+          # 2024: Tactical Shift uses Second Wind
+          return unless attacker.statblock.resources.available?(:second_wind)
 
-          attacker.statblock.resources.consume(:superiority_dice)
+          attacker.statblock.resources.consume(:second_wind)
           attacker.statblock.speed / 2
         end
 

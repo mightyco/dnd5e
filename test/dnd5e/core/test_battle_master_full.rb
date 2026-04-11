@@ -25,8 +25,11 @@ module Dnd5e
         @hero.start_turn
         @hero.strategy.execute_turn(@hero, @combat)
 
+        resources = @hero.statblock.resources.resources
+
         assert_equal 5, @combat.distance
-        assert_equal 3, @hero.statblock.resources.resources[:superiority_dice]
+        assert_equal 4, resources[:superiority_dice]
+        assert_equal 0, resources[:second_wind]
       end
 
       def test_trip_attack

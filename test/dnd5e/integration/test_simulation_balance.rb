@@ -31,7 +31,38 @@ module Dnd5e
         check_balance(report, 'Fighter 2')
       end
 
+      def test_battlemaster_vs_champion_balance
+        # Battlemaster should win significantly more than Champion in a 1v1 at level 5
+        # due to maneuver efficiency (Trip + Precision)
+        scenario = create_duel_scenario
+        handler = Simulation::SimulationCombatResultHandler.new
+        runner = Simulation::Runner.new(scenario: scenario, result_handler: handler, logger: Logger.new(nil))
+
+        runner.run
+
+        report = handler.report(@attempts)
+        bm_wins = report.match(/Battlemaster won (\d+\.\d+)%/)[1].to_f
+        champ_wins = report.match(/Champion won (\d+\.\d+)%/)[1].to_f
+
+        assert_operator bm_wins, :>, champ_wins
+        assert_operator bm_wins, :>, 75.0, 'Battlemaster lead should be dominant in 1v1'
+      end
+
       private
+
+      def create_duel_scenario
+        bm = Builders::CharacterBuilder.new(name: 'Battlemaster')
+                                       .as_fighter(level: 5)
+                                       .with_subclass(:battlemaster).build
+        champ = Builders::CharacterBuilder.new(name: 'Champion')
+                                          .as_fighter(level: 5)
+                                          .with_subclass(:champion).build
+
+        t1 = Core::Team.new(name: 'Battlemaster', members: [bm])
+        t2 = Core::Team.new(name: 'Champion', members: [champ])
+
+        Simulation::ScenarioBuilder.new(num_simulations: @attempts).with_team(t1).with_team(t2).build
+      end
 
       def create_balanced_scenario
         fighter_block = Core::Statblock.new(name: 'Fighter', strength: 16, dexterity: 14, constitution: 14,
