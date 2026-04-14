@@ -61,6 +61,9 @@ module Dnd5e
         return unless @current_combat
 
         @current_combat[:winner] = data[:winner]&.name
+        @current_combat[:combatants] = data[:combatants].map do |c|
+          { name: c.name, hit_points: c.statblock.hit_points, max_hp: c.statblock.max_hp }
+        end
         @current_combat[:initiative_winner] = data[:initiative_winner]&.name
         @combat_data << @current_combat
         @current_combat = nil

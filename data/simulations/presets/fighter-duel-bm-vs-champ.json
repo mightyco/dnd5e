@@ -17,5 +17,8 @@
         { "name": "Athlete", "type": "fighter", "subclass": "champion", "abilities": { "strength": 16, "dexterity": 14, "constitution": 14 } }
       ]
     }
+  ],
+  "expectations": [
+    { "combatant": "Battlemaster", "metric": "win_rate", "min": 65.0, "max": 100.0 }
   ]
 }

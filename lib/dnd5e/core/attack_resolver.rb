@@ -93,7 +93,7 @@ module Dnd5e
 
       def resolve_topple(att, defn, atk)
         dc = Helpers::SaveResolutionHelper.calculate_dc(att, atk)
-        struct = Struct.new(:save_ability, :dice_roller).new(:constitution, atk.dice_roller)
+        struct = Struct.new(:save_ability, :dice_roller).new(:dexterity, atk.dice_roller)
         defn.add_condition(:prone) if Helpers::SaveResolutionHelper.roll_save(defn, struct)[:total] < dc
       end
 

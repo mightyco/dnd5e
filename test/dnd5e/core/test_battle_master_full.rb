@@ -29,7 +29,7 @@ module Dnd5e
 
         assert_equal 5, @combat.distance
         assert_equal 4, resources[:superiority_dice]
-        assert_equal 0, resources[:second_wind]
+        assert_equal 1, resources[:second_wind]
       end
 
       def test_trip_attack

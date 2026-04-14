@@ -13,7 +13,7 @@ module Dnd5e
         @attacker_stat = Statblock.new(name: 'Attacker', strength: 16)
         @attacker = Character.new(name: 'Attacker', statblock: @attacker_stat)
 
-        @defender_stat = Statblock.new(name: 'Defender', armor_class: 10, constitution: 10)
+        @defender_stat = Statblock.new(name: 'Defender', armor_class: 10, dexterity: 10)
         @defender = Character.new(name: 'Defender', statblock: @defender_stat)
 
         @resolver = AttackResolver.new

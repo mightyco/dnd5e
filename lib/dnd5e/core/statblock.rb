@@ -11,7 +11,7 @@ module Dnd5e
     class Statblock
       include StatblockInitialization
 
-      attr_reader :name, :hit_die, :level, :condition_manager
+      attr_reader :name, :hit_die, :level, :condition_manager, :size
       attr_accessor :strength, :dexterity, :constitution, :intelligence, :wisdom, :charisma, :hit_points,
                     :saving_throw_proficiencies, :equipped_armor, :equipped_shield,
                     :extra_attacks, :resources, :speed, :crit_threshold, :heroic_inspiration,
@@ -20,7 +20,7 @@ module Dnd5e
       DEFAULT_STATS = {
         strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10,
         hit_die: 'd8', level: 1, extra_attacks: 0, resources: {}, speed: 30, crit_threshold: 20,
-        heroic_inspiration: false, damage_taken: 0, damage_dealt: 0
+        heroic_inspiration: false, damage_taken: 0, damage_dealt: 0, size: :medium
       }.freeze
 
       def initialize(name:, **options)
@@ -103,6 +103,10 @@ module Dnd5e
 
       def alive?
         @hit_points.positive?
+      end
+
+      def max_hp
+        calculate_hit_points
       end
 
       def calculate_hit_points

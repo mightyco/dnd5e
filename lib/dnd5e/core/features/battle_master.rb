@@ -6,8 +6,75 @@ require_relative '../dice'
 module Dnd5e
   module Core
     module Features
+      # Helper for Battle Master maneuvers to keep the main class small.
+      module ManeuverHelper
+        private
+
+        def maneuver_with_damage?(maneuver)
+          %i[menacing_attack trip_attack pushing_attack].include?(maneuver)
+        end
+
+        def apply_hit_maneuver(maneuver, context)
+          case maneuver
+          when :trip_attack then apply_trip_attack(context)
+          when :pushing_attack then apply_pushing_attack(context)
+          end
+        end
+
+        def apply_trip_attack(context)
+          defender = context[:defender]
+          return unless valid_target_size?(defender)
+
+          save_roll = roll_strength_save(defender, context[:dice_roller])
+          defender.add_condition(:prone) if save_roll < calculate_maneuver_dc(context[:attacker])
+        end
+
+        def apply_pushing_attack(context)
+          defender = context[:defender]
+          return unless valid_target_size?(defender)
+
+          save_roll = roll_strength_save(defender, context[:dice_roller])
+          apply_push_effect(save_roll, context)
+        end
+
+        def roll_strength_save(defender, roller)
+          mod = defender.statblock.ability_modifier(:strength)
+          roller ||= DiceRoller.new
+          roller.roll(mod.negative? ? "1d20#{mod}" : "1d20+#{mod}")
+        end
+
+        def apply_push_effect(save_roll, context)
+          dc = calculate_maneuver_dc(context[:attacker])
+          return unless save_roll < dc && context[:options][:combat]
+
+          context[:options][:combat].distance += 15
+        end
+
+        def valid_target_size?(defender)
+          # 2024: Targets must be Large or smaller for these maneuvers
+          %i[tiny small medium large].include?(defender.statblock.size)
+        end
+
+        def calculate_maneuver_dc(attacker)
+          8 + attacker.statblock.proficiency_bonus + attacker.statblock.ability_modifier(:strength)
+        end
+
+        def apply_precision_attack(context, attacker)
+          attacker.statblock.resources.consume(:superiority_dice)
+          bonus = attacker.statblock.resources.instance_variable_get(:@dice_roller_override) ||
+                  DiceRoller.new.roll("1d#{@die_type}")
+
+          roll_data = context[:current_value]
+          roll_data[:total] += bonus
+          roll_data[:precision_attack_bonus] = bonus
+          roll_data
+        end
+      end
+
       # Implementation of the Battle Master fighter subclass features.
       class BattleMaster < Feature
+        include ManeuverHelper
+
         attr_reader :die_type, :level
 
         def initialize(level: 3)
@@ -67,51 +134,6 @@ module Dnd5e
         end
 
         private
-
-        def maneuver_with_damage?(maneuver)
-          %i[menacing_attack trip_attack pushing_attack].include?(maneuver)
-        end
-
-        def apply_hit_maneuver(maneuver, context)
-          case maneuver
-          when :trip_attack then apply_trip_attack(context)
-          when :pushing_attack then apply_pushing_attack(context)
-          end
-        end
-
-        def apply_trip_attack(context)
-          defender = context[:defender]
-          dc = calculate_maneuver_dc(context[:attacker])
-          mod = defender.statblock.ability_modifier(:strength)
-          roller = context[:dice_roller] || DiceRoller.new
-          save_roll = roller.roll(mod.negative? ? "1d20#{mod}" : "1d20+#{mod}")
-          defender.add_condition(:prone) if save_roll < dc
-        end
-
-        def apply_pushing_attack(context)
-          dc = calculate_maneuver_dc(context[:attacker])
-          mod = context[:defender].statblock.ability_modifier(:strength)
-          roller = context[:dice_roller] || DiceRoller.new
-          save_roll = roller.roll(mod.negative? ? "1d20#{mod}" : "1d20+#{mod}")
-          return unless save_roll < dc && context[:options][:combat]
-
-          context[:options][:combat].distance += 15
-        end
-
-        def calculate_maneuver_dc(attacker)
-          8 + attacker.statblock.proficiency_bonus + attacker.statblock.ability_modifier(:strength)
-        end
-
-        def apply_precision_attack(context, attacker)
-          attacker.statblock.resources.consume(:superiority_dice)
-          bonus = attacker.statblock.resources.instance_variable_get(:@dice_roller_override) ||
-                  DiceRoller.new.roll("1d#{@die_type}")
-
-          roll_data = context[:current_value]
-          roll_data[:total] += bonus
-          roll_data[:precision_attack_bonus] = bonus
-          roll_data
-        end
 
         def calculate_dice_count(level)
           if level >= 15 then 6

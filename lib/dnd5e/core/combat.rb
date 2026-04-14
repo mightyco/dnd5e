@@ -119,9 +119,9 @@ module Dnd5e
       def conclude_combat
         init_winner = @turn_manager.turn_order.first
         begin
-          notify_observers(:combat_end, winner: winner, initiative_winner: init_winner)
+          notify_observers(:combat_end, winner: winner, initiative_winner: init_winner, combatants: @combatants)
         rescue InvalidWinnerError
-          notify_observers(:combat_end, winner: nil, initiative_winner: init_winner)
+          notify_observers(:combat_end, winner: nil, initiative_winner: init_winner, combatants: @combatants)
         end
       end
 

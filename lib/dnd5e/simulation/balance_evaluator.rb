@@ -29,8 +29,16 @@ module Dnd5e
         case metric
         when 'dpr' then calculate_avg_dpr(results, combatant_name)
         when 'win_rate' then calculate_win_rate(results, combatant_name)
+        when 'survival_rate' then calculate_survival_rate(results, combatant_name)
         else 0
         end
+      end
+
+      def calculate_survival_rate(results, name)
+        survived = results.count do |c|
+          c['combatants'].any? { |comp| comp['name'] == name && comp['hit_points'].positive? }
+        end
+        (survived.to_f / results.length) * 100
       end
 
       def calculate_avg_dpr(results, name)

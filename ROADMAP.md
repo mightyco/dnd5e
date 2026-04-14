@@ -48,10 +48,10 @@ Our primary scientific goal is to model and compare the **Champion** and **Battl
 - [x] **Combat Categorization**: Qualitative labeling of results (Stomp, Close, Slog).
 - [x] **Unified Architecture**: Single-binary feel serving UI, Docs, and API.
 
-### Phase 7: Automated Governance (In Progress)
-- [ ] **Balance Regression Testing**: Automated CI failure if a build's DPR drops below expectations.
-- [ ] **Rules Ingestion Refactoring**: Dynamic parsing of rule text into JSON models.
-- [ ] **Feature Audit**: Validation of implemented features against SRD text.
+### Phase 7: Automated Governance (Completed)
+- [x] **Balance Regression Testing**: Automated CI failure via `rake test:balance` if win rates or survival drop below expectations.
+- [x] **Rules Ingestion Refactoring**: Enhanced parser for complex 2024 table layouts and multi-column metadata.
+- [x] **Feature Audit**: Validation of implemented maneuvers and masteries against PHB/SRD text using `scripts/feature_audit.rb`.
 
 ---
 

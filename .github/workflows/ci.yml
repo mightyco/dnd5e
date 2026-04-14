@@ -20,3 +20,5 @@ jobs:
       run: bundle exec rake rules:build
     - name: Run all tests, linting, and examples
       run: bundle exec rake all
+    - name: Run balance regression tests
+      run: bundle exec rake test:balance

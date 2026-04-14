@@ -18,5 +18,8 @@
         { "name": "Bugbear 2", "type": "bugbear" }
       ]
     }
+  ],
+  "expectations": [
+    { "combatant": "Heroes", "metric": "win_rate", "min": 10.0, "max": 60.0 }
   ]
 }

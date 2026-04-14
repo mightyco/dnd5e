@@ -10,8 +10,37 @@ require_relative '../core/subclass_registry'
 
 module Dnd5e
   module Builders
+    # Helper for creating equipment in CharacterBuilder
+    module EquipmentHelper
+      private
+
+      def create_armor(type)
+        case type
+        when :light
+          Core::Armor.new(name: 'Studded Leather', base_ac: 12, type: :light, max_dex_bonus: 99)
+        when :medium
+          Core::Armor.new(name: 'Breastplate', base_ac: 14, type: :medium, max_dex_bonus: 2)
+        else
+          Core::Armor.new(name: 'Chain Mail', base_ac: 16, type: :heavy, max_dex_bonus: 0,
+                          stealth_disadvantage: true)
+        end
+      end
+
+      def add_wizard_equipment
+        firebolt = Core::Attack.new(name: 'Firebolt', damage_dice: Core::Dice.new(1, 10), relevant_stat: :intelligence,
+                                    type: :attack, scaling: true, range: 120)
+        with_attack(firebolt)
+        return if @attacks.any? { |a| a.name == 'Quarterstaff' }
+
+        staff = Core::Attack.new(name: 'Quarterstaff', damage_dice: Core::Dice.new(1, 6), relevant_stat: :strength)
+        with_attack(staff)
+      end
+    end
+
     # Builds a Character object with a fluent interface.
     class CharacterBuilder
+      include EquipmentHelper
+
       class InvalidCharacterError < StandardError; end
 
       def initialize(name:)
@@ -97,19 +126,21 @@ module Dnd5e
           wisdom: abilities[:wisdom], charisma: abilities[:charisma], hit_die: 'd10',
           level: level, saving_throw_proficiencies: %i[strength constitution],
           equipped_armor: create_armor(armor_type), extra_attacks: (level >= 5 ? 1 : 0),
-          resources: { action_surge: 1, second_wind: 1 }
+          resources: calculate_fighter_resources(level)
         )
       end
 
-      def create_armor(type)
-        case type
-        when :light
-          Core::Armor.new(name: 'Studded Leather', base_ac: 12, type: :light, max_dex_bonus: 99)
-        when :medium
-          Core::Armor.new(name: 'Breastplate', base_ac: 14, type: :medium, max_dex_bonus: 2)
-        else
-          Core::Armor.new(name: 'Chain Mail', base_ac: 16, type: :heavy, max_dex_bonus: 0,
-                          stealth_disadvantage: true)
+      def calculate_fighter_resources(level)
+        {
+          second_wind: calculate_second_wind(level),
+          action_surge: (level >= 17 ? 2 : 1)
+        }
+      end
+
+      def calculate_second_wind(level)
+        if level >= 10 then 4
+        elsif level >= 6 then 3
+        else 2
         end
       end
 
@@ -122,16 +153,6 @@ module Dnd5e
           hit_die: 'd6', level: level, saving_throw_proficiencies: %i[intelligence wisdom],
           resources: resources
         )
-      end
-
-      def add_wizard_equipment
-        firebolt = Core::Attack.new(name: 'Firebolt', damage_dice: Core::Dice.new(1, 10), relevant_stat: :intelligence,
-                                    type: :attack, scaling: true, range: 120)
-        with_attack(firebolt)
-        return if @attacks.any? { |a| a.name == 'Quarterstaff' }
-
-        staff = Core::Attack.new(name: 'Quarterstaff', damage_dice: Core::Dice.new(1, 6), relevant_stat: :strength)
-        with_attack(staff)
       end
     end
   end

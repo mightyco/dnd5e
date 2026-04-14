@@ -20,6 +20,7 @@
   ],
   "expectations": [
     { "combatant": "Hero", "metric": "dpr", "min": 4.0, "max": 8.0 },
+    { "combatant": "Hero", "metric": "survival_rate", "min": 60.0, "max": 100.0 },
     { "combatant": "Heroes", "metric": "win_rate", "min": 60.0, "max": 100.0 }
   ]
 }

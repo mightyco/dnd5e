@@ -49,7 +49,8 @@ module Dnd5e
           name: @name,
           strength: 8, dexterity: 14, constitution: 10,
           intelligence: 10, wisdom: 8, charisma: 8,
-          hit_die: 'd6', level: 1, saving_throw_proficiencies: []
+          hit_die: 'd6', level: 1, saving_throw_proficiencies: [],
+          size: :small
         )
 
         scimitar = Core::Attack.new(name: 'Scimitar', damage_dice: Core::Dice.new(1, 6), relevant_stat: :dexterity)
@@ -66,7 +67,7 @@ module Dnd5e
           strength: 15, dexterity: 14, constitution: 13,
           intelligence: 8, wisdom: 11, charisma: 9,
           hit_die: 'd8', level: 5, saving_throw_proficiencies: [],
-          extra_attacks: 1
+          extra_attacks: 1, size: :medium
         )
 
         morningstar = Core::Attack.new(name: 'Morningstar', damage_dice: Core::Dice.new(2, 8), relevant_stat: :strength)
@@ -82,7 +83,8 @@ module Dnd5e
           name: @name,
           strength: 19, dexterity: 8, constitution: 16,
           intelligence: 5, wisdom: 7, charisma: 7,
-          hit_die: 'd10', level: 4, saving_throw_proficiencies: []
+          hit_die: 'd10', level: 4, saving_throw_proficiencies: [],
+          size: :large
         )
 
         greatclub = Core::Attack.new(name: 'Greatclub', damage_dice: Core::Dice.new(2, 8), relevant_stat: :strength)
