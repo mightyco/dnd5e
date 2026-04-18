@@ -52,3 +52,11 @@ The AI assistant **MUST** strictly adhere to the project's [STYLE_GUIDE.md](STYL
 - **Empirical Proof**: For balance changes or mechanical implementations, provide a simulation script (in `examples/`) that runs at least 10,000 rounds to verify expected mathematical outcomes.
 - **Fast Development Cycle**: Use `FAST_SIM=true bundle exec rake all` to skip slow simulations (> 5s) and run examples in parallel.
 - **Modular Design**: Even in experimental scripts, extract logic into focused methods (< 10 lines) to satisfy complexity constraints.
+
+## 🏁 Definition of Done (DoD)
+All changes MUST meet the following criteria before being considered complete:
+1.  **Test Coverage**: Coverage MUST NOT decrease. "At least not worse" is the hard floor.
+2.  **CI Validation**: Full test suite and balance regression MUST be green in CI. No code shall be merged or finalized without a successful CI run.
+3.  **RuboCop Compliance**: Zero linting offenses.
+4.  **Mathematical Integrity**: High-precision balance audit (`rake test:balance:full`) must pass for any changes affecting combat logic.
+5.  **Documentation**: Relevant OpenSpecs and DESIGN docs must be synchronized with implementation.
