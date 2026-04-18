@@ -68,35 +68,49 @@ module Dnd5e
         private
 
         def move_towards_target(combatant, target, attack, combat)
-          return if in_range?(attack, combat) && !should_kite?(combatant, combat)
-
-          speed = combatant.statblock.speed
-          return if speed.zero?
+          return unless combatant.turn_context.movement_available?.positive?
+          return if in_range?(combatant, target, attack, combat) && !should_kite?(combatant, target, combat)
 
           target_pos = combat.grid.find_position(target)
           current_pos = combat.grid.find_position(combatant)
           return unless target_pos && current_pos
 
-          execute_grid_move(combatant, current_pos, target_pos, speed, combat)
-          combatant.turn_context.use_movement(speed)
+          execute_grid_move(combatant, current_pos, target_pos, combatant.turn_context.movement_available?, combat)
         end
 
-        def execute_grid_move(combatant, current_pos, target_pos, speed, combat)
-          path = Helpers::Pathfinder.new(combat.grid).find_path(current_pos, target_pos)
-          return if path.empty?
+        def execute_grid_move(combatant, _cur_pos, target_pos, speed, combat)
+          path = Helpers::Pathfinder.new(combat.grid).find_path(combat.grid.find_position(combatant), target_pos)
+          if path.empty?
+            combatant.turn_context.use_movement(speed)
+            return
+          end
 
-          # Move along the path up to speed (speed/5 squares)
-          max_squares = speed / 5
-          new_pos = path[0...max_squares].last
-          combat.move_combatant(combatant, new_pos)
+          trim_path_for_occupancy(path, target_pos, combat.grid)
+          apply_move_segment(combatant, path, speed, combat)
         end
 
-        def should_kite?(combatant, combat)
-          combat.distance <= 5 && combatant.attacks.any? { |a| a.range > 5 }
+        def trim_path_for_occupancy(path, target_pos, grid)
+          path.pop if path.last == target_pos && grid.occupied?(target_pos)
         end
 
-        def in_range?(attack, combat)
-          combat.distance <= attack.range
+        def apply_move_segment(combatant, path, speed, combat)
+          max_sq = speed / 5
+          segment = path[0...max_sq]
+          return if segment.empty?
+
+          combat.move_combatant(combatant, segment)
+          combatant.turn_context.use_movement(segment.size * 5)
+        end
+
+        def should_kite?(combatant, target, combat)
+          dist = combat.grid.distance(combatant, target)
+          dist <= 5 && combatant.attacks.any? { |a| a.range > 5 }
+        end
+
+        def in_range?(combatant, target, attack, combat)
+          return false unless target
+
+          combat.grid.distance(combatant, target) <= attack.range
         end
 
         def execute_attacks(combatant, target, attack, combat)
@@ -117,18 +131,21 @@ module Dnd5e
           end
         end
 
-        def select_attack(combatant, combat)
+        def select_attack(combatant, target, combat)
           nick = combatant.attacks.find { |a| a.mastery == :nick }
           return nick if nick && combatant.statblock.resources.available?(nick.resource_cost)
 
           combatant.attacks.find do |attack|
             combatant.statblock.resources.available?(attack.resource_cost) &&
-              !self_damage?(combatant, attack, combat)
+              !self_damage?(combatant, target, attack, combat)
           end
         end
 
-        def self_damage?(_combatant, attack, combat)
-          attack.area_radius && combat.distance < attack.area_radius
+        def self_damage?(combatant, target, attack, combat)
+          return false unless attack.area_radius
+
+          dist = combat.grid.distance(combatant, target)
+          dist < attack.area_radius
         end
 
         def try_second_wind(combatant, combat)
@@ -153,7 +170,8 @@ module Dnd5e
 
           combatant.statblock.resources.consume(:action_surge)
           combat.notify_observers(:resource_used, { combatant: combatant, resource: :action_surge })
-          combatant.turn_context.reset!
+
+          combatant.turn_context.instance_variable_set(:@actions_used, 0)
           execute_action(combatant, combat)
         end
 

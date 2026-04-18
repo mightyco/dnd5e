@@ -32,7 +32,7 @@ module Dnd5e
 
       # Prepares the monster for the start of their turn.
       def start_turn
-        @turn_context.reset!
+        @turn_context.reset!(@statblock.speed)
       end
 
       # --- Condition Delegation ---

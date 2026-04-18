@@ -38,7 +38,7 @@ module Dnd5e
         combat = Core::TeamCombat.new(teams: [
                                         Core::Team.new(name: 'Hero', members: [hero]),
                                         build_monster_team(count, m_stats)
-                                      ])
+                                      ], max_rounds: 100)
         combat.run_combat
         data[:deals] += hero.statblock.damage_dealt
         data[:takes] += hero.statblock.damage_taken

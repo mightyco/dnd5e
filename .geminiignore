@@ -1,0 +1,6 @@
+.claude/
+.gemini/
+coverage/
+node_modules/
+tmp/
+vendor/

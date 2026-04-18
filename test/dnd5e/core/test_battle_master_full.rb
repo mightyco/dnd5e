@@ -51,9 +51,11 @@ module Dnd5e
 
       def test_pushing_attack
         @hero.strategy.define_singleton_method(:pick_maneuver) { |*_args| :pushing_attack }
+        @target.statblock.hit_points = 1000 # Prevent death
 
         @combat.distance = 5
         @hero.start_turn
+        @hero.turn_context.use_movement(30) # Consume movement to stay in place
 
         mock = MockDiceRoller.new([15, 5, 4, 1])
         @hero.attacks.first.instance_variable_set(:@dice_roller, mock)

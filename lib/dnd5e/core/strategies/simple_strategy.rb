@@ -17,26 +17,41 @@ module Dnd5e
 
         def execute_turn(combatant, combat)
           try_second_wind(combatant, combat)
+
+          target, attack = prepare_turn_data(combatant, combat)
+          move_towards_target(combatant, target, attack, combat) if target && attack
+
           execute_action(combatant, combat)
+
+          target, attack = prepare_turn_data(combatant, combat)
+          move_towards_target(combatant, target, attack, combat) if target && attack
+
           try_action_surge(combatant, combat)
         end
 
         private
 
+        def prepare_turn_data(combatant, combat)
+          target = find_target(combatant, combat)
+          [target, select_attack(combatant, target, combat)]
+        end
+
         def execute_action(combatant, combat)
           return unless combatant.turn_context.action_available?
 
-          target = find_target(combatant, combat)
-          attack = select_attack(combatant, combat)
+          target, attack = prepare_turn_data(combatant, combat)
+          perform_action_cycle(combatant, target, attack, combat) if target && attack
 
-          return unless target && attack
-
-          move_towards_target(combatant, target, attack, combat)
-
-          return unless in_range?(attack, combat)
-
-          execute_attacks(combatant, target, attack, combat)
           combatant.turn_context.use_action
+        end
+
+        def perform_action_cycle(combatant, target, attack, combat)
+          if in_range?(combatant, target, attack, combat)
+            execute_attacks(combatant, target, attack, combat)
+          else
+            combatant.turn_context.instance_variable_set(:@movement_used, 0)
+            move_towards_target(combatant, target, attack, combat)
+          end
         end
       end
     end

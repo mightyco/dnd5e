@@ -17,19 +17,21 @@ module Dnd5e
           @precision_threshold = precision_threshold
         end
 
-        def execute_action(combatant, combat)
-          return unless combatant.turn_context.action_available?
+        def execute_turn(combatant, combat)
+          try_second_wind(combatant, combat)
 
-          target = find_target(combatant, combat)
-          attack = select_attack(combatant, combat)
-          return unless target && attack
+          target, attack = prepare_turn_data(combatant, combat)
+          if target && attack
+            try_tactical_shift(combatant, target, attack, combat)
+            move_towards_target(combatant, target, attack, combat)
+          end
 
-          try_tactical_shift(combatant, target, attack, combat)
-          move_towards_target(combatant, target, attack, combat)
-          return unless in_range?(attack, combat)
+          execute_action(combatant, combat)
 
-          execute_battle_master_attacks(combatant, target, attack, combat)
-          combatant.turn_context.use_action
+          target, attack = prepare_turn_data(combatant, combat)
+          move_towards_target(combatant, target, attack, combat) if target && attack
+
+          try_action_surge(combatant, combat)
         end
 
         def should_use_precision_attack?(context)
@@ -44,8 +46,28 @@ module Dnd5e
 
         private
 
+        def execute_action(combatant, combat)
+          return unless combatant.turn_context.action_available?
+
+          target, attack = prepare_turn_data(combatant, combat)
+          if target && attack
+            if in_range?(combatant, target, attack, combat)
+              execute_battle_master_attacks(combatant, target, attack, combat)
+            else
+              execute_dash_if_needed(combatant, target, attack, combat)
+            end
+          end
+
+          combatant.turn_context.use_action
+        end
+
+        def execute_dash_if_needed(combatant, target, attack, combat)
+          combatant.turn_context.instance_variable_set(:@movement_used, 0)
+          move_towards_target(combatant, target, attack, combat)
+        end
+
         def try_tactical_shift(combatant, target, attack, combat)
-          return if in_range?(attack, combat)
+          return if in_range?(combatant, target, attack, combat)
           return unless combatant.turn_context.bonus_action_available?
 
           bm_feat = combatant.feature_manager.features.find { |f| f.name == 'Battle Master' }
@@ -64,10 +86,8 @@ module Dnd5e
           path = Helpers::Pathfinder.new(combat.grid).find_path(current_pos, target_pos)
           return if path.empty?
 
-          # Move along the path up to move_dist
           max_squares = move_dist / 5
-          new_pos = path[0...max_squares].last
-          combat.move_combatant(combatant, new_pos)
+          combat.move_combatant(combatant, path[0...max_squares])
         end
 
         def execute_battle_master_attacks(combatant, target, attack, combat)

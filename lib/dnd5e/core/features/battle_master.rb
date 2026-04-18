@@ -47,7 +47,16 @@ module Dnd5e
           dc = calculate_maneuver_dc(context[:attacker])
           return unless save_roll < dc && context[:options][:combat]
 
-          context[:options][:combat].distance += 15
+          execute_push(context[:options][:combat], context[:attacker], context[:defender])
+        end
+
+        def execute_push(combat, attacker, defender)
+          attacker_pos = combat.grid.find_position(attacker)
+          defender_pos = combat.grid.find_position(defender)
+          return unless attacker_pos && defender_pos
+
+          new_x = defender_pos.x >= attacker_pos.x ? defender_pos.x + 15 : defender_pos.x - 15
+          combat.move_combatant(defender, Point2D.new(new_x, 0))
         end
 
         def valid_target_size?(defender)

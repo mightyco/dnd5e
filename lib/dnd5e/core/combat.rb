@@ -47,9 +47,9 @@ module Dnd5e
       end
 
       def find_primary_combatants
-        c1 = @combatants.first
-        c2 = @combatants.find { |c| c != c1 && (c.team.nil? || c.team != c1.team) } || @combatants.last
-        [c1, c2]
+        return [@combatants[0], @combatants[0]] if @combatants.size < 2
+
+        [@combatants[0], @combatants[1]]
       end
 
       def calc_grid_distance(comb1, comb2)
@@ -74,6 +74,10 @@ module Dnd5e
 
         @grid.distance(old_pos, enemy_pos) <= 5 && @grid.distance(new_pos, enemy_pos) > 5
       end
+
+      def pos_from_value(val)
+        val.is_a?(Integer) ? Point2D.new(val, 0) : val
+      end
     end
 
     # Manages the flow of a combat encounter.
@@ -83,9 +87,9 @@ module Dnd5e
       include CombatSpatial
 
       attr_accessor :dice_roller
-      attr_reader :combatants, :turn_manager, :max_rounds, :combat_attack_handler, :grid
+      attr_reader :combatants, :turn_manager, :max_rounds, :combat_attack_handler, :grid, :round_counter
 
-      def initialize(combatants:, dice_roller: DiceRoller.new, max_rounds: 1000, distance: 30)
+      def initialize(combatants:, dice_roller: DiceRoller.new, max_rounds: 10, distance: 30)
         @combatants = combatants
         @turn_manager = TurnManager.new(combatants: @combatants)
         @dice_roller = dice_roller
@@ -97,10 +101,10 @@ module Dnd5e
       end
 
       def distance
-        return 0 if @combatants.empty?
+        return 0 if @combatants.size < 2
 
         c1, c2 = find_primary_combatants
-        c1 == c2 ? 0 : calc_grid_distance(c1, c2)
+        calc_grid_distance(c1, c2)
       end
 
       def distance=(val)
@@ -128,21 +132,31 @@ module Dnd5e
       end
 
       def move_combatant(combatant, val)
-        new_pos = val.is_a?(Integer) ? Point2D.new(val, 0) : val
-        check_opportunity_attacks(combatant, new_pos)
-        @grid.move(combatant, new_pos)
+        path = val.is_a?(Array) ? val : [pos_from_value(val)]
+        path.each_with_index do |step_pos, index|
+          next if index == path.size - 1 && !@grid.can_end_at?(step_pos, combatant)
+
+          check_opportunity_attacks(combatant, step_pos)
+          @grid.move(combatant, step_pos)
+          break unless combatant.statblock.alive?
+        end
       end
 
       def over?
-        @combatants.count { |c| c.statblock.alive? } <= 1
+        alive = @combatants.select { |c| c.statblock.alive? }
+        return true if alive.size <= 1
+
+        first_team = alive.first.team
+        return true if first_team && alive.all? { |c| c.team == first_team }
+
+        false
       end
 
       def winner
         alive = @combatants.select { |c| c.statblock.alive? }
         raise InvalidWinnerError, 'No winner found' if alive.empty?
-        raise InvalidWinnerError, 'Combat not over' if alive.size > 1
 
-        alive.first
+        alive.first.team || alive.first
       end
 
       def run_combat
@@ -158,8 +172,7 @@ module Dnd5e
       private
 
       def setup_stationary_grid(dist)
-        return unless @grid.occupants.empty?
-
+        @combatants.each { |c| @grid.remove(c) }
         mid = [@combatants.size / 2, 1].max
         @combatants.uniq.each_with_index do |c, i|
           pos = i < mid ? Point2D.new(0, 0) : Point2D.new(dist, 0)
