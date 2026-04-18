@@ -36,6 +36,25 @@ module Dnd5e
           notify_observers(:combat_end, winner: nil, initiative_winner: init_winner, combatants: @combatants)
         end
       end
+
+      def run_rounds
+        until over?
+          process_turn_cycle
+          check_timeout
+        end
+      end
+
+      def process_turn_cycle
+        current = @turn_manager.next_turn
+        take_turn(current) if current.statblock.alive? && !over?
+        increment_round if @turn_manager.all_turns_complete?
+      end
+
+      def increment_round
+        notify_observers(:round_end, round: @round_counter)
+        @round_counter += 1
+        notify_observers(:round_start, round: @round_counter) unless over?
+      end
     end
 
     # Manages spatial queries and movement for Combat.
@@ -91,6 +110,7 @@ module Dnd5e
 
       def initialize(combatants:, dice_roller: DiceRoller.new, max_rounds: 10, distance: 30)
         @combatants = combatants
+        @combatants.each { |c| c.instance_variable_set(:@combat_context, self) }
         @turn_manager = TurnManager.new(combatants: @combatants)
         @dice_roller = dice_roller
         @max_rounds = max_rounds
@@ -122,7 +142,7 @@ module Dnd5e
       end
 
       def take_turn(attacker)
-        notify_observers(:turn_start, combatant: attacker)
+        notify_observers(:turn_start, combatant: attacker, combat: self)
         if attacker.respond_to?(:strategy)
           attacker.strategy.execute_turn(attacker, self)
         else
@@ -136,8 +156,7 @@ module Dnd5e
         path.each_with_index do |step_pos, index|
           next if index == path.size - 1 && !@grid.can_end_at?(step_pos, combatant)
 
-          check_opportunity_attacks(combatant, step_pos)
-          @grid.move(combatant, step_pos)
+          execute_move_step(combatant, step_pos)
           break unless combatant.statblock.alive?
         end
       end
@@ -171,6 +190,12 @@ module Dnd5e
 
       private
 
+      def execute_move_step(combatant, step_pos)
+        check_opportunity_attacks(combatant, step_pos)
+        @grid.move(combatant, step_pos)
+        notify_observers(:move_resolved, combatant: combatant, position: step_pos)
+      end
+
       def setup_stationary_grid(dist)
         @combatants.each { |c| @grid.remove(c) }
         mid = [@combatants.size / 2, 1].max
@@ -178,23 +203,6 @@ module Dnd5e
           pos = i < mid ? Point2D.new(0, 0) : Point2D.new(dist, 0)
           @grid.place(c, pos)
         end
-      end
-
-      def run_rounds
-        until over?
-          current = @turn_manager.next_turn
-          take_turn(current) if current.statblock.alive? && !over?
-          check_round_end
-          check_timeout
-        end
-      end
-
-      def check_round_end
-        return unless @turn_manager.all_turns_complete?
-
-        notify_observers(:round_end, round: @round_counter)
-        @round_counter += 1
-        notify_observers(:round_start, round: @round_counter) unless over?
       end
 
       def check_timeout

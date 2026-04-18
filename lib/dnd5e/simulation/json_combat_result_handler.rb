@@ -13,6 +13,7 @@ module Dnd5e
         super
         @combat_data = []
         @current_combat = nil
+        @combatants_list = []
       end
 
       def update(event, data)
@@ -20,9 +21,9 @@ module Dnd5e
         when :combat_start then handle_combat_start(data)
         when :round_start then handle_round_start(data)
         when :turn_start then handle_turn_start(data)
+        when :move_resolved then handle_move_resolved(data)
         when :resource_used then handle_resource_used(data)
-        when :attack_resolved then handle_attack_resolved(data)
-        when :combat_end then handle_combat_end(data)
+        else handle_result_events(event, data)
         end
       end
 
@@ -32,8 +33,20 @@ module Dnd5e
 
       private
 
+      def handle_result_events(event, data)
+        case event
+        when :attack_resolved then handle_attack_resolved(data)
+        when :combat_end then handle_combat_end(data)
+        end
+      end
+
       def handle_combat_start(data)
-        @current_combat = { teams: data[:combatants].map(&:name), rounds: [] }
+        @combatants_list = data[:combatants]
+        @current_combat = {
+          teams: @combatants_list.map(&:name),
+          rounds: [],
+          initial_positions: spatial_snapshot(data[:combat])
+        }
       end
 
       def handle_round_start(data)
@@ -41,7 +54,19 @@ module Dnd5e
       end
 
       def handle_turn_start(data)
-        @current_combat[:rounds].last[:events] << { type: 'turn_start', combatant: data[:combatant].name }
+        @current_combat[:rounds].last[:events] << {
+          type: 'turn_start',
+          combatant: data[:combatant].name,
+          snapshot: spatial_snapshot(data[:combat])
+        }
+      end
+
+      def handle_move_resolved(data)
+        @current_combat[:rounds].last[:events] << {
+          type: 'move',
+          combatant: data[:combatant].name,
+          to: { x: data[:position].x, y: data[:position].y, z: data[:combatant].statblock.altitude }
+        }
       end
 
       def handle_resource_used(data)
@@ -54,6 +79,7 @@ module Dnd5e
 
         result = data[:result]
         event = format_attack_event(result)
+        event[:snapshot] = spatial_snapshot(nil)
         @current_combat[:rounds].last[:events] << event
       end
 
@@ -69,33 +95,35 @@ module Dnd5e
         @current_combat = nil
       end
 
-      def format_attack_event(result)
-        base = { type: result.type, attacker: result.attacker.name, defender: result.defender.name,
-                 attack_name: result.attack.name, success: result.success }
-        base.merge(damage: result.damage, is_crit: result.is_crit, is_dead: result.is_dead,
-                   metadata: extract_metadata(result))
+      def spatial_snapshot(combat)
+        @combatants_list.each_with_object({}) do |combatant, hash|
+          hash[combatant.name] = combatant_data(combatant, combat)
+        end
       end
 
-      def extract_metadata(result)
-        extract_roll_metadata(result).merge(extract_save_metadata(result))
+      def combatant_data(combatant, combat)
+        pos = combat ? combat.grid.find_position(combatant) : find_ctx_pos(combatant)
+        { x: pos&.x || 0, y: pos&.y || 0, z: combatant.statblock.altitude,
+          hp: combatant.statblock.hit_points, max_hp: combatant.statblock.max_hp }
       end
 
-      def extract_roll_metadata(result)
-        { attack_roll: result.attack_roll, picked_roll: result.raw_roll, raw_rolls: result.rolls,
-          modifier: result.modifier, proficiency_bonus: result.proficiency_bonus,
-          target_ac: result.target_ac }.merge(extract_damage_metadata(result))
+      def find_ctx_pos(combatant)
+        combatant.instance_variable_get(:@combat_context)&.grid&.find_position(combatant)
       end
 
-      def extract_damage_metadata(result)
-        { damage_rolls: result.damage_rolls, damage_modifier: result.damage_modifier,
-          current_hp: result.current_hp, max_hp: result.max_hp }
+      def format_attack_event(res)
+        base = { type: res.type, attacker: res.attacker.name, defender: res.defender.name,
+                 attack_name: res.attack.name, success: res.success }
+        base.merge(damage: res.damage, is_crit: res.is_crit, is_dead: res.is_dead,
+                   metadata: extract_metadata(res))
       end
 
-      def extract_save_metadata(result)
-        {
-          save_roll: result.save_roll,
-          save_dc: result.save_dc
-        }
+      def extract_metadata(res)
+        { attack_roll: res.attack_roll, picked_roll: res.raw_roll, raw_rolls: res.rolls,
+          modifier: res.modifier, proficiency_bonus: res.proficiency_bonus,
+          target_ac: res.target_ac, damage_rolls: res.damage_rolls,
+          damage_modifier: res.damage_modifier, current_hp: res.current_hp,
+          max_hp: res.max_hp, save_roll: res.save_roll, save_dc: res.save_dc }
       end
     end
   end
