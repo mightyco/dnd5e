@@ -61,14 +61,13 @@ module Dnd5e
           target_pos = combat.grid.find_position(target)
           return unless current_pos && target_pos
 
-          new_x = calc_tactical_x(current_pos.x, target_pos.x, move_dist)
-          combat.move_combatant(combatant, Point2D.new(new_x, 0))
-        end
+          path = Helpers::Pathfinder.new(combat.grid).find_path(current_pos, target_pos)
+          return if path.empty?
 
-        def calc_tactical_x(cur_x, target_x, move_dist)
-          dist_x = (target_x - cur_x).abs
-          actual_move = [move_dist, dist_x].min
-          target_x > cur_x ? cur_x + actual_move : cur_x - actual_move
+          # Move along the path up to move_dist
+          max_squares = move_dist / 5
+          new_pos = path[0...max_squares].last
+          combat.move_combatant(combatant, new_pos)
         end
 
         def execute_battle_master_attacks(combatant, target, attack, combat)

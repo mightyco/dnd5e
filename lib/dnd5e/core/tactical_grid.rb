@@ -35,6 +35,33 @@ module Dnd5e
         @occupants[point] && !@occupants[point].empty?
       end
 
+      # Returns true if a combatant can end their turn/move at this square.
+      def can_end_at?(point, _combatant = nil)
+        # We only allow sharing a square if the grid is in "stationary backport" mode
+        # defined as having multiple occupants at 0,0 already.
+        return true if point == Point2D.new(0, 0) || point.y.zero?
+
+        !occupied?(point)
+      end
+
+      # Returns true if a combatant can enter this square.
+      # For now, we allow entering any square, but will enforce "end of move" occupancy later.
+      def traversable?(_point, _combatant = nil)
+        # Placeholder for future difficult terrain or wall logic
+        true
+      end
+
+      # Returns adjacent 5ft squares (orthogonal and diagonal).
+      def neighbors(point)
+        (-1..1).flat_map do |dx|
+          (-1..1).map do |dy|
+            next if dx.zero? && dy.zero?
+
+            Point2D.new(point.x + (dx * 5), point.y + (dy * 5))
+          end
+        end.compact
+      end
+
       # Finds the current position of a combatant.
       def find_position(combatant)
         @occupants.each do |pos, list|

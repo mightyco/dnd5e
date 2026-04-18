@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative '../helpers/pathfinder'
+
 module Dnd5e
   module Core
     module Strategies
@@ -69,6 +71,8 @@ module Dnd5e
           return if in_range?(attack, combat) && !should_kite?(combatant, combat)
 
           speed = combatant.statblock.speed
+          return if speed.zero?
+
           target_pos = combat.grid.find_position(target)
           current_pos = combat.grid.find_position(combatant)
           return unless target_pos && current_pos
@@ -78,18 +82,13 @@ module Dnd5e
         end
 
         def execute_grid_move(combatant, current_pos, target_pos, speed, combat)
-          new_x = calc_new_x(current_pos.x, target_pos.x, speed, should_kite?(combatant, combat))
-          combat.move_combatant(combatant, Point2D.new(new_x, 0))
-        end
+          path = Helpers::Pathfinder.new(combat.grid).find_path(current_pos, target_pos)
+          return if path.empty?
 
-        def calc_new_x(cur_x, target_x, speed, kiting)
-          if speed.zero? then cur_x
-          elsif kiting then target_x > cur_x ? cur_x - speed : cur_x + speed
-          else
-            dist_x = (target_x - cur_x).abs
-            move_dist = [speed, dist_x].min
-            target_x > cur_x ? cur_x + move_dist : cur_x - move_dist
-          end
+          # Move along the path up to speed (speed/5 squares)
+          max_squares = speed / 5
+          new_pos = path[0...max_squares].last
+          combat.move_combatant(combatant, new_pos)
         end
 
         def should_kite?(combatant, combat)
