@@ -15,26 +15,24 @@ export const SimulationDashboard = () => {
   const [loading, setLoading] = useState(false);
 
   const handleResults = (payload) => {
-    const newHistory = [...history, { 
+    const newRun = { 
       timestamp: new Date().toLocaleTimeString(), 
       payload: payload,
-      isBatch: payload.is_batch,
+      isBatch: !!payload.is_batch,
       name: `Run ${history.length + 1}` 
-    }];
+    };
+    const newHistory = [...history, newRun];
     setHistory(newHistory);
     setSelectedIndices([newHistory.length - 1]); 
     
     setTimeout(() => {
       const resultsEl = document.getElementById('simulation-results');
       if (resultsEl) resultsEl.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+    }, 200);
   };
 
-  const currentRun = history[selectedIndices[0]];
-  const selectedDatasets = selectedIndices.map(i => {
-    const run = history[i];
-    return run.isBatch ? run.payload.results[0].data : run.payload.results[0].data;
-  });
+  const currentRun = history.length > 0 ? history[selectedIndices[0]] || history[history.length - 1] : null;
+  const selectedDatasets = selectedIndices.map(i => history[i]?.payload.results[0].data).filter(Boolean);
 
   return (
     <div className="simulation-dashboard">
@@ -60,7 +58,7 @@ export const SimulationDashboard = () => {
               </div>
             ))}
           </div>
-          <button onClick={() => setHistory([])} style={{ marginTop: '1rem', fontSize: '0.8rem' }}>Clear History</button>
+          <button onClick={() => { setHistory([]); setSelectedIndices([]); }} style={{ marginTop: '1rem', fontSize: '0.8rem' }}>Clear History</button>
         </div>
         
         <SimulationLibrary onRun={handleResults} />
@@ -70,56 +68,50 @@ export const SimulationDashboard = () => {
 
       {loading && <p>Processing data...</p>}
 
-      {currentRun && (
-        <div id="simulation-results" style={{ marginTop: '3rem', borderTop: '2px solid #eee', paddingTop: '2rem' }}>
-          <h2>Analysis: {selectedIndices.length > 1 ? 'Comparative' : currentRun.name}</h2>
-          
-          {currentRun.isBatch && selectedIndices.length === 1 ? (
-            <TrendChart batchResults={currentRun.payload} />
-          ) : (
-            <>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-                {selectedIndices.length === 1 ? (
-                  <>
-                    <SurvivalChart data={currentRun.payload.results[0].data} />
-                    <div>
-                      <h3>Quick Stats</h3>
+      <div id="simulation-results">
+        {currentRun && (
+          <div style={{ marginTop: '3rem', borderTop: '2px solid #eee', paddingTop: '2rem' }}>
+            <h2>Analysis: {selectedIndices.length > 1 ? 'Comparative' : currentRun.name}</h2>
+            
+            {/* Replayer is now TOP LEVEL results - available for single and sweep runs (sample) */}
+            {selectedIndices.length <= 1 && (
+              <div id="combat-playback-section" style={{ marginBottom: '2rem', padding: '1.5rem', background: '#fff', border: '1px solid #ddd', borderRadius: '8px' }}>
+                <h3>Combat Replay</h3>
+                <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '1rem' }}>Viewing sample combat from the simulation set.</p>
+                <CombatPlayback combatData={currentRun.payload.results[0].data} />
+              </div>
+            )}
+
+            {currentRun.isBatch && selectedIndices.length === 1 ? (
+              <TrendChart batchResults={currentRun.payload} />
+            ) : (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                  {selectedIndices.length === 1 ? (
+                    <>
+                      <SurvivalChart data={currentRun.payload.results[0].data} />
                       <div style={{ padding: '1rem', background: '#fff', border: '1px solid #ddd', borderRadius: '8px' }}>
+                        <h3>Quick Stats</h3>
                         <ul>
                           <li>Total Simulations: {currentRun.payload.results[0].data.length}</li>
                           <li>Average Rounds: {(currentRun.payload.results[0].data.reduce((acc, c) => acc + c.rounds.length, 0) / currentRun.payload.results[0].data.length).toFixed(1)}</li>
-                          <li>Total Crits: {currentRun.payload.results[0].data.flatMap(c => c.rounds.flatMap(r => r.events)).filter(e => e.type === 'attack' && e.is_crit).length}</li>
                         </ul>
                       </div>
-                    </div>
-                  </>
-                ) : (
-                  <div>
+                    </>
+                  ) : (
                     <DeltaAnalysis datasets={selectedDatasets} />
-                    <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: '#666' }}>
-                      * Comparisons are based on Team A vs Team B. Mixed compositions may yield unpredictable deltas.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {selectedIndices.length === 1 && (
-                <div style={{ marginTop: '2rem' }}>
-                  <h3>Combat Replay</h3>
-                  <p style={{ fontSize: '0.8rem', color: '#666' }}>Watching first simulation of the batch.</p>
-                  <CombatPlayback combatData={currentRun.payload.results[0].data[0]} />
+                  )}
                 </div>
-              )}
-              
-              {selectedIndices.length === 1 && <LuckAnalyzer data={currentRun.payload.results[0].data} />}
-            </>
-          )}
-          
-          {!currentRun.isBatch && <DPRChart datasets={selectedDatasets} />}
-          
-          {!currentRun.isBatch && selectedIndices.length === 1 && <RollInspector data={currentRun.payload.results[0].data} />}
-        </div>
-      )}
+                
+                {selectedIndices.length === 1 && <LuckAnalyzer data={currentRun.payload.results[0].data} />}
+              </>
+            )}
+            
+            {!currentRun.isBatch && <DPRChart datasets={selectedDatasets} />}
+            {!currentRun.isBatch && selectedIndices.length === 1 && <RollInspector data={currentRun.payload.results[0].data} />}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

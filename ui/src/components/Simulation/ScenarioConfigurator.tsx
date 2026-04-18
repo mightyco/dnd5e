@@ -75,40 +75,55 @@ export const ScenarioConfigurator = ({ onRun }) => {
   };
 
   return (
-    <div style={{ marginTop: '2rem', padding: '2rem', background: '#f9f9f9', borderRadius: '8px' }}>
-      <h2>Scientific Lab Runner</h2>
+    <div style={{ marginTop: '3rem', padding: '2.5rem', background: '#ffffff', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+      <h2 style={{ borderBottom: '2px solid #f0f0f0', paddingBottom: '0.5rem', marginBottom: '2rem' }}>Scientific Lab Runner</h2>
       
       {/* Variable Editor */}
-      <div style={{ padding: '1.5rem', border: '1px solid #ddd', borderRadius: '8px', background: '#fff', marginBottom: '2rem' }}>
-        <h3>1. Define Variables (Parameter Sweep)</h3>
+      <div style={{ padding: '1.5rem', border: '1px solid #e0e0e0', borderRadius: '8px', background: '#f8fafd', marginBottom: '2rem' }}>
+        <h3 style={{ marginTop: 0, color: '#1976d2' }}>1. Parameter Sweep Variables</h3>
         <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-          <input placeholder="Var Name (e.g. count)" value={newVar.name} onChange={e => setNewVar({...newVar, name: e.target.value})} />
-          <input placeholder="Values (e.g. [1,2,4])" value={newVar.values} onChange={e => setNewVar({...newVar, values: e.target.value})} style={{ flexGrow: 1 }} />
-          <button onClick={addVariable}>Add Variable</button>
+          <input 
+            placeholder="Var Name (e.g. count)" 
+            value={newVar.name} 
+            onChange={e => setNewVar({...newVar, name: e.target.value})} 
+            style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+          />
+          <input 
+            placeholder="Values (e.g. [1,2,4])" 
+            value={newVar.values} 
+            onChange={e => setNewVar({...newVar, values: e.target.value})} 
+            style={{ flexGrow: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }} 
+          />
+          <button onClick={addVariable} style={{ padding: '0.5rem 1rem', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+            Add Variable
+          </button>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {Object.entries(variables).map(([name, vals]) => (
-            <span key={name} style={{ background: '#e3f2fd', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem' }}>
-              <strong>{name}</strong>: {JSON.stringify(vals)} 
-              <button onClick={() => { const v = {...variables}; delete v[name]; setVariables(v); }} style={{ marginLeft: '5px', border: 'none', background: 'none', cursor: 'pointer' }}>×</button>
+            <span key={name} style={{ background: '#fff', border: '1px solid #90caf9', padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center' }}>
+              <strong>{name}</strong>:<span style={{marginLeft:'4px'}}>{JSON.stringify(vals)}</span>
+              <button onClick={() => { const v = {...variables}; delete v[name]; setVariables(v); }} style={{ marginLeft: '8px', border: 'none', background: '#ffcdd2', color: '#c62828', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
             </span>
           ))}
+          {Object.keys(variables).length === 0 && <span style={{ color: '#666', fontSize: '0.85rem', fontStyle: 'italic' }}>No variables defined. Single run mode.</span>}
         </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-        <CharacterBuilder onSave={addToPool} />
+        <div style={{ padding: '1.5rem', border: '1px solid #e0e0e0', borderRadius: '8px', background: '#fafafa' }}>
+          <CharacterBuilder onSave={addToPool} />
+        </div>
         
-        <div style={{ padding: '1.5rem', border: '1px solid #ddd', borderRadius: '8px', background: '#fff' }}>
-          <h3>2. Character Pool</h3>
-          <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-            {characterPool.length === 0 && <p style={{ color: '#999' }}>Pool is empty. Create a character or monster.</p>}
+        <div style={{ padding: '1.5rem', border: '1px solid #e0e0e0', borderRadius: '8px', background: '#fafafa' }}>
+          <h3 style={{ marginTop: 0 }}>2. Character Pool</h3>
+          <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
+            {characterPool.length === 0 && <p style={{ color: '#999', fontStyle: 'italic', textAlign: 'center', marginTop: '2rem' }}>Pool is empty. Create a character to start.</p>}
             {characterPool.map(c => (
-              <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', padding: '0.5rem', borderBottom: '1px solid #eee' }}>
-                <span>{c.name} ({c.type})</span>
-                <div>
-                  <button onClick={() => addToTeam(c, 0)} style={{ fontSize: '0.7rem' }}>+ Team A</button>
-                  <button onClick={() => addToTeam(c, 1)} style={{ fontSize: '0.7rem', marginLeft: '0.2rem' }}>+ Team B</button>
+              <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', padding: '0.75rem', background: '#fff', border: '1px solid #eee', borderRadius: '6px' }}>
+                <span style={{ fontWeight: '500' }}>{c.name} <span style={{ color: '#666', fontWeight: 'normal', fontSize: '0.8rem' }}>({c.type})</span></span>
+                <div style={{ display: 'flex', gap: '0.25rem' }}>
+                  <button onClick={() => addToTeam(c, 0)} style={{ fontSize: '0.75rem', padding: '4px 8px', background: '#e8f5e9', border: '1px solid #c8e6c9', color: '#2e7d32', borderRadius: '4px', cursor: 'pointer' }}>+ Team A</button>
+                  <button onClick={() => addToTeam(c, 1)} style={{ fontSize: '0.75rem', padding: '4px 8px', background: '#ffebee', border: '1px solid #ffcdd2', color: '#c62828', borderRadius: '4px', cursor: 'pointer' }}>+ Team B</button>
                 </div>
               </div>
             ))}
@@ -118,18 +133,34 @@ export const ScenarioConfigurator = ({ onRun }) => {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '2rem' }}>
         {teams.map((team, idx) => (
-          <div key={idx} style={{ padding: '1rem', border: '1px solid #ddd', borderRadius: '8px', background: '#fff' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <h3>{team.name}</h3>
-              <label>Count: <input value={team.count} onChange={e => updateTeamCount(idx, e.target.value)} style={{ width: '60px' }} /></label>
+          <div key={idx} style={{ padding: '1.5rem', border: '1px solid #e0e0e0', borderRadius: '8px', background: idx === 0 ? '#f1f8e9' : '#fff3e0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ margin: 0, color: idx === 0 ? '#2e7d32' : '#ef6c00' }}>{team.name}</h3>
+              <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
+                Count:{' '}
+                <input 
+                  value={team.count} 
+                  onChange={e => updateTeamCount(idx, e.target.value)} 
+                  style={{ width: '60px', padding: '0.25rem', borderRadius: '4px', border: '1px solid #ccc' }} 
+                />
+              </label>
             </div>
-            <ul style={{ listStyle: 'none', padding: 0 }}>
+            
+            {team.members.length === 0 && <p style={{ color: '#999', fontStyle: 'italic', fontSize: '0.85rem' }}>No members added to this team yet.</p>}
+            
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               {team.members.map((m, mIdx) => (
-                <li key={mIdx} style={{ padding: '0.5rem', borderBottom: '1px solid #f5f5f5', fontSize: '0.9rem' }}>
-                  {m.name} ({m.type})
+                <li key={mIdx} style={{ padding: '0.75rem', background: '#fff', border: '1px solid rgba(0,0,0,0.05)', borderRadius: '6px', marginBottom: '0.5rem' }}>
+                  <div style={{ fontWeight: '500' }}>{m.name} <span style={{ color: '#666', fontWeight: 'normal', fontSize: '0.8rem' }}>({m.type})</span></div>
                   {m.type === 'fighter' && (
-                    <div style={{ marginTop: '0.2rem' }}>
-                      <label>Subclass: <input value={m.subclass} onChange={e => updateMemberSubclass(idx, mIdx, e.target.value)} style={{ fontSize: '0.8rem' }} /></label>
+                    <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <label style={{ fontSize: '0.8rem', color: '#555' }}>Subclass:</label>
+                      <input 
+                        value={m.subclass || ''} 
+                        placeholder="e.g. champion"
+                        onChange={e => updateMemberSubclass(idx, mIdx, e.target.value)} 
+                        style={{ fontSize: '0.8rem', padding: '2px 6px', border: '1px solid #ddd', borderRadius: '4px' }} 
+                      />
                     </div>
                   )}
                 </li>
@@ -139,15 +170,21 @@ export const ScenarioConfigurator = ({ onRun }) => {
         ))}
       </div>
 
-      <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <input 
-          type="text" 
-          placeholder="Experiment Name" 
-          value={simConfig.name} 
-          onChange={(e) => setSimConfig({ ...simConfig, name: e.target.value })} 
-        />
-        <button onClick={handleRun} style={{ padding: '10px 25px', background: '#2e7d32', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold' }}>
-          Run Scientific Sweep
+      <div style={{ marginTop: '3rem', padding: '1.5rem', background: '#f5f5f5', borderRadius: '8px', border: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <label style={{ fontWeight: 'bold', color: '#333' }}>Experiment Name:</label>
+          <input 
+            type="text" 
+            value={simConfig.name} 
+            onChange={(e) => setSimConfig({ ...simConfig, name: e.target.value })} 
+            style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc', minWidth: '250px' }}
+          />
+        </div>
+        <button 
+          onClick={handleRun} 
+          style={{ padding: '12px 30px', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 2px 5px rgba(25, 118, 210, 0.4)' }}
+        >
+          🚀 Launch Experiment
         </button>
       </div>
     </div>

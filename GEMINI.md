@@ -60,3 +60,17 @@ All changes MUST meet the following criteria before being considered complete:
 3.  **RuboCop Compliance**: Zero linting offenses.
 4.  **Mathematical Integrity**: High-precision balance audit (`rake test:balance:full`) must pass for any changes affecting combat logic.
 5.  **Documentation**: Relevant OpenSpecs and DESIGN docs must be synchronized with implementation.
+
+## 🖥️ UI Verification Protocol
+Every UI change MUST follow this explicit verification sequence in the test phase:
+1.  **Step 1: Version Sync**: Confirm the version running in the browser is the version just built (use build timestamps or git hashes).
+2.  **Step 2: Landmark Check**: Confirm major UI elements and "design anchors" (e.g. a specific header or `data-testid`) are present and visible.
+3.  **Step 4: Functional Exercise**: Execute the core user flow (click, input, submit) to test the logic.
+4.  **Step 5: Evidence Capture**: Record a screenshot or console log output as empirical proof.
+5.  **Step 6: Validation**: Final pass/fail based on visual and data integrity.
+
+## 🛠️ Systematic Troubleshooting
+If a task fails more than twice, or if a build does not reflect changes in the runtime:
+1.  **ACTIVATE SKILL**: You MUST call `activate_skill(name: 'troubleshooter')`.
+2.  **Lock Source**: Stop guessing variable names or overwriting files blindly.
+3.  **Trace Pipeline**: Systematically verify Disk -> Compiler -> Artifact -> Server -> Browser.

@@ -3,8 +3,8 @@
 namespace :ui do
   desc 'Build the React application'
   task :build do
-    puts 'Building React application...'
-    sh 'cd ui && npx vite build'
+    puts "Building React application at #{Time.now}..."
+    sh 'cd ui && npx vite build --config vite.config.ts'
   end
 
   desc 'Install UI dependencies'
