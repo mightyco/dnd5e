@@ -28,9 +28,11 @@ module Dnd5e
 
           target = find_target(combatant, combat)
           attack = select_attack(combatant, combat)
+
           return unless target && attack
 
           move_towards_target(combatant, target, attack, combat)
+
           return unless in_range?(attack, combat)
 
           execute_attacks(combatant, target, attack, combat)

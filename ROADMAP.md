@@ -55,7 +55,35 @@ Our primary scientific goal is to model and compare the **Champion** and **Battl
 
 ---
 
+## 🚀 The Path to Tactical Simulation
+
+### Tree 1: Rules Completion (Foundational)
+- [ ] **Rogue Class Integration**: Core traits (Sneak Attack, Cunning Action, Evasion).
+- [ ] **Feat Selection System**: Unified interface for GWM, Sharpshooter, and Dual Wielder.
+- [ ] **Wizard Subclasses**: 2024 Evoker and Abjurer implementations.
+- [ ] **Multi-Classing**: Heterogeneous level scaling and resource management.
+- [ ] **Party Composition**: Pre-defined 4-person party templates (Tank, Healer, DPS).
+
+### Tree 2: Tactical Grid (The Map)
+- [ ] **2D Coordinate System**: Move from 1D "distance" to a proper (X, Y) grid.
+- [ ] **Terrain & Obstacles**: Implementation of difficult terrain and full/half cover.
+- [ ] **Aura & Area Logic**: Grid-based resolution for Paladin auras and spell radii.
+- [ ] **Opportunity Attack Zones**: True "threatened area" management.
+
+### Tree 3: Strategy & Tactics (Grid-Aware AI)
+- [ ] **Pathfinding**: A* implementation for intelligent movement around obstacles.
+- [ ] **Positioning Logic**: AI should seek cover, optimize AOE clusters, and kite effectively on 2D.
+- [ ] **Role-Based Behavior**: Specific AI for Defenders (staying between enemy and squishies) and Strikers (flanking).
+
+### Tree 4: "Video Game Mode" (UI/UX)
+- [ ] **Visual Combat Playback**: A 2D canvas-based renderer for viewing simulation rounds.
+- [ ] **Interactive Mode**: Allow a human player to control one combatant against the AI.
+- [ ] **Rich Aesthetics**: Sprites, movement animations, and floating combat text.
+
+---
+
 ## Future Vision
-*   **Party Composition Testing**: Simulating full 4-person parties through Level 10.
-*   **Multi-Classing Support**: Implementation of multi-class level scaling.
+*   **Scientific Benchmarking**: Using the grid to determine the "True Value" of movement speed and reach.
+*   **Campaign Simulation**: Simulating a series of encounters with short/long rest resource tracking.
+
 

@@ -15,12 +15,12 @@ module Dnd5e
       attr_accessor :strength, :dexterity, :constitution, :intelligence, :wisdom, :charisma, :hit_points,
                     :saving_throw_proficiencies, :equipped_armor, :equipped_shield,
                     :extra_attacks, :resources, :speed, :crit_threshold, :heroic_inspiration,
-                    :damage_taken, :damage_dealt
+                    :damage_taken, :damage_dealt, :altitude
 
       DEFAULT_STATS = {
         strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10,
         hit_die: 'd8', level: 1, extra_attacks: 0, resources: {}, speed: 30, crit_threshold: 20,
-        heroic_inspiration: false, damage_taken: 0, damage_dealt: 0, size: :medium
+        heroic_inspiration: false, damage_taken: 0, damage_dealt: 0, size: :medium, altitude: 0
       }.freeze
 
       def initialize(name:, **options)

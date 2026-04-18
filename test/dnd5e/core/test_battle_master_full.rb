@@ -27,6 +27,7 @@ module Dnd5e
 
         resources = @hero.statblock.resources.resources
 
+        # Moved 15ft closer from 20ft -> should be at 5ft
         assert_equal 5, @combat.distance
         assert_equal 4, resources[:superiority_dice]
         assert_equal 1, resources[:second_wind]
@@ -59,6 +60,7 @@ module Dnd5e
 
         @hero.strategy.execute_turn(@hero, @combat)
 
+        # 5ft + 15ft push = 20ft
         assert_equal 20, @combat.distance
       end
 
@@ -72,6 +74,7 @@ module Dnd5e
       end
 
       def create_combat(hero, target)
+        # Explicitly ensure we use TeamCombat for stationary grid logic
         TeamCombat.new(teams: [
                          Team.new(name: 'Heroes', members: [hero]),
                          Team.new(name: 'Monsters', members: [target])

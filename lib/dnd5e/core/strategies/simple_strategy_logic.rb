@@ -3,43 +3,19 @@
 module Dnd5e
   module Core
     module Strategies
-      # Helper logic for SimpleStrategy to keep the main class small.
-      module SimpleStrategyLogic
+      # Extra attack logic for SimpleStrategy.
+      module ExtraAttackHelper
         private
 
-        def move_towards_target(combatant, _target, attack, combat)
-          return if in_range?(attack, combat) && !should_kite?(combatant, combat)
-
-          speed = combatant.statblock.speed
-          new_dist = should_kite?(combatant, combat) ? combat.distance + speed : [0, combat.distance - speed].max
-
-          combat.move_combatant(combatant, new_dist)
-          combatant.turn_context.use_movement(speed)
-        end
-
-        def should_kite?(combatant, combat)
-          combat.distance <= 5 && combatant.attacks.any? { |a| a.range > 5 }
-        end
-
-        def in_range?(attack, combat)
-          combat.distance <= attack.range
-        end
-
-        def execute_attacks(combatant, target, attack, combat)
-          num_attacks = attack.type == :save ? 1 : 1 + combatant.statblock.extra_attacks
-          num_attacks.times do
-            break unless target.statblock.alive?
-
-            combat.attack(combatant, target, attack: attack)
-            combatant.statblock.resources.consume(attack.resource_cost) if attack.resource_cost
-            try_cleave_attack(combatant, target, attack, combat)
-          end
-          try_extra_attacks(combatant, target, attack, combat)
-        end
-
         def try_extra_attacks(combatant, target, attack, combat)
+          return unless target.statblock.alive?
+
           try_nick_attack(combatant, target, combat)
+          return unless target.statblock.alive?
+
           try_dual_wielder_attack(combatant, target, combat)
+          return unless target.statblock.alive?
+
           try_gwm_bonus_attack(combatant, target, attack, combat)
         end
 
@@ -54,7 +30,7 @@ module Dnd5e
           return unless combatant.feature_manager.features.any? { |f| f.name == 'Great Weapon Master' }
           return unless !target.statblock.alive? && combatant.turn_context.bonus_action_available?
 
-          new_target = target.statblock.alive? ? target : find_target(combatant, combat)
+          new_target = target.statblock.alive? ? target : combat.find_valid_defender(combatant)
           return unless new_target
 
           combat.attack(combatant, new_target, attack: attack)
@@ -80,6 +56,66 @@ module Dnd5e
 
           combat.attack(combatant, target, attack: light_weapon, offhand: true)
           combatant.turn_context.use_bonus_action
+        end
+      end
+
+      # Helper logic for SimpleStrategy to keep the main class small.
+      module SimpleStrategyLogic
+        include ExtraAttackHelper
+
+        private
+
+        def move_towards_target(combatant, target, attack, combat)
+          return if in_range?(attack, combat) && !should_kite?(combatant, combat)
+
+          speed = combatant.statblock.speed
+          target_pos = combat.grid.find_position(target)
+          current_pos = combat.grid.find_position(combatant)
+          return unless target_pos && current_pos
+
+          execute_grid_move(combatant, current_pos, target_pos, speed, combat)
+          combatant.turn_context.use_movement(speed)
+        end
+
+        def execute_grid_move(combatant, current_pos, target_pos, speed, combat)
+          new_x = calc_new_x(current_pos.x, target_pos.x, speed, should_kite?(combatant, combat))
+          combat.move_combatant(combatant, Point2D.new(new_x, 0))
+        end
+
+        def calc_new_x(cur_x, target_x, speed, kiting)
+          if speed.zero? then cur_x
+          elsif kiting then target_x > cur_x ? cur_x - speed : cur_x + speed
+          else
+            dist_x = (target_x - cur_x).abs
+            move_dist = [speed, dist_x].min
+            target_x > cur_x ? cur_x + move_dist : cur_x - move_dist
+          end
+        end
+
+        def should_kite?(combatant, combat)
+          combat.distance <= 5 && combatant.attacks.any? { |a| a.range > 5 }
+        end
+
+        def in_range?(attack, combat)
+          combat.distance <= attack.range
+        end
+
+        def execute_attacks(combatant, target, attack, combat)
+          num_attacks = attack.type == :save ? 1 : 1 + combatant.statblock.extra_attacks
+          perform_attack_sequence(num_attacks, combatant, target, attack, combat)
+          try_extra_attacks(combatant, target, attack, combat)
+        end
+
+        def perform_attack_sequence(num, combatant, target, attack, combat)
+          num.times do
+            break unless target.statblock.alive?
+
+            combat.attack(combatant, target, attack: attack)
+            break unless target.statblock.alive?
+
+            combatant.statblock.resources.consume(attack.resource_cost) if attack.resource_cost
+            try_cleave_attack(combatant, target, attack, combat)
+          end
         end
 
         def select_attack(combatant, combat)

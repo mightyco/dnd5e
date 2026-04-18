@@ -22,8 +22,8 @@ module Dnd5e
       end
 
       def attack(attacker, defender, **options)
-        raise InvalidAttackError, 'Cannot attack a dead attacker' unless attacker.statblock.alive?
-        raise InvalidAttackError, 'Cannot attack a dead defender' unless defender.statblock.alive?
+        return unless attacker.statblock.alive?
+        return unless defender&.statblock&.alive?
 
         attack_to_use = options[:attack] || attacker.attacks.first
 
@@ -40,8 +40,7 @@ module Dnd5e
         combat = options[:combat]
         return @attack_resolver.resolve(attacker, target, attack, **options) unless combat
 
-        # Identify victims: In our simple 1D engine, AOE hits the target side
-        # and potentially the attacker's side if distance is small.
+        # Identify victims using grid if available
         victims = find_aoe_victims(attacker, target, attack, combat)
 
         victims.map do |victim|
@@ -52,14 +51,20 @@ module Dnd5e
       def find_aoe_victims(_attacker, target, attack, combat)
         radius = attack.area_radius
 
-        # If distance between side is less than radius, everyone is hit!
-        # Otherwise, only the target's side is hit.
+        if combat.respond_to?(:grid)
+          target_pos = combat.grid.find_position(target)
+          return combat.grid.combatants_within(target_pos, radius) if target_pos
+        end
+
+        fallback_aoe_victims(target, radius, combat)
+      end
+
+      def fallback_aoe_victims(target, radius, combat)
         if combat.distance < radius
           combat.combatants.select { |c| c.statblock.alive? }
         else
-          # Only hit target's team
           target_team = target.team || combat.teams.find { |t| t.members.include?(target) }
-          target_team.alive_members
+          target_team.respond_to?(:alive_members) ? target_team.alive_members : []
         end
       end
 

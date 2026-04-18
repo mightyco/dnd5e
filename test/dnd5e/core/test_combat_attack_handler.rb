@@ -39,12 +39,15 @@ module Dnd5e
 
       def test_attack_with_dead_attacker
         @character1.statblock.take_damage(10)
-        assert_raises(InvalidAttackError) { @attack_handler.attack(@character1, @character2) }
+
+        assert_nil @attack_handler.attack(@character1, @character2)
       end
 
       def test_attack_with_dead_defender
         @character2.statblock.take_damage(10)
-        assert_raises(InvalidAttackError) { @attack_handler.attack(@character1, @character2) }
+
+        refute_predicate @character2.statblock, :alive?
+        assert_nil @attack_handler.attack(@character1, @character2)
       end
 
       def test_attack_miss
@@ -59,17 +62,9 @@ module Dnd5e
         assert_equal 10, @character2.statblock.hit_points
       end
 
-      # Moved from test_combat.rb
       def test_attack_on_invalid_target
-        # Kill the defender
-        @character2.statblock.take_damage(@character2.statblock.hit_points)
-
-        refute_predicate @character2.statblock, :alive?
-
-        # Attempt to attack the dead defender
-        assert_raises(InvalidAttackError) do
-          @attack_handler.attack(@character1, @character2)
-        end
+        # Attempt to attack nil
+        assert_nil @attack_handler.attack(@character1, nil)
       end
     end
   end

@@ -44,20 +44,31 @@ module Dnd5e
 
         private
 
-        def try_tactical_shift(combatant, _target, attack, combat)
+        def try_tactical_shift(combatant, target, attack, combat)
           return if in_range?(attack, combat)
           return unless combatant.turn_context.bonus_action_available?
 
-          bm_feature = combatant.feature_manager.features.find { |f| f.name == 'Battle Master' }
-          return unless bm_feature
-
-          move_dist = bm_feature.apply_tactical_shift(combatant, combat)
+          bm_feat = combatant.feature_manager.features.find { |f| f.name == 'Battle Master' }
+          move_dist = bm_feat&.apply_tactical_shift(combatant, combat)
           return unless move_dist
 
-          # Move towards target (1D)
-          new_dist = [0, combat.distance - move_dist].max
-          combat.move_combatant(combatant, new_dist)
+          execute_tactical_move(combatant, target, move_dist, combat)
           combatant.turn_context.use_bonus_action
+        end
+
+        def execute_tactical_move(combatant, target, move_dist, combat)
+          current_pos = combat.grid.find_position(combatant)
+          target_pos = combat.grid.find_position(target)
+          return unless current_pos && target_pos
+
+          new_x = calc_tactical_x(current_pos.x, target_pos.x, move_dist)
+          combat.move_combatant(combatant, Point2D.new(new_x, 0))
+        end
+
+        def calc_tactical_x(cur_x, target_x, move_dist)
+          dist_x = (target_x - cur_x).abs
+          actual_move = [move_dist, dist_x].min
+          target_x > cur_x ? cur_x + actual_move : cur_x - actual_move
         end
 
         def execute_battle_master_attacks(combatant, target, attack, combat)

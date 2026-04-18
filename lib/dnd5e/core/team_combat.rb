@@ -22,6 +22,7 @@ module Dnd5e
         @teams = teams
         # result_handler and logger are deprecated/ignored here, handled via observers
         super(combatants: teams.first.members + teams.last.members, dice_roller: dice_roller, distance: distance)
+        setup_stationary_grid(distance)
       end
 
       # Runs the combat and handles the results.
@@ -65,6 +66,17 @@ module Dnd5e
       end
 
       private
+
+      def setup_stationary_grid(dist)
+        @grid.occupants.clear
+        @teams.each_with_index do |team, i|
+          pos = i.zero? ? Point2D.new(0, 0) : Point2D.new(dist, 0)
+          team.members.each do |member|
+            @grid.remove(member)
+            @grid.place(member, pos)
+          end
+        end
+      end
 
       # Deprecated: legacy turn logic moved to strategies
       def execute_legacy_turn(attacker)

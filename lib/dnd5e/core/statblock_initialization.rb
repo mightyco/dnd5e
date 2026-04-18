@@ -9,7 +9,7 @@ module Dnd5e
       def initialize_from_options(opt)
         stats = Statblock::DEFAULT_STATS.merge(opt)
         %i[strength dexterity constitution intelligence wisdom charisma hit_die level extra_attacks speed
-           crit_threshold heroic_inspiration damage_taken damage_dealt size].each do |k|
+           crit_threshold heroic_inspiration damage_taken damage_dealt size altitude].each do |k|
           instance_variable_set("@#{k}", stats[k])
         end
         @armor_class = opt[:armor_class]
