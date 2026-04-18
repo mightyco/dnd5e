@@ -7,6 +7,7 @@ import { SimulationLibrary } from './SimulationLibrary';
 import { DeltaAnalysis } from './LabAnalysis';
 import { TrendChart } from './TrendChart';
 import { LuckAnalyzer } from './LuckAnalyzer';
+import { CombatPlayback } from './CombatPlayback';
 
 export const SimulationDashboard = () => {
   const [history, setHistory] = useState([]);
@@ -14,7 +15,6 @@ export const SimulationDashboard = () => {
   const [loading, setLoading] = useState(false);
 
   const handleResults = (payload) => {
-    // payload is now { is_batch: boolean, results: [{ parameters: {}, data: [] }] }
     const newHistory = [...history, { 
       timestamp: new Date().toLocaleTimeString(), 
       payload: payload,
@@ -22,7 +22,7 @@ export const SimulationDashboard = () => {
       name: `Run ${history.length + 1}` 
     }];
     setHistory(newHistory);
-    setSelectedIndices([newHistory.length - 1]); // Auto-select newest
+    setSelectedIndices([newHistory.length - 1]); 
     
     setTimeout(() => {
       const resultsEl = document.getElementById('simulation-results');
@@ -102,6 +102,14 @@ export const SimulationDashboard = () => {
                   </div>
                 )}
               </div>
+
+              {selectedIndices.length === 1 && (
+                <div style={{ marginTop: '2rem' }}>
+                  <h3>Combat Replay</h3>
+                  <p style={{ fontSize: '0.8rem', color: '#666' }}>Watching first simulation of the batch.</p>
+                  <CombatPlayback combatData={currentRun.payload.results[0].data[0]} />
+                </div>
+              )}
               
               {selectedIndices.length === 1 && <LuckAnalyzer data={currentRun.payload.results[0].data} />}
             </>
