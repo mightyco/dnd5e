@@ -53,10 +53,10 @@ Our primary scientific goal is to model and compare the **Champion** and **Battl
 - [x] **Rules Ingestion Refactoring**: Enhanced parser for complex 2024 table layouts and multi-column metadata.
 - [x] **Feature Audit**: Validation of implemented maneuvers and masteries against PHB/SRD text using `scripts/feature_audit.rb`.
 
-### Phase 8: UI Test and Design Mode (Current)
-- [ ] **Component Testing**: Add comprehensive Vitest and React Testing Library tests to prevent UI regressions.
-- [ ] **Design Validation**: Clean up the landing page starting with the Scientific Lab Runner.
-- [ ] **End-to-End Testing**: Continue using Puppeteer/Playwright to verify major features and flows visually.
+### Phase 8: UI Test and Design Mode (Completed)
+- [x] **Component Testing**: Add comprehensive Vitest and React Testing Library tests to prevent UI regressions.
+- [x] **Design Validation**: Clean up the landing page starting with the Scientific Lab Runner.
+- [x] **End-to-End Testing**: Continue using Puppeteer/Playwright to verify major features and flows visually.
 
 ---
 
