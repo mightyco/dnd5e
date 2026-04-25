@@ -69,11 +69,11 @@ Our primary scientific goal is to model and compare the **Champion** and **Battl
 - [ ] **Multi-Classing**: Heterogeneous level scaling and resource management.
 - [ ] **Party Composition**: Pre-defined 4-person party templates (Tank, Healer, DPS).
 
-### Tree 2: Tactical Grid (The Map)
-- [ ] **2D Coordinate System**: Move from 1D "distance" to a proper (X, Y) grid.
-- [ ] **Terrain & Obstacles**: Implementation of difficult terrain and full/half cover.
-- [ ] **Aura & Area Logic**: Grid-based resolution for Paladin auras and spell radii.
-- [ ] **Opportunity Attack Zones**: True "threatened area" management.
+### Tree 2: Tactical Grid (The Map) (Completed)
+- [x] **2D Coordinate System**: Move from 1D "distance" to a proper (X, Y) grid.
+- [x] **Terrain & Obstacles**: Implementation of difficult terrain and full/half cover.
+- [x] **Aura & Area Logic**: Grid-based resolution for Paladin auras and spell radii.
+- [x] **Opportunity Attack Zones**: True "threatened area" management.
 
 ### Tree 3: Strategy & Tactics (Grid-Aware AI)
 - [ ] **Pathfinding**: A* implementation for intelligent movement around obstacles.
