@@ -10,6 +10,23 @@ module Dnd5e
 
       def initialize
         @occupants = {} # Point2D => Array<Combatant>
+        @terrain = {}   # Point2D => Symbol (:difficult, etc)
+      end
+
+      # Resets the grid.
+      def clear
+        @occupants.clear
+        @terrain.clear
+      end
+
+      # Sets terrain type for a square.
+      def set_terrain(point, type)
+        @terrain[point] = type
+      end
+
+      # Returns the movement cost to enter a square.
+      def movement_cost(point)
+        @terrain[point] == :difficult ? 10 : 5
       end
 
       # Places a combatant at a specific point.
