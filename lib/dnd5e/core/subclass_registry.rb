@@ -2,6 +2,8 @@
 
 require_relative 'features/battle_master'
 require_relative 'features/improved_critical'
+require_relative 'features/wizard_evoker'
+require_relative 'features/wizard_abjurer'
 require_relative 'strategies/battle_master_strategy'
 require_relative 'strategies/simple_strategy'
 
@@ -17,6 +19,14 @@ module Dnd5e
         },
         champion: {
           features: ->(_level) { [Features::ImprovedCritical.new] },
+          strategy: ->(_level) { Strategies::SimpleStrategy.new }
+        },
+        evoker: {
+          features: ->(_level) { [Features::SculptSpells.new, Features::EmpoweredEvocation.new] },
+          strategy: ->(_level) { Strategies::SimpleStrategy.new }
+        },
+        abjurer: {
+          features: ->(level) { [Features::ArcaneWard.new(level: level)] },
           strategy: ->(_level) { Strategies::SimpleStrategy.new }
         }
       }.freeze

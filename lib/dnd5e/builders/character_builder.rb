@@ -118,10 +118,11 @@ module Dnd5e
         self
       end
 
-      def as_wizard(level: 1, abilities: {})
+      def as_wizard(level: 1, abilities: {}, subclass: nil)
         abilities = merge_abilities(abilities)
         @statblock = build_wizard_statblock(level, abilities)
         add_wizard_equipment
+        with_subclass(subclass, level: level) if subclass
         self
       end
 

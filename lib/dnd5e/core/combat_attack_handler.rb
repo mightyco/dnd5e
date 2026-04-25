@@ -43,6 +43,9 @@ module Dnd5e
         # Identify victims using grid if available
         victims = find_aoe_victims(attacker, target, attack, combat)
 
+        context = { attacker: attacker, target: target, attack: attack, options: options, combat: combat }
+        victims = attacker.feature_manager.apply_hook(:on_aoe_target_selection, context, victims)
+
         victims.map do |victim|
           @attack_resolver.resolve(attacker, victim, attack, **options)
         end
