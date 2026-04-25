@@ -10,15 +10,22 @@ module Dnd5e
         private
 
         def try_extra_attacks(combatant, target, attack, combat)
-          return unless target.statblock.alive?
+          target = ensure_alive_target(combatant, target, combat)
+          return unless target
 
           try_nick_attack(combatant, target, combat)
-          return unless target.statblock.alive?
+          target = ensure_alive_target(combatant, target, combat)
+          return unless target
 
           try_dual_wielder_attack(combatant, target, combat)
-          return unless target.statblock.alive?
+          target = ensure_alive_target(combatant, target, combat)
+          return unless target
 
           try_gwm_bonus_attack(combatant, target, attack, combat)
+        end
+
+        def ensure_alive_target(combatant, target, combat)
+          target&.statblock&.alive? ? target : find_target(combatant, combat)
         end
 
         def try_cleave_attack(combatant, target, attack, combat)
@@ -121,10 +128,11 @@ module Dnd5e
 
         def perform_attack_sequence(num, combatant, target, attack, combat)
           num.times do
-            break unless target.statblock.alive?
+            # Re-acquire target if current one is dead or missing
+            target = find_target(combatant, combat) unless target&.statblock&.alive?
+            break unless target
 
             combat.attack(combatant, target, attack: attack)
-            break unless target.statblock.alive?
 
             combatant.statblock.resources.consume(attack.resource_cost) if attack.resource_cost
             try_cleave_attack(combatant, target, attack, combat)
