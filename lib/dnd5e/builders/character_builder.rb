@@ -126,6 +126,18 @@ module Dnd5e
         self
       end
 
+      def with_magic_weapon(name, bonus)
+        @attacks.each do |attack|
+          attack.instance_variable_set(:@magic_bonus, bonus) if attack.name.downcase == name.downcase
+        end
+        self
+      end
+
+      def with_magic_armor(bonus)
+        @statblock&.equipped_armor&.instance_variable_set(:@magic_bonus, bonus)
+        self
+      end
+
       def build
         raise InvalidCharacterError, 'Character must have a name' if @name.nil? || @name.empty?
         raise InvalidCharacterError, 'Character must have a statblock' if @statblock.nil?

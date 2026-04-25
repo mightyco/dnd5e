@@ -24,6 +24,7 @@ module Dnd5e
         def self.calculate_modifier(attacker, attack, options)
           mod = attacker.statblock.ability_modifier(attack.relevant_stat)
           mod += attacker.statblock.proficiency_bonus
+          mod += attack.magic_bonus if attack.respond_to?(:magic_bonus)
           context = { attacker: attacker, attack: attack, options: options }
           attacker.feature_manager.apply_modifier_hook(:on_attack_roll, context, mod)
         end

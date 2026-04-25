@@ -8,7 +8,8 @@ module Dnd5e
     # Represents an attack action available to a combatant.
     class Attack
       attr_reader :name, :damage_dice, :relevant_stat, :dice_roller, :type, :save_ability, :half_damage_on_save,
-                  :fixed_dc, :dc_stat, :range, :scaling, :resource_cost, :area_radius, :mastery, :properties
+                  :fixed_dc, :dc_stat, :range, :scaling, :resource_cost, :area_radius, :mastery, :properties,
+                  :magic_bonus
 
       # Initializes a new Attack.
       #
@@ -31,6 +32,7 @@ module Dnd5e
         @damage_dice = damage_dice
         @relevant_stat = relevant_stat
         @dice_roller = dice_roller
+        @magic_bonus = options[:magic_bonus] || 0
         assign_options(options)
       end
 

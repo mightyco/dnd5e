@@ -17,8 +17,8 @@ module Dnd5e
         end
 
         def self.calculate_modifier(attacker, attack, options)
-          # Start with weapon's built-in modifier
-          base_mod = attack.damage_dice.modifier
+          # Start with weapon's built-in modifier and magic bonus
+          base_mod = attack.damage_dice.modifier + (attack.respond_to?(:magic_bonus) ? attack.magic_bonus : 0)
 
           # Add ability modifier
           ability_mod = attacker.statblock.ability_modifier(attack.relevant_stat)
