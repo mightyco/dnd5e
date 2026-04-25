@@ -12,22 +12,14 @@ module Dnd5e
         end
 
         def on_damage_taken(context)
-          return nil unless eligible?(context)
+          damage = context[:current_value]
+          return damage unless context[:attack]&.save_ability == :dexterity
 
           if context[:save_success]
             0
           else
-            (context[:damage] / 2).floor
+            (damage / 2).floor
           end
-        end
-
-        private
-
-        def eligible?(context)
-          # Only applies to Dex saves for half damage
-          context[:attack].type == :save &&
-            context[:attack].save_ability == :dexterity &&
-            context[:attack].half_damage_on_save
         end
       end
     end

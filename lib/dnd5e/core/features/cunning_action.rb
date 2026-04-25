@@ -1,27 +1,31 @@
 # frozen_string_literal: true
 
-# require_relative 'strategies/base_strategy' # Circular/incorrect path
+require_relative '../feature'
 
 module Dnd5e
   module Core
-    # A module to be included in Strategies that can use Cunning Action.
+    # Methods for Cunning Action shared between feature and strategy.
     module CunningAction
-      # Attempts to use Cunning Action to Hide if eligible.
-      #
-      # @param combatant [Character] The character attempting to hide.
-      # @param combat [Combat] The combat instance.
-      # @return [Boolean] true if hidden, false otherwise.
       def try_cunning_action_hide?(combatant, _combat)
         return false unless combatant.turn_context.bonus_action_available?
+        return false if combatant.condition?(:hidden)
 
-        # Logic for hiding:
-        # 1. Check if obscured (simplified: always yes for now or needs Cover system)
-        # 2. Roll Stealth vs Passive Perception (simplified: auto-succeed for now or needs check)
-
-        # For this iteration, we just mark the action used and set a flag.
-        combatant.turn_context.use_bonus_action
+        # In a real sim, we'd roll Stealth vs Perception.
+        # For simplicity, we'll assume success if they have the feature.
         combatant.add_condition(:hidden)
+        combatant.turn_context.use_bonus_action
         true
+      end
+    end
+
+    module Features
+      # Implementation of the Cunning Action class feature.
+      class CunningAction < Feature
+        include Dnd5e::Core::CunningAction
+
+        def initialize
+          super(name: 'Cunning Action')
+        end
       end
     end
   end

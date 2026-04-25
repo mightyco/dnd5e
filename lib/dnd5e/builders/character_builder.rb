@@ -1,12 +1,19 @@
 # frozen_string_literal: true
 
 require_relative 'spell_slot_calculator'
+require_relative 'character_build_logic'
 require_relative '../core/character'
 require_relative '../core/statblock'
 require_relative '../core/attack'
 require_relative '../core/dice'
 require_relative '../core/armor'
 require_relative '../core/subclass_registry'
+require_relative '../core/features/sneak_attack'
+require_relative '../core/features/cunning_action'
+require_relative '../core/features/evasion'
+require_relative '../core/features/action_surge'
+require_relative '../core/features/second_wind'
+require_relative '../core/strategies/rogue_strategy'
 
 module Dnd5e
   module Builders
@@ -40,6 +47,7 @@ module Dnd5e
     # Builds a Character object with a fluent interface.
     class CharacterBuilder
       include EquipmentHelper
+      include ClassBuildLogic
 
       class InvalidCharacterError < StandardError; end
 
@@ -73,9 +81,6 @@ module Dnd5e
         self
       end
 
-      # Applies the canonical features and strategy for a known subclass.
-      # Call after as_fighter (or as_wizard etc.) so @statblock is available for level resolution.
-      # Pass level: explicitly if calling before the class method, or if you need to override.
       def with_subclass(subclass, level: nil)
         resolved_level = level || @statblock&.level || 1
         Core::SubclassRegistry.features_for(subclass, resolved_level).each { |f| with_feature(f) }
@@ -83,9 +88,16 @@ module Dnd5e
         self
       end
 
-      # Explicitly sets a strategy, overriding any subclass default.
       def with_strategy(strategy)
         @strategy_override = strategy
+        self
+      end
+
+      def as_rogue(level: 1, abilities: {})
+        abilities = merge_abilities(abilities)
+        @statblock = build_rogue_statblock(level, abilities)
+        add_rogue_equipment
+        add_rogue_features(level)
         self
       end
 
@@ -94,6 +106,9 @@ module Dnd5e
         @statblock = build_fighter_statblock(level, abilities, armor_type)
         longsword = Core::Attack.new(name: 'Longsword', damage_dice: Core::Dice.new(1, 8), relevant_stat: :strength)
         with_attack(longsword) unless @attacks.any? { |a| a.name == 'Longsword' }
+
+        with_feature(Core::Features::ActionSurge.new) if level >= 2
+        with_feature(Core::Features::SecondWind.new) if level >= 1
         self
       end
 
@@ -117,42 +132,6 @@ module Dnd5e
 
       def merge_abilities(abilities)
         { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 }.merge(abilities)
-      end
-
-      def build_fighter_statblock(level, abilities, armor_type)
-        Core::Statblock.new(
-          name: @name, strength: abilities[:strength], dexterity: abilities[:dexterity],
-          constitution: abilities[:constitution], intelligence: abilities[:intelligence],
-          wisdom: abilities[:wisdom], charisma: abilities[:charisma], hit_die: 'd10',
-          level: level, saving_throw_proficiencies: %i[strength constitution],
-          equipped_armor: create_armor(armor_type), extra_attacks: (level >= 5 ? 1 : 0),
-          resources: calculate_fighter_resources(level)
-        )
-      end
-
-      def calculate_fighter_resources(level)
-        {
-          second_wind: calculate_second_wind(level),
-          action_surge: (level >= 17 ? 2 : 1)
-        }
-      end
-
-      def calculate_second_wind(level)
-        if level >= 10 then 4
-        elsif level >= 6 then 3
-        else 2
-        end
-      end
-
-      def build_wizard_statblock(level, abilities)
-        resources = SpellSlotCalculator.calculate('Wizard', level)
-        Core::Statblock.new(
-          name: @name,
-          strength: abilities[:strength], dexterity: abilities[:dexterity], constitution: abilities[:constitution],
-          intelligence: abilities[:intelligence], wisdom: abilities[:wisdom], charisma: abilities[:charisma],
-          hit_die: 'd6', level: level, saving_throw_proficiencies: %i[intelligence wisdom],
-          resources: resources
-        )
       end
     end
   end
