@@ -8,6 +8,7 @@ require_relative '../core/attack'
 require_relative '../core/dice'
 require_relative '../core/armor'
 require_relative '../core/subclass_registry'
+require_relative '../core/feat_registry'
 require_relative '../core/features/sneak_attack'
 require_relative '../core/features/cunning_action'
 require_relative '../core/features/evasion'
@@ -78,6 +79,11 @@ module Dnd5e
 
       def with_feature(feature)
         @features << feature
+        self
+      end
+
+      def with_feat(feat_key)
+        @features << Core::FeatRegistry.create(feat_key)
         self
       end
 

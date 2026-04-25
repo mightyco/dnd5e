@@ -52,7 +52,7 @@ module Dnd5e
             attacker.statblock.heroic_inspiration = false
           end
 
-          apply_proximity_disadvantage(attack, distance, adv, dis)
+          apply_proximity_disadvantage(attack, distance, adv, dis, options)
         end
 
         def self.vexed?(attacker, defender)
@@ -62,8 +62,11 @@ module Dnd5e
           context && context[:target] == defender
         end
 
-        def self.apply_proximity_disadvantage(attack, distance, adv, dis)
-          dis = true if attack.range > 5 && distance <= 5
+        def self.apply_proximity_disadvantage(attack, distance, adv, dis, options)
+          return [adv, dis] if attack.range <= 5 # Melee attacks or very short range
+
+          # Ranged attacks at 5ft range have disadvantage unless ignored (e.g. Sharpshooter)
+          dis = true if distance <= 5 && !options[:ignore_proximity_disadvantage]
           [adv, dis]
         end
 

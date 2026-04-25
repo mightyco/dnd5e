@@ -5,23 +5,20 @@ require_relative '../feature'
 module Dnd5e
   module Core
     module Features
-      # Implementation of the Sharpshooter feat.
+      # Implementation of the Sharpshooter feat (2024).
       class Sharpshooter < Feature
         def initialize
           super(name: 'Sharpshooter')
         end
 
         def on_attack_roll(context)
-          return -5 if context[:options][:sharpshooter]
-
+          # 2024: No disadvantage for firing in melee range.
+          context[:options][:ignore_proximity_disadvantage] = true
           0
         end
 
-        def on_damage_calculation(context)
-          return nil unless context[:options][:sharpshooter]
-
-          dice = context[:dice]
-          Dice.new(dice.count, dice.sides, modifier: dice.modifier + 10)
+        def on_damage_taken(_context)
+          # Not used for damage modification generally.
         end
       end
     end
