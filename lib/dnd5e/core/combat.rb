@@ -80,11 +80,13 @@ module Dnd5e
         old_pos = @grid.find_position(mover)
         return unless old_pos
 
-        (combatants - [mover]).each do |enemy|
-          next unless enemy.statblock.alive? && enemy.turn_context.reactions_used.zero?
+        (combatants - [mover]).each do |potential_attacker|
+          next unless potential_attacker.statblock.alive? &&
+                      potential_attacker.turn_context.reactions_used.zero? &&
+                      enemy?(potential_attacker, mover)
 
-          enemy_pos = @grid.find_position(enemy)
-          trigger_opportunity_attack(enemy, mover) if leaving_threatened_zone?(old_pos, new_pos, enemy_pos)
+          enemy_pos = @grid.find_position(potential_attacker)
+          trigger_opportunity_attack(potential_attacker, mover) if leaving_threatened_zone?(old_pos, new_pos, enemy_pos)
         end
       end
 
