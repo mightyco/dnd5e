@@ -4,7 +4,26 @@ require_relative 'features/battle_master'
 require_relative 'features/improved_critical'
 require_relative 'features/wizard_evoker'
 require_relative 'features/wizard_abjurer'
+require_relative 'features/barbarian_berserker'
+require_relative 'features/paladin_features'
+require_relative 'features/ranger_features'
+require_relative 'features/cleric_features'
+require_relative 'features/bard_features'
+require_relative 'features/druid_features'
+require_relative 'features/sorcerer_features'
+require_relative 'features/warlock_features'
+require_relative 'features/rogue_assassin'
 require_relative 'strategies/battle_master_strategy'
+require_relative 'strategies/barbarian_strategy'
+require_relative 'strategies/paladin_strategy'
+require_relative 'strategies/monk_strategy'
+require_relative 'strategies/ranger_strategy'
+require_relative 'strategies/cleric_strategy'
+require_relative 'strategies/bard_strategy'
+require_relative 'strategies/druid_strategy'
+require_relative 'strategies/sorcerer_strategy'
+require_relative 'strategies/warlock_strategy'
+require_relative 'strategies/rogue_strategy'
 require_relative 'strategies/simple_strategy'
 
 module Dnd5e
@@ -28,6 +47,42 @@ module Dnd5e
         abjurer: {
           features: ->(level) { [Features::ArcaneWard.new(level: level)] },
           strategy: ->(_level) { Strategies::SimpleStrategy.new }
+        },
+        berserker: {
+          features: ->(_level) { [Features::Frenzy.new] },
+          strategy: ->(_level) { Strategies::BarbarianStrategy.new }
+        },
+        devotion: {
+          features: ->(_level) { [Features::SacredWeapon.new] },
+          strategy: ->(_level) { Strategies::PaladinStrategy.new }
+        },
+        hunter: {
+          features: ->(_level) { [Features::ColossusSlayer.new] },
+          strategy: ->(_level) { Strategies::RangerStrategy.new }
+        },
+        life: {
+          features: ->(_level) { [Features::DiscipleOfLife.new] },
+          strategy: ->(_level) { Strategies::ClericStrategy.new }
+        },
+        valor: {
+          features: ->(_level) { [] }, # Placeholder for valor specific features
+          strategy: ->(_level) { Strategies::BardStrategy.new }
+        },
+        moon: {
+          features: ->(_level) { [] }, # Placeholder for moon specific features
+          strategy: ->(_level) { Strategies::DruidStrategy.new }
+        },
+        draconic: {
+          features: ->(_level) { [Features::DraconicResilience.new] },
+          strategy: ->(_level) { Strategies::SorcererStrategy.new }
+        },
+        fiend: {
+          features: ->(_level) { [Features::DarkOnesBlessing.new] },
+          strategy: ->(_level) { Strategies::WarlockStrategy.new }
+        },
+        assassin: {
+          features: ->(_level) { [Features::Assassinate.new] },
+          strategy: ->(_level) { Strategies::RogueStrategy.new }
         }
       }.freeze
 

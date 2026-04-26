@@ -2,6 +2,7 @@
 
 require_relative 'spell_slot_calculator'
 require_relative 'character_build_logic'
+require_relative 'class_builder_methods'
 require_relative '../core/character'
 require_relative '../core/statblock'
 require_relative '../core/attack'
@@ -14,7 +15,26 @@ require_relative '../core/features/cunning_action'
 require_relative '../core/features/evasion'
 require_relative '../core/features/action_surge'
 require_relative '../core/features/second_wind'
+require_relative '../core/features/barbarian_features'
+require_relative '../core/features/barbarian_berserker'
+require_relative '../core/features/paladin_features'
+require_relative '../core/features/monk_features'
+require_relative '../core/features/ranger_features'
+require_relative '../core/features/cleric_features'
+require_relative '../core/features/bard_features'
+require_relative '../core/features/druid_features'
+require_relative '../core/features/sorcerer_features'
+require_relative '../core/features/warlock_features'
 require_relative '../core/strategies/rogue_strategy'
+require_relative '../core/strategies/barbarian_strategy'
+require_relative '../core/strategies/paladin_strategy'
+require_relative '../core/strategies/monk_strategy'
+require_relative '../core/strategies/ranger_strategy'
+require_relative '../core/strategies/cleric_strategy'
+require_relative '../core/strategies/bard_strategy'
+require_relative '../core/strategies/druid_strategy'
+require_relative '../core/strategies/sorcerer_strategy'
+require_relative '../core/strategies/warlock_strategy'
 
 module Dnd5e
   module Builders
@@ -49,6 +69,7 @@ module Dnd5e
     class CharacterBuilder
       include EquipmentHelper
       include ClassBuildLogic
+      include ClassBuilderMethods
 
       class InvalidCharacterError < StandardError; end
 
@@ -96,33 +117,6 @@ module Dnd5e
 
       def with_strategy(strategy)
         @strategy_override = strategy
-        self
-      end
-
-      def as_rogue(level: 1, abilities: {})
-        abilities = merge_abilities(abilities)
-        @statblock = build_rogue_statblock(level, abilities)
-        add_rogue_equipment
-        add_rogue_features(level)
-        self
-      end
-
-      def as_fighter(level: 1, abilities: {}, armor_type: :heavy)
-        abilities = merge_abilities(abilities)
-        @statblock = build_fighter_statblock(level, abilities, armor_type)
-        longsword = Core::Attack.new(name: 'Longsword', damage_dice: Core::Dice.new(1, 8), relevant_stat: :strength)
-        with_attack(longsword) unless @attacks.any? { |a| a.name == 'Longsword' }
-
-        with_feature(Core::Features::ActionSurge.new) if level >= 2
-        with_feature(Core::Features::SecondWind.new) if level >= 1
-        self
-      end
-
-      def as_wizard(level: 1, abilities: {}, subclass: nil)
-        abilities = merge_abilities(abilities)
-        @statblock = build_wizard_statblock(level, abilities)
-        add_wizard_equipment
-        with_subclass(subclass, level: level) if subclass
         self
       end
 

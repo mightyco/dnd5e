@@ -63,9 +63,10 @@ Our primary scientific goal is to model and compare the **Champion** and **Battl
 ## 🚀 The Path to Tactical Simulation
 
 ### Tree 1: Rules Completion (Foundational)
-- [ ] **Rogue Class Integration**: Core traits (Sneak Attack, Cunning Action, Evasion).
+- [x] **Rogue Class Integration**: Core traits (Sneak Attack, Cunning Action, Evasion).
+- [x] **All 12 Core Classes (Level 3)**: Fighter, Rogue, Wizard, Barbarian, Paladin, Monk, Ranger, Cleric, Bard, Druid, Sorcerer, Warlock.
 - [ ] **Feat Selection System**: Unified interface for GWM, Sharpshooter, and Dual Wielder.
-- [ ] **Wizard Subclasses**: 2024 Evoker and Abjurer implementations.
+- [x] **Wizard Subclasses**: 2024 Evoker and Abjurer implementations.
 - [ ] **Multi-Classing**: Heterogeneous level scaling and resource management.
 - [ ] **Party Composition**: Pre-defined 4-person party templates (Tank, Healer, DPS).
 
