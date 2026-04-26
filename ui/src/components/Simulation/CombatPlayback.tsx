@@ -303,8 +303,21 @@ export const CombatPlayback = ({ combatData }) => {
             {e.type === 'attack' && (
               <span>
                 <strong>{e.attacker}</strong> {e.success ? 'HIT' : 'MISSED'} <strong>{e.defender}</strong> with {e.attack_name}
+                {e.metadata?.maneuver && <span style={{ color: '#ffeb3b' }}> ({String(e.metadata.maneuver).replace('_', ' ')})</span>}
                 {e.success && <span style={{ color: '#f44336' }}> (-{e.damage} HP)</span>}
                 {e.is_crit && <span style={{ color: '#ffeb3b', marginLeft: '4px' }}> CRIT!</span>}
+                {e.is_dead && <span style={{ color: '#9e9e9e', marginLeft: '4px' }}> [DEAD]</span>}
+              </span>
+            )}
+            {e.type === 'resource_used' && (
+              <span style={{ color: '#4fc3f7' }}>
+                🛡️ <strong>{e.combatant}</strong> used {String(e.resource).replace('_', ' ')}
+              </span>
+            )}
+            {e.type === 'save' && (
+              <span>
+                🛡️ <strong>{e.defender}</strong> rolled save vs <strong>{e.attacker}</strong> ({e.attack_name})
+                {e.success ? <span style={{ color: '#2e7d32' }}> SAVED</span> : <span style={{ color: '#d32f2f' }}> FAILED (-{e.damage} HP)</span>}
                 {e.is_dead && <span style={{ color: '#9e9e9e', marginLeft: '4px' }}> [DEAD]</span>}
               </span>
             )}

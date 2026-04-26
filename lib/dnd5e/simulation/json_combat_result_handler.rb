@@ -123,7 +123,8 @@ module Dnd5e
           modifier: res.modifier, proficiency_bonus: res.proficiency_bonus,
           target_ac: res.target_ac, damage_rolls: res.damage_rolls,
           damage_modifier: res.damage_modifier, current_hp: res.current_hp,
-          max_hp: res.max_hp, save_roll: res.save_roll, save_dc: res.save_dc }
+          max_hp: res.max_hp, save_roll: res.save_roll, save_dc: res.save_dc,
+          maneuver: res.respond_to?(:maneuver) ? res.maneuver : nil }
       end
     end
   end
