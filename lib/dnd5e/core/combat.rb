@@ -185,7 +185,15 @@ module Dnd5e
       end
 
       def find_valid_defender(attacker)
-        (combatants - [attacker]).find { |c| c.statblock.alive? }
+        @combatants.select { |c| c.statblock.alive? && enemy?(attacker, c) }.first
+      end
+
+      def enemy?(comb1, comb2)
+        return false if comb1 == comb2
+        return false if comb1.team && comb2.team && comb1.team == comb2.team
+
+        # Fallback for when teams aren't explicitly set but we want to avoid friendly fire
+        true
       end
 
       private

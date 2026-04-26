@@ -108,13 +108,13 @@ end
 
 namespace :services do
   desc 'Start the unified simulator server'
-  task start: :start_unified
+  task start: %i[build_if_needed start_unified]
 
   desc 'Stop the simulator server'
   task stop: :stop_unified
 
   desc 'Restart the simulator server'
-  task restart: %i[stop start]
+  task restart: %i[stop build_if_needed start_unified]
 
   desc 'Show server status'
   task status: :status_unified
@@ -127,4 +127,12 @@ namespace :services do
 
   desc 'Internal: Show server status'
   task(:status_unified) { ServiceHelpers.check_status(ServiceHelpers::SERVER_PID, 'Simulator Server') }
+
+  desc 'Build UI if missing'
+  task :build_if_needed do
+    unless File.exist?(ServiceHelpers::UI_INDEX)
+      puts 'UI build artifacts missing. Building now...'
+      Rake::Task['ui:build'].invoke
+    end
+  end
 end

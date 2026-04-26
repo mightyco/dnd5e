@@ -77,7 +77,13 @@ module Dnd5e
       # @param combatants [Array<Combatant>] All combatants in the combat.
       # @return [Combatant, nil] A valid defender if one exists, nil otherwise.
       def find_valid_defender(attacker, combatants)
-        (combatants - [attacker]).find { |c| c.statblock.alive? }
+        combat = attacker.instance_variable_get(:@combat_context)
+
+        potential = combatants.select do |c|
+          c.statblock.alive? && c != attacker && (combat ? combat.enemy?(attacker, c) : true)
+        end
+
+        potential.first
       end
     end
   end

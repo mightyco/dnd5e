@@ -1,205 +1,317 @@
-import React, { useState, useEffect, useMemo } from 'react';
-
-// SPEC-0009: Visual Combat Playback Component
-// This component renders a 2D tactical grid and animates combat events.
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 
 interface Point {
   x: number;
   y: number;
-  z: number;
 }
 
-interface CombatEvent {
-  type: string;
-  combatant?: string;
-  attacker?: string;
-  defender?: string;
-  to?: Point;
-  damage?: number;
-  snapshot?: Record<string, any>;
-  [key: string]: any;
+interface CombatantState {
+  hp: number;
+  max_hp: number;
+  ac: number;
+  attack_bonus: number;
+  damage: string;
+  x: number;
+  y: number;
+  team?: string;
 }
 
-const GRID_SIZE = 50; 
-const PADDING = 20;
-
-export const CombatPlayback: React.FC<{ combatData: any[] | any }> = ({ combatData }) => {
-  const [simulationIndex, setSimulationIndex] = useState(0);
-  const [currentEventIndex, setCurrentEventIndex] = useState(0);
-  const [isPlaying, setIsPlaybackRunning] = useState(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1000); 
-
-  // Normalize combatData to a single combat object
-  const currentCombat = useMemo(() => {
-    if (Array.isArray(combatData)) {
-      return combatData[simulationIndex] || combatData[0];
-    }
-    return combatData;
-  }, [combatData, simulationIndex]);
-
-  // Flatten all rounds and events into a single sequence for playback
-  const events = useMemo(() => {
-    try {
-      const allEvents: CombatEvent[] = [];
-      if (!currentCombat || !currentCombat.rounds) return allEvents;
-
-      currentCombat.rounds.forEach(round => {
-        round.events.forEach(event => {
-          allEvents.push(event);
-        });
-      });
-      return allEvents;
-    } catch (e) {
-      console.error('DEBUG: Error processing events:', e);
-      return [];
-    }
-  }, [currentCombat]);
-
-  const currentState = useMemo(() => {
-    try {
-      if (!currentCombat || !currentCombat.initial_positions) return {};
-      const state = { ...currentCombat.initial_positions };
-      
-      for (let i = 0; i <= currentEventIndex; i++) {
-        const e = events[i];
-        if (!e) continue;
-
-        if (e.snapshot) {
-          Object.assign(state, e.snapshot);
-        } else if (e.type === 'move' && e.combatant && e.to) {
-          state[e.combatant] = { ...state[e.combatant], ...e.to };
-        }
-      }
-      return state;
-    } catch (e) {
-      console.error('DEBUG: Error computing state:', e);
-      return {};
-    }
-  }, [events, currentEventIndex, currentCombat]);
+const CombatantToken = ({ name, state, isActive }: { name: string, state: CombatantState, isActive: boolean }) => {
+  const [flashClass, setFlashClass] = useState('');
+  const lastHp = useRef(state.hp);
 
   useEffect(() => {
-    let timer: any;
-    if (isPlaying && currentEventIndex < events.length - 1) {
-      timer = setTimeout(() => {
-        setCurrentEventIndex(prev => prev + 1);
-      }, playbackSpeed);
-    } else if (currentEventIndex >= events.length - 1) {
-      setIsPlaybackRunning(false);
+    if (state.hp < lastHp.current) {
+      setFlashClass('damage-flash');
+      setTimeout(() => setFlashClass(''), 500);
+    } else if (state.hp > lastHp.current) {
+      setFlashClass('heal-flash');
+      setTimeout(() => setFlashClass(''), 500);
     }
-    return () => clearTimeout(timer);
-  }, [isPlaying, currentEventIndex, events.length, playbackSpeed]);
+    lastHp.current = state.hp;
+  }, [state.hp]);
 
-  if (!currentCombat || !currentCombat.rounds) {
-    return (
-      <div style={{ padding: '2rem', border: '1px dashed #666', textAlign: 'center', color: '#666' }}>
-        No spatial data available for this simulation.
-      </div>
-    );
-  }
-
-  // Determine grid bounds safely
-  const combatantList = Object.values(currentState) as any[];
-  const minX = Math.min(0, ...combatantList.map(c => c.x || 0));
-  const maxX = Math.max(100, ...combatantList.map(c => c.x || 0));
-  const minY = Math.min(0, ...combatantList.map(c => c.y || 0));
-  const maxY = Math.max(50, ...combatantList.map(c => c.y || 0));
-
-  const width = ((maxX - minX) / 5 * GRID_SIZE) + PADDING * 2;
-  const height = ((maxY - minY) / 5 * GRID_SIZE) + PADDING * 2;
-
-  const toScreen = (val: number, isY = false) => {
-    const min = isY ? minY : minX;
-    return ((val - min) / 5 * GRID_SIZE) + PADDING;
-  };
+  const hpColor = state.hp > 0 ? '#4caf50' : '#d32f2f';
 
   return (
-    <div className="combat-playback-container" data-testid="combat-playback" style={{ background: '#222', color: '#fff', padding: '1rem', borderRadius: '8px', border: '1px solid #444' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+    <div className={flashClass} style={{
+      border: isActive ? '2px solid #ffeb3b' : '1px solid #444',
+      background: isActive ? '#424242' : '#333',
+      padding: '0.75rem',
+      marginBottom: '0.5rem',
+      borderRadius: '6px',
+      transition: 'all 0.2s',
+      transform: isActive ? 'scale(1.02)' : 'none',
+      boxShadow: isActive ? '0 0 8px rgba(255, 235, 59, 0.4)' : 'none'
+    }}>
+      <div style={{ fontWeight: 'bold', fontSize: '0.95rem', marginBottom: '0.25rem', color: '#fff' }}>{name}</div>
+      <div style={{ fontSize: '0.8rem', color: '#bbb', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.25rem' }}>
+        <span>HP: <strong style={{ color: hpColor }}>{state.hp}/{state.max_hp}</strong></span>
+        <span>AC: <strong>{state.ac || '?'}</strong></span>
+        <span>ATK: <strong>{state.attack_bonus >= 0 ? `+${state.attack_bonus || 0}` : state.attack_bonus}</strong></span>
+        <span>DMG: <strong>{state.damage || '?'}</strong></span>
+      </div>
+      <div style={{ marginTop: '0.25rem', height: '4px', background: '#222', borderRadius: '2px', overflow: 'hidden' }}>
+        <div style={{ 
+          width: `${Math.max(0, (state.hp / state.max_hp) * 100)}%`, 
+          height: '100%', 
+          background: hpColor,
+          transition: 'width 0.3s'
+        }} />
+      </div>
+    </div>
+  );
+};
+
+export const CombatPlayback = ({ combatData }) => {
+  const [simulationIndex, setSimulationIndex] = useState(0);
+  const [eventIndex, setEventIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [speed, setSpeed] = useState(4); // events per second
+  const timerRef = useRef<any>(null);
+
+  const speedOptions = [0.5, 1, 2, 4, 8, 16, 32];
+  
+  const currentCombat = Array.isArray(combatData) ? combatData[simulationIndex] : combatData;
+  const events = useMemo(() => currentCombat?.rounds.flatMap(r => r.events) || [], [currentCombat]);
+  
+  const tickRate = 1000 / speed;
+
+  useEffect(() => {
+    if (isPlaying) {
+      timerRef.current = setInterval(() => {
+        setEventIndex(prev => {
+          if (prev < events.length - 1) return prev + 1;
+          setIsPlaying(false);
+          return prev;
+        });
+      }, tickRate);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [isPlaying, events.length, tickRate]);
+
+  const handleReset = () => {
+    setEventIndex(0);
+    setIsPlaying(false);
+  };
+
+  const computeCurrentState = () => {
+    if (!currentCombat || events.length === 0) return {};
+    
+    // Find latest snapshot at or before eventIndex
+    let snapshotIndex = -1;
+    let latestSnapshot = null;
+    
+    for (let i = eventIndex; i >= 0; i--) {
+      if (events[i]?.snapshot) {
+        latestSnapshot = JSON.parse(JSON.stringify(events[i].snapshot));
+        snapshotIndex = i;
+        break;
+      }
+    }
+    
+    const state = latestSnapshot || JSON.parse(JSON.stringify(currentCombat.initial_positions || {}));
+    
+    // Replay intermediate moves
+    for (let i = snapshotIndex + 1; i <= eventIndex; i++) {
+      const e = events[i];
+      if (e.type === 'move' && state[e.combatant] && e.to) {
+        state[e.combatant].x = e.to.x;
+        state[e.combatant].y = e.to.y;
+      }
+    }
+    
+    return state;
+  };
+
+  const getActiveCombatant = () => {
+    for (let i = eventIndex; i >= 0; i--) {
+      if (events[i]?.type === 'turn_start') return events[i].combatant;
+    }
+    return null;
+  };
+
+  const currentState = computeCurrentState();
+  const stateEntries = Object.entries(currentState);
+  const activeCombatant = getActiveCombatant();
+
+  // Map Bounds
+  const minX = Math.min(...stateEntries.map(([_, s]: [any, any]) => s.x), 0);
+  const maxX = Math.max(...stateEntries.map(([_, s]: [any, any]) => s.x), 30);
+  const minY = Math.min(...stateEntries.map(([_, s]: [any, any]) => s.y), 0);
+  const maxY = Math.max(...stateEntries.map(([_, s]: [any, any]) => s.y), 30);
+
+  const scalePos = (val: number, isY = false) => {
+    const min = isY ? minY : minX;
+    const range = (isY ? maxY : maxX) - min || 1;
+    return 10 + ((val - min) / range) * 80; // Percent with padding
+  };
+
+  const exportJSON = (data, filename) => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${filename}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Group combatants by team
+  const teams = stateEntries.reduce((acc, [name, state]: [any, any]) => {
+    const teamName = state.team && state.team !== 'None' ? state.team : (name.toLowerCase().includes('hero') ? 'Heroes' : 'Monsters');
+    if (!acc[teamName]) acc[teamName] = [];
+    acc[teamName].push({ name, state });
+    return acc;
+  }, {});
+
+  const teamNames = Object.keys(teams);
+  const teamA = teamNames[0] ? teams[teamNames[0]] : [];
+  const teamB = teamNames[1] ? teams[teamNames[1]] : [];
+
+  return (
+    <div className="combat-playback-container" data-testid="combat-playback" style={{ background: '#222', color: '#fff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #444' }}>
+      <style>{`
+        .damage-flash { animation: flash-red 0.5s; }
+        .heal-flash { animation: flash-green 0.5s; }
+        @keyframes flash-red { 0% { background: rgba(211, 47, 47, 0.4); } 100% { background: transparent; } }
+        @keyframes flash-green { 0% { background: rgba(76, 175, 80, 0.4); } 100% { background: transparent; } }
+      `}</style>
+      
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <div>
-          <h3 style={{ margin: 0, color: '#fff' }}>🎥 Tactical Replay</h3>
-          {Array.isArray(combatData) && combatData.length > 1 && (
-            <select 
-              value={simulationIndex} 
-              onChange={(e) => { setSimulationIndex(parseInt(e.target.value)); setCurrentEventIndex(0); }}
-              style={{ marginTop: '0.5rem', fontSize: '0.7rem', background: '#333', color: '#fff' }}
-            >
-              {combatData.slice(0, 10).map((_, i) => (
-                <option key={i} value={i}>Simulation #{i + 1}</option>
-              ))}
-            </select>
-          )}
+          <h3 style={{ margin: 0, color: '#fff', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.2rem' }}>
+            🎥 Tactical Replay
+            <button onClick={() => exportJSON(currentCombat, `combat-log-${simulationIndex + 1}`)} style={{ padding: '4px 10px', background: '#455a64', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 'bold' }}>📥 Export JSON</button>
+          </h3>
+          <div style={{ fontSize: '0.85rem', color: '#aaa', marginTop: '0.25rem' }}>
+            Simulation {simulationIndex + 1} of {Array.isArray(combatData) ? combatData.length : 1}
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button onClick={() => setCurrentEventIndex(0)} title="Reset">⏮</button>
-          <button onClick={() => setIsPlaybackRunning(!isPlaying)} title={isPlaying ? "Pause" : "Play"}>
-            {isPlaying ? '⏸' : '▶️'}
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', background: '#333', borderRadius: '6px', padding: '2px' }}>
+            {speedOptions.map(s => (
+              <button 
+                key={s} 
+                onClick={() => setSpeed(s)}
+                style={{ 
+                  padding: '4px 8px', fontSize: '0.7rem', 
+                  background: speed === s ? '#1976d2' : 'transparent', 
+                  color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer',
+                  fontWeight: speed === s ? 'bold' : 'normal'
+                }}
+              >{s}x</button>
+            ))}
+          </div>
+          <button onClick={() => setIsPlaying(!isPlaying)} style={{ padding: '8px 20px', background: isPlaying ? '#d32f2f' : '#2e7d32', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+            {isPlaying ? '⏸ Pause' : '▶ Play'}
           </button>
-          <button onClick={() => setCurrentEventIndex(prev => Math.min(events.length - 1, prev + 1))} title="Step">⏭</button>
-          <select 
-            value={playbackSpeed} 
-            onChange={(e) => setPlaybackSpeed(parseInt(e.target.value))}
-            style={{ background: '#333', color: '#fff', border: '1px solid #555' }}
-          >
-            <option value={2000}>0.5x</option>
-            <option value={1000}>1.0x</option>
-            <option value={500}>2.0x</option>
-            <option value={200}>4.0x</option>
-          </select>
+          <button onClick={handleReset} style={{ padding: '8px 12px', background: '#555', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>🔄 Reset</button>
         </div>
       </div>
 
-      <div style={{ overflow: 'auto', maxHeight: '500px', border: '1px solid #444', background: '#1a1a1a', borderRadius: '4px' }}>
-        <svg width={width} height={height} style={{ display: 'block' }}>
-          {/* Grid Lines */}
-          {Array.from({ length: Math.ceil((maxX - minX) / 5) + 1 }).map((_, i) => (
-            <line 
-              key={`v-${i}`} 
-              x1={toScreen(minX + i * 5)} y1={toScreen(minY)} 
-              x2={toScreen(minX + i * 5)} y2={toScreen(maxY)} 
-              stroke="#333" strokeWidth="1" 
-            />
-          ))}
-          {Array.from({ length: Math.ceil((maxY - minY) / 5) + 1 }).map((_, i) => (
-            <line 
-              key={`h-${i}`} 
-              x1={toScreen(minX)} y1={toScreen(minY + i * 5)} 
-              x2={toScreen(maxX)} y2={toScreen(minY + i * 5)} 
-              stroke="#333" strokeWidth="1" 
-            />
-          ))}
+      <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr 200px', gap: '1rem' }}>
+        {/* Left Column - Team A */}
+        <div style={{ background: '#1a1a1a', borderRadius: '8px', padding: '0.5rem', border: '1px solid #333', maxHeight: '500px', overflowY: 'auto' }}>
+          <h4 style={{ margin: '0 0 0.75rem 0', color: '#2196f3', textAlign: 'center', borderBottom: '1px solid #333', paddingBottom: '0.5rem' }}>{teamNames[0] || 'Team A'}</h4>
+          {teamA.map(c => <CombatantToken key={c.name} name={c.name} state={c.state} isActive={activeCombatant === c.name} />)}
+        </div>
 
-          {/* Combatants */}
-          {Object.entries(currentState).map(([name, data]: [string, any]) => (
-            <g key={name} transform={`translate(${toScreen(data.x || 0)}, ${toScreen(data.y || 0)})`} style={{ transition: 'transform 0.3s ease-out' }}>
-              <circle r="15" fill={data.hp > 0 ? '#444' : '#111'} stroke={data.hp > 0 ? '#888' : '#333'} strokeWidth="2" />
-              <text textAnchor="middle" dy="5" fontSize="10" fill={data.hp > 0 ? "#fff" : "#666"} style={{ pointerEvents: 'none' }}>
-                {name.substring(0, 2)}
-              </text>
-              <rect x="-15" y="-22" width="30" height="4" fill="#d32f2f" />
-              <rect x="-15" y="-22" width={(Math.max(0, data.hp) / data.max_hp) * 30} height="4" fill="#2e7d32" />
-              {data.z > 0 && (
-                <text x="12" y="-12" fontSize="8" fill="#4fc3f7">↑{data.z}ft</text>
-              )}
-            </g>
-          ))}
+        {/* Center - Map */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ position: 'relative', width: '100%', paddingTop: '75%', background: '#111', borderRadius: '8px', border: '2px solid #333', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+              <svg style={{ width: '100%', height: '100%' }}>
+                {/* Grid Lines */}
+                {Array.from({ length: 11 }).map((_, i) => (
+                  <React.Fragment key={i}>
+                    <line x1={`${i * 10}%`} y1="0" x2={`${i * 10}%`} y2="100%" stroke="#222" strokeWidth="1" />
+                    <line x1="0" y1={`${i * 10}%`} x2="100%" y2={`${i * 10}%`} stroke="#222" strokeWidth="1" />
+                  </React.Fragment>
+                ))}
 
-          {/* Active Event Highlights */}
-          {events[currentEventIndex]?.type === 'attack' && (
-            <line 
-              x1={toScreen(currentState[events[currentEventIndex].attacker!]?.x || 0)} 
-              y1={toScreen(currentState[events[currentEventIndex].attacker!]?.y || 0)}
-              x2={toScreen(currentState[events[currentEventIndex].defender!]?.x || 0)} 
-              y2={toScreen(currentState[events[currentEventIndex].defender!]?.y || 0)}
-              stroke={events[currentEventIndex].success ? '#f44336' : '#9e9e9e'}
-              strokeWidth="2"
-              strokeDasharray={events[currentEventIndex].success ? "0" : "4"}
+                {/* Tokens */}
+                {stateEntries.map(([name, state]: [any, any]) => {
+                  const isTeamB = teamB.find(t => t.name === name);
+                  return (
+                    <g key={name} style={{ transition: `all ${tickRate}ms linear` }}>
+                      <circle 
+                        cx={`${scalePos(state.x)}%`} 
+                        cy={`${scalePos(state.y, true)}%`} 
+                        r="3%" 
+                        fill={isTeamB ? '#f44336' : '#2196f3'} 
+                        stroke={activeCombatant === name ? '#ffeb3b' : '#fff'}
+                        strokeWidth={activeCombatant === name ? '4' : '2'}
+                      />
+                      <text 
+                        x={`${scalePos(state.x)}%`} 
+                        y={`${scalePos(state.y, true) + 6}%`} 
+                        fill="#fff" 
+                        fontSize="0.8rem" 
+                        textAnchor="middle"
+                        style={{ fontWeight: 'bold', textShadow: '0 1px 2px #000' }}
+                      >
+                        {name}
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+          </div>
+          
+          <div>
+            <input 
+              type="range" 
+              min="0" max={Math.max(0, events.length - 1)} 
+              value={eventIndex} 
+              onChange={(e) => { setEventIndex(parseInt(e.target.value)); setIsPlaying(false); }}
+              style={{ width: '100%', cursor: 'pointer' }}
             />
-          )}
-        </svg>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#888' }}>
+              <span>START</span>
+              <span>Event {eventIndex + 1} / {events.length}</span>
+              <span>END</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - Team B */}
+        <div style={{ background: '#1a1a1a', borderRadius: '8px', padding: '0.5rem', border: '1px solid #333', maxHeight: '500px', overflowY: 'auto' }}>
+          <h4 style={{ margin: '0 0 0.75rem 0', color: '#f44336', textAlign: 'center', borderBottom: '1px solid #333', paddingBottom: '0.5rem' }}>{teamNames[1] || 'Team B'}</h4>
+          {teamB.map(c => <CombatantToken key={c.name} name={c.name} state={c.state} isActive={activeCombatant === c.name} />)}
+        </div>
       </div>
 
-      <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#aaa', textAlign: 'center' }}>
-        Event {currentEventIndex + 1} / {events.length}: {events[currentEventIndex]?.type} {events[currentEventIndex]?.combatant || events[currentEventIndex]?.attacker || ''}
+      {/* Event Log */}
+      <div style={{ marginTop: '1.5rem', padding: '1rem', background: '#333', borderRadius: '8px', maxHeight: '200px', overflowY: 'auto' }}>
+        <div style={{ fontWeight: 'bold', borderBottom: '1px solid #444', paddingBottom: '0.5rem', marginBottom: '0.5rem', color: '#888', fontSize: '0.8rem', textTransform: 'uppercase' }}>Event Log</div>
+        {events.slice(0, eventIndex + 1).reverse().map((e, i) => (
+          <div key={i} style={{ 
+            fontSize: '0.85rem', 
+            marginBottom: '4px', 
+            padding: '4px 8px',
+            borderRadius: '4px',
+            background: i === 0 ? 'rgba(255,255,255,0.1)' : 'transparent',
+            color: i === 0 ? '#fff' : '#ccc',
+            borderLeft: i === 0 ? '3px solid #1976d2' : 'none'
+          }}>
+            <span style={{ color: '#888', marginRight: '8px' }}>[{events.length - i}]</span>
+            {e.type === 'attack' && (
+              <span>
+                <strong>{e.attacker}</strong> {e.success ? 'HIT' : 'MISSED'} <strong>{e.defender}</strong> with {e.attack_name}
+                {e.success && <span style={{ color: '#f44336' }}> (-{e.damage} HP)</span>}
+                {e.is_crit && <span style={{ color: '#ffeb3b', marginLeft: '4px' }}> CRIT!</span>}
+                {e.is_dead && <span style={{ color: '#9e9e9e', marginLeft: '4px' }}> [DEAD]</span>}
+              </span>
+            )}
+            {e.type === 'move' && <span><strong>{e.combatant}</strong> moved to ({e.to?.x}, {e.to?.y})</span>}
+            {e.type === 'turn_start' && <span style={{ color: '#ffeb3b' }}>▶ <strong>{e.combatant}</strong> started their turn</span>}
+          </div>
+        ))}
       </div>
     </div>
   );
