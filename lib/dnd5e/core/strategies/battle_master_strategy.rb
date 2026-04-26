@@ -46,19 +46,29 @@ module Dnd5e
 
         private
 
-        def execute_action(combatant, combat)
-          return unless combatant.turn_context.action_available?
+        def perform_action_cycle(combatant, target, attack, combat)
+          if in_range?(combatant, target, attack, combat)
+            execute_battle_master_attacks(combatant, target, attack, combat)
+          else
+            combatant.turn_context.instance_variable_set(:@movement_used, 0)
+            move_towards_target(combatant, target, attack, combat)
+          end
+        end
 
-          target, attack = prepare_turn_data(combatant, combat)
-          if target && attack
-            if in_range?(combatant, target, attack, combat)
-              execute_battle_master_attacks(combatant, target, attack, combat)
-            else
-              execute_dash_if_needed(combatant, target, attack, combat)
-            end
+        def execute_battle_master_attacks(combatant, target, attack, combat)
+          num_attacks = attack.type == :save ? 1 : 1 + combatant.statblock.extra_attacks
+          perform_attack_sequence(num_attacks, combatant, target, attack, combat)
+          try_multi_attacks(combatant, target, attack, combat)
+        end
+
+        def execute_sequence_attack(combatant, target, attack, combat)
+          options = { attack: attack, combat: combat }
+          if @use_damage_maneuver && combatant.statblock.resources.available?(:superiority_dice)
+            options[:maneuver] = pick_maneuver(combatant, target)
           end
 
-          combatant.turn_context.use_action
+          combat.attack(combatant, target, **options)
+          combatant.statblock.resources.consume(attack.resource_cost) if attack.resource_cost
         end
 
         def execute_dash_if_needed(combatant, target, attack, combat)
@@ -90,27 +100,6 @@ module Dnd5e
           combat.move_combatant(combatant, path[0...max_squares])
         end
 
-        def execute_battle_master_attacks(combatant, target, attack, combat)
-          num_attacks = attack.type == :save ? 1 : 1 + combatant.statblock.extra_attacks
-          num_attacks.times do
-            break unless target.statblock.alive?
-
-            execute_single_battle_master_attack(combatant, target, attack, combat)
-            try_cleave_attack(combatant, target, attack, combat)
-          end
-
-          try_multi_attacks(combatant, target, attack, combat)
-        end
-
-        def execute_single_battle_master_attack(combatant, target, attack, combat)
-          options = { attack: attack, combat: combat }
-          if @use_damage_maneuver && combatant.statblock.resources.available?(:superiority_dice)
-            options[:maneuver] = pick_maneuver(combatant, target)
-          end
-
-          combat.attack(combatant, target, **options)
-        end
-
         def pick_maneuver(combatant, target)
           if !target.prone? && combatant.attacks.any? { |a| a.range <= 5 }
             :trip_attack
@@ -120,8 +109,17 @@ module Dnd5e
         end
 
         def try_multi_attacks(combatant, target, attack, combat)
+          target = ensure_alive_target(combatant, target, combat)
+          return unless target
+
           try_nick_attack(combatant, target, combat)
+          target = ensure_alive_target(combatant, target, combat)
+          return unless target
+
           try_dual_wielder_attack(combatant, target, combat)
+          target = ensure_alive_target(combatant, target, combat)
+          return unless target
+
           try_gwm_bonus_attack(combatant, target, attack, combat)
         end
       end

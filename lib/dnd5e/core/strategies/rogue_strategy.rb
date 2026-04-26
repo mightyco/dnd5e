@@ -28,10 +28,14 @@ module Dnd5e
         def execute_attack(combatant, combat)
           return unless combatant.turn_context.action_available?
 
-          target = find_target(combatant, combat)
-          return unless target
+          num_attacks = 1 + combatant.statblock.extra_attacks
+          num_attacks.times do
+            target = find_target(combatant, combat)
+            break unless target
 
-          attack_with_potential_advantage(combatant, combat, target)
+            attack_with_potential_advantage(combatant, combat, target)
+          end
+
           combatant.turn_context.use_action
         end
 

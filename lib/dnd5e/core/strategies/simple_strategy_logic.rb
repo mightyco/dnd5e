@@ -129,14 +129,17 @@ module Dnd5e
         def perform_attack_sequence(num, combatant, target, attack, combat)
           num.times do
             # Re-acquire target if current one is dead or missing
-            target = find_target(combatant, combat) unless target&.statblock&.alive?
+            target = ensure_alive_target(combatant, target, combat)
             break unless target
 
-            combat.attack(combatant, target, attack: attack)
-
-            combatant.statblock.resources.consume(attack.resource_cost) if attack.resource_cost
+            execute_sequence_attack(combatant, target, attack, combat)
             try_cleave_attack(combatant, target, attack, combat)
           end
+        end
+
+        def execute_sequence_attack(combatant, target, attack, combat)
+          combat.attack(combatant, target, attack: attack)
+          combatant.statblock.resources.consume(attack.resource_cost) if attack.resource_cost
         end
 
         def select_attack(combatant, target, combat)
