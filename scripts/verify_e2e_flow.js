@@ -33,12 +33,20 @@ import puppeteer from 'puppeteer';
   const experimentName = await page.$eval('input[type="text"][value^="Copy of Fighter vs Goblin"]', el => el.value);
   console.log('Found Experiment Name:', experimentName);
   
-  if (experimentName.includes('Fighter vs Goblin')) {
-    console.log('SUCCESS: Edit in Lab flow verified.');
+  // Verify Character Pool has loaded members from preset
+  const poolMembers = await page.$$eval('[data-testid="pool-member"]', els => els.length);
+  console.log('Found Pool Members:', poolMembers);
+
+  // Verify Teams have members
+  const teamMembers = await page.$$eval('[data-testid="team-member"]', els => els.length);
+  console.log('Found Team Members:', teamMembers);
+
+  if (experimentName.includes('Fighter vs Goblin') && poolMembers >= 2 && teamMembers >= 2) {
+    console.log('SUCCESS: Edit in Lab flow verified with full data loading.');
     await browser.close();
     process.exit(0);
   } else {
-    console.error('FAILURE: Experiment name not found in configurator.');
+    console.error('FAILURE: Data not fully loaded in configurator.', { experimentName, poolMembers, teamMembers });
     await browser.close();
     process.exit(1);
   }

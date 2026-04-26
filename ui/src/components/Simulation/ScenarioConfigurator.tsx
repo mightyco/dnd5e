@@ -25,12 +25,29 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
       });
       setVariables(initialConfig.variables || {});
       
-      const newTeams = initialConfig.teams.map(t => ({
-        name: t.name,
-        count: String(t.count || (t.members ? t.members.length : 1)),
-        members: t.members ? t.members.map(m => ({ ...m, id: Math.random() })) : 
-                 (t.template ? [{ ...t.template, id: Math.random() }] : [])
-      }));
+      const newPool = [];
+      const newTeams = initialConfig.teams.map(t => {
+        const teamMembers = [];
+        if (t.members) {
+          t.members.forEach(m => {
+            const member = { ...m, id: Math.random() };
+            teamMembers.push(member);
+            newPool.push(member);
+          });
+        } else if (t.template) {
+          const member = { ...t.template, id: Math.random() };
+          teamMembers.push(member);
+          newPool.push(member);
+        }
+        
+        return {
+          name: t.name,
+          count: String(t.count || (t.members ? t.members.length : 1)),
+          members: teamMembers
+        };
+      });
+      
+      setCharacterPool(newPool);
       setTeams(newTeams);
       if (onConfigHandled) onConfigHandled();
     }
@@ -122,7 +139,7 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
           {Object.entries(variables).map(([name, vals]) => (
             <span key={name} style={{ background: '#fff', border: '1px solid #90caf9', padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center' }}>
               <strong>{name}</strong>:<span style={{marginLeft:'4px'}}>{JSON.stringify(vals)}</span>
-              <button onClick={() => { const v = {...variables}; delete v[name]; setVariables(v); }} style={{ marginLeft: '8px', border: 'none', background: '#ffcdd2', color: '#c62828', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+              <button onClick={() => { const v = {...variables}; delete v[name]; setVariables(v); }} style={{ marginLeft: '8px', border: 'none', background: '#ffcdd2', color: '#c62828', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifycontent: 'center' }}>×</button>
             </span>
           ))}
           {Object.keys(variables).length === 0 && <span style={{ color: '#666', fontSize: '0.85rem', fontStyle: 'italic' }}>No variables defined. Single run mode.</span>}
@@ -136,10 +153,10 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
         
         <div style={{ padding: '1.5rem', border: '1px solid #e0e0e0', borderRadius: '8px', background: '#fafafa' }}>
           <h3 style={{ marginTop: 0 }}>2. Character Pool</h3>
-          <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
+          <div style={{ maxHeight: '250px', overflowY: 'auto' }} data-testid="character-pool">
             {characterPool.length === 0 && <p style={{ color: '#999', fontStyle: 'italic', textAlign: 'center', marginTop: '2rem' }}>Pool is empty. Create a character to start.</p>}
             {characterPool.map(c => (
-              <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', padding: '0.75rem', background: '#fff', border: '1px solid #eee', borderRadius: '6px' }}>
+              <div key={c.id} data-testid="pool-member" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', padding: '0.75rem', background: '#fff', border: '1px solid #eee', borderRadius: '6px' }}>
                 <span style={{ fontWeight: '500' }}>{c.name} <span style={{ color: '#666', fontWeight: 'normal', fontSize: '0.8rem' }}>({c.type})</span></span>
                 <div style={{ display: 'flex', gap: '0.25rem' }}>
                   <button onClick={() => addToTeam(c, 0)} style={{ fontSize: '0.75rem', padding: '4px 8px', background: '#e8f5e9', border: '1px solid #c8e6c9', color: '#2e7d32', borderRadius: '4px', cursor: 'pointer' }}>+ Team A</button>
@@ -153,7 +170,7 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '2rem' }}>
         {teams.map((team, idx) => (
-          <div key={idx} style={{ padding: '1.5rem', border: '1px solid #e0e0e0', borderRadius: '8px', background: idx === 0 ? '#f1f8e9' : '#fff3e0' }}>
+          <div key={idx} data-testid={`team-panel-${idx}`} style={{ padding: '1.5rem', border: '1px solid #e0e0e0', borderRadius: '8px', background: idx === 0 ? '#f1f8e9' : '#fff3e0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h3 style={{ margin: 0, color: idx === 0 ? '#2e7d32' : '#ef6c00' }}>{team.name}</h3>
               <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
@@ -170,7 +187,7 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
             
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               {team.members.map((m, mIdx) => (
-                <li key={mIdx} style={{ padding: '0.75rem', background: '#fff', border: '1px solid rgba(0,0,0,0.05)', borderRadius: '6px', marginBottom: '0.5rem' }}>
+                <li key={m.id || mIdx} data-testid="team-member" style={{ padding: '0.75rem', background: '#fff', border: '1px solid rgba(0,0,0,0.05)', borderRadius: '6px', marginBottom: '0.5rem' }}>
                   <div style={{ fontWeight: '500' }}>{m.name} <span style={{ color: '#666', fontWeight: 'normal', fontSize: '0.8rem' }}>({m.type})</span></div>
                   {m.type === 'fighter' && (
                     <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -183,6 +200,16 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
                       />
                     </div>
                   )}
+                  <button 
+                    onClick={() => {
+                      const newTeams = [...teams];
+                      newTeams[idx].members.splice(mIdx, 1);
+                      setTeams(newTeams);
+                    }}
+                    style={{ background: 'none', border: 'none', color: '#d32f2f', fontSize: '0.7rem', cursor: 'pointer', marginTop: '0.5rem', padding: 0 }}
+                  >
+                    Remove
+                  </button>
                 </li>
               ))}
             </ul>
