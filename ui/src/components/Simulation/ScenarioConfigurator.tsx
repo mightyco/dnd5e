@@ -41,7 +41,6 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
         sourceMembers.forEach(m => {
           const member = { ...m, id: Math.random() };
           teamMembers.push(member);
-          // Only add to pool if not already there (based on name/type/subclass)
           if (!newPool.some(p => p.name === m.name && p.type === m.type && p.subclass === m.subclass)) {
             newPool.push(member);
           }
@@ -130,12 +129,12 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
   };
 
   return (
-    <div className="scenario-configurator" style={{ marginTop: '3rem', padding: '2.5rem', background: '#ffffff', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-      <h2 style={{ borderBottom: '2px solid #f0f0f0', paddingBottom: '0.5rem', marginBottom: '2rem' }}>Scientific Lab Runner</h2>
+    <div className="scenario-configurator lab-card" style={{ marginTop: '3rem' }}>
+      <h2>Scientific Lab Runner</h2>
       
       {/* Variable Editor */}
-      <div style={{ padding: '1.5rem', border: '1px solid #e0e0e0', borderRadius: '8px', background: '#f8fafd', marginBottom: '2rem' }}>
-        <h3 style={{ marginTop: 0, color: '#1976d2' }}>1. Parameter Sweep Variables</h3>
+      <div style={{ padding: '1.5rem', border: '1px solid var(--border)', borderRadius: '8px', background: '#f8fafd', marginBottom: '2rem' }}>
+        <h3 style={{ marginTop: 0, color: 'var(--accent)' }}>1. Parameter Sweep Variables</h3>
         <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
           <input 
             placeholder="Var Name (e.g. count)" 
@@ -149,7 +148,7 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
             onChange={e => setNewVar({...newVar, values: e.target.value})} 
             style={{ flexGrow: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }} 
           />
-          <button onClick={addVariable} style={{ padding: '0.5rem 1rem', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+          <button onClick={addVariable} style={{ padding: '0.5rem 1rem' }}>
             Add Variable
           </button>
         </div>
@@ -164,12 +163,12 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-        <div style={{ padding: '1.5rem', border: '1px solid #e0e0e0', borderRadius: '8px', background: '#fafafa' }}>
+      <div className="grid-2">
+        <div style={{ padding: '1.5rem', border: '1px solid var(--border)', borderRadius: '8px', background: '#fafafa' }}>
           <CharacterBuilder onSave={addToPool} />
         </div>
         
-        <div style={{ padding: '1.5rem', border: '1px solid #e0e0e0', borderRadius: '8px', background: '#fafafa' }}>
+        <div style={{ padding: '1.5rem', border: '1px solid var(--border)', borderRadius: '8px', background: '#fafafa' }}>
           <h3 style={{ marginTop: 0 }}>2. Character Pool</h3>
           <div style={{ maxHeight: '250px', overflowY: 'auto' }} data-testid="character-pool">
             {characterPool.length === 0 && <p style={{ color: '#999', fontStyle: 'italic', textAlign: 'center', marginTop: '2rem' }}>Pool is empty. Create a character to start.</p>}
@@ -186,9 +185,9 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '2rem' }}>
+      <div className="grid-2" style={{ marginTop: '2rem' }}>
         {teams.map((team, idx) => (
-          <div key={idx} data-testid={`team-panel-${idx}`} style={{ padding: '1.5rem', border: '1px solid #e0e0e0', borderRadius: '8px', background: idx === 0 ? '#f1f8e9' : '#fff3e0' }}>
+          <div key={idx} data-testid={`team-panel-${idx}`} style={{ padding: '1.5rem', border: '1px solid var(--border)', borderRadius: '8px', background: idx === 0 ? '#f1f8e9' : '#fff3e0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h3 style={{ margin: 0, color: idx === 0 ? '#2e7d32' : '#ef6c00' }}>{team.name}</h3>
               <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
@@ -276,7 +275,7 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
         <button 
           onClick={handleRun} 
           data-testid="launch-experiment"
-          style={{ padding: '12px 30px', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 2px 5px rgba(25, 118, 210, 0.4)' }}
+          style={{ padding: '12px 30px', fontSize: '1rem' }}
         >
           🚀 Launch Experiment
         </button>
