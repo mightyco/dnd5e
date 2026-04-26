@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CharacterBuilder } from './CharacterBuilder';
 
 export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) => {
   const [characterPool, setCharacterPool] = useState([]);
   const [variables, setVariables] = useState({});
+  const [metadata, setMetadata] = useState({ classes: [], subclasses: {}, monsters: [] });
   const [teams, setTeams] = useState([
     { name: 'Heroes', members: [], count: "1" },
     { name: 'Monsters', members: [], count: "1" }
@@ -16,7 +17,14 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
 
   const [newVar, setNewVar] = useState({ name: '', values: '' });
 
-  React.useEffect(() => {
+  useEffect(() => {
+    fetch('/api/metadata')
+      .then(res => res.json())
+      .then(data => setMetadata(data))
+      .catch(err => console.error('Failed to load metadata', err));
+  }, []);
+
+  useEffect(() => {
     if (initialConfig) {
       setSimConfig({
         name: `Copy of ${initialConfig.name}`,
@@ -28,21 +36,20 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
       const newPool = [];
       const newTeams = initialConfig.teams.map(t => {
         const teamMembers = [];
-        if (t.members) {
-          t.members.forEach(m => {
-            const member = { ...m, id: Math.random() };
-            teamMembers.push(member);
-            newPool.push(member);
-          });
-        } else if (t.template) {
-          const member = { ...t.template, id: Math.random() };
+        const sourceMembers = t.members || (t.template ? [t.template] : []);
+        
+        sourceMembers.forEach(m => {
+          const member = { ...m, id: Math.random() };
           teamMembers.push(member);
-          newPool.push(member);
-        }
+          // Only add to pool if not already there (based on name/type/subclass)
+          if (!newPool.some(p => p.name === m.name && p.type === m.type && p.subclass === m.subclass)) {
+            newPool.push(member);
+          }
+        });
         
         return {
           name: t.name,
-          count: String(t.count || (t.members ? t.members.length : 1)),
+          count: String(t.count || sourceMembers.length || 1),
           members: teamMembers
         };
       });
@@ -80,9 +87,20 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
     setTeams(newTeams);
   };
 
-  const updateMemberSubclass = (teamIdx, memberIdx, val) => {
+  const updateMemberField = (teamIdx, memberIdx, field, val) => {
     const newTeams = [...teams];
-    newTeams[teamIdx].members[memberIdx].subclass = val;
+    const member = newTeams[teamIdx].members[memberIdx];
+    member[field] = val;
+    
+    if (field === 'type') {
+      const isClass = metadata.classes.includes(val);
+      if (isClass) {
+        member.subclass = (metadata.subclasses[val] && metadata.subclasses[val][0]) || '';
+      } else {
+        delete member.subclass;
+      }
+    }
+    
     setTeams(newTeams);
   };
 
@@ -139,7 +157,7 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
           {Object.entries(variables).map(([name, vals]) => (
             <span key={name} style={{ background: '#fff', border: '1px solid #90caf9', padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center' }}>
               <strong>{name}</strong>:<span style={{marginLeft:'4px'}}>{JSON.stringify(vals)}</span>
-              <button onClick={() => { const v = {...variables}; delete v[name]; setVariables(v); }} style={{ marginLeft: '8px', border: 'none', background: '#ffcdd2', color: '#c62828', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifycontent: 'center' }}>×</button>
+              <button onClick={() => { const v = {...variables}; delete v[name]; setVariables(v); }} style={{ marginLeft: '8px', border: 'none', background: '#ffcdd2', color: '#c62828', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
             </span>
           ))}
           {Object.keys(variables).length === 0 && <span style={{ color: '#666', fontSize: '0.85rem', fontStyle: 'italic' }}>No variables defined. Single run mode.</span>}
@@ -186,32 +204,60 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
             {team.members.length === 0 && <p style={{ color: '#999', fontStyle: 'italic', fontSize: '0.85rem' }}>No members added to this team yet.</p>}
             
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {team.members.map((m, mIdx) => (
-                <li key={m.id || mIdx} data-testid="team-member" style={{ padding: '0.75rem', background: '#fff', border: '1px solid rgba(0,0,0,0.05)', borderRadius: '6px', marginBottom: '0.5rem' }}>
-                  <div style={{ fontWeight: '500' }}>{m.name} <span style={{ color: '#666', fontWeight: 'normal', fontSize: '0.8rem' }}>({m.type})</span></div>
-                  {m.type === 'fighter' && (
-                    <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <label style={{ fontSize: '0.8rem', color: '#555' }}>Subclass:</label>
+              {team.members.map((m, mIdx) => {
+                const isClass = metadata.classes.includes(m.type);
+                const options = isClass ? metadata.classes : metadata.monsters;
+                const subclasses = metadata.subclasses[m.type] || [];
+                
+                return (
+                  <li key={m.id || mIdx} data-testid="team-member" style={{ padding: '0.75rem', background: '#fff', border: '1px solid rgba(0,0,0,0.05)', borderRadius: '6px', marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <input 
-                        value={m.subclass || ''} 
-                        placeholder="e.g. champion"
-                        onChange={e => updateMemberSubclass(idx, mIdx, e.target.value)} 
-                        style={{ fontSize: '0.8rem', padding: '2px 6px', border: '1px solid #ddd', borderRadius: '4px' }} 
+                        value={m.name} 
+                        onChange={e => updateMemberField(idx, mIdx, 'name', e.target.value)}
+                        style={{ fontWeight: 'bold', border: 'none', borderBottom: '1px solid #eee', width: '60%' }}
                       />
+                      <button 
+                        onClick={() => {
+                          const newTeams = [...teams];
+                          newTeams[idx].members.splice(mIdx, 1);
+                          setTeams(newTeams);
+                        }}
+                        style={{ background: 'none', border: 'none', color: '#d32f2f', fontSize: '0.7rem', cursor: 'pointer' }}
+                      >
+                        Remove
+                      </button>
                     </div>
-                  )}
-                  <button 
-                    onClick={() => {
-                      const newTeams = [...teams];
-                      newTeams[idx].members.splice(mIdx, 1);
-                      setTeams(newTeams);
-                    }}
-                    style={{ background: 'none', border: 'none', color: '#d32f2f', fontSize: '0.7rem', cursor: 'pointer', marginTop: '0.5rem', padding: 0 }}
-                  >
-                    Remove
-                  </button>
-                </li>
-              ))}
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.5rem' }}>
+                      <select 
+                        value={m.type} 
+                        onChange={e => updateMemberField(idx, mIdx, 'type', e.target.value)}
+                        style={{ fontSize: '0.8rem', padding: '4px', borderRadius: '4px', border: '1px solid #ddd' }}
+                        data-testid="member-type-select"
+                      >
+                        {options.map(opt => (
+                          <option key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</option>
+                        ))}
+                      </select>
+                      
+                      {isClass && subclasses.length > 0 && (
+                        <select 
+                          value={m.subclass || ''} 
+                          onChange={e => updateMemberField(idx, mIdx, 'subclass', e.target.value)}
+                          style={{ fontSize: '0.8rem', padding: '4px', borderRadius: '4px', border: '1px solid #ddd' }}
+                          data-testid="member-subclass-select"
+                        >
+                          <option value="">Standard</option>
+                          {subclasses.map(sc => (
+                            <option key={sc} value={sc}>{sc.charAt(0).toUpperCase() + sc.slice(1)}</option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ))}
@@ -229,6 +275,7 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
         </div>
         <button 
           onClick={handleRun} 
+          data-testid="launch-experiment"
           style={{ padding: '12px 30px', background: '#1976d2', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 2px 5px rgba(25, 118, 210, 0.4)' }}
         >
           🚀 Launch Experiment

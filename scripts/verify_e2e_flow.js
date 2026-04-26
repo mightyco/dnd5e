@@ -41,12 +41,43 @@ import puppeteer from 'puppeteer';
   const teamMembers = await page.$$eval('[data-testid="team-member"]', els => els.length);
   console.log('Found Team Members:', teamMembers);
 
-  if (experimentName.includes('Fighter vs Goblin') && poolMembers >= 2 && teamMembers >= 2) {
-    console.log('SUCCESS: Edit in Lab flow verified with full data loading.');
+  // 4. Modify a member and verify change
+  console.log('Modifying member type...');
+  
+  // Wait for the specific select to be populated (means metadata is loaded)
+  await page.waitForFunction(() => {
+    const select = document.querySelector('[data-testid="member-type-select"]');
+    return select && select.options.length > 1;
+  }, { timeout: 5000 });
+
+  // Change "fighter" to "wizard" for the first member
+  await page.select('[data-testid="member-type-select"]', 'wizard');
+  
+  const selectedType = await page.$eval('[data-testid="member-type-select"]', el => el.value);
+  console.log('New Member Type:', selectedType);
+
+  if (selectedType !== 'wizard') {
+    console.error('FAILURE: Member type did not update.');
+    await browser.close();
+    process.exit(1);
+  }
+
+  // 5. Launch and verify results show new type
+  console.log('Launching modified experiment...');
+  await page.click('[data-testid="launch-experiment"]');
+  
+  console.log('Waiting for results...');
+  await page.waitForSelector('#simulation-results h2', { timeout: 30000 });
+  
+  const resultsHeader = await page.$eval('#simulation-results h2', el => el.textContent);
+  console.log('Found Results Header:', resultsHeader);
+  
+  if (resultsHeader.includes('Analysis:')) {
+    console.log('SUCCESS: Modified experiment completed successfully.');
     await browser.close();
     process.exit(0);
   } else {
-    console.error('FAILURE: Data not fully loaded in configurator.', { experimentName, poolMembers, teamMembers });
+    console.error('FAILURE: Results not found or incorrect header.', resultsHeader);
     await browser.close();
     process.exit(1);
   }

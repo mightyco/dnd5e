@@ -42,17 +42,18 @@ export const RollInspector = ({ data }) => {
                 );
               }
 
+              const meta = event.metadata || {};
               return (
                 <div key={idx} style={{ paddingLeft: '1rem', margin: '0.5rem 0', fontSize: '0.9rem' }}>
                   <span style={{ color: event.success ? '#2e7d32' : '#d32f2f' }}>
-                    [{event.type.toUpperCase()}]
+                    [{event.type?.toUpperCase()}]
                   </span> {event.attacker} vs {event.defender} ({event.attack_name}) 
                   {event.is_crit && <span style={{ fontWeight: 'bold', color: '#ff9800' }}> CRIT!</span>}
                   <br/>
                   <small style={{ color: '#666' }}>
-                    Roll: {event.metadata.attack_roll} (Raw: [{event.metadata.raw_rolls?.join(', ') || '?'}] + {event.metadata.modifier}) vs AC {event.metadata.target_ac}
-                    {event.damage > 0 && ` | Damage: ${event.damage} (${event.metadata.damage_rolls?.join('+')} + ${event.metadata.damage_modifier})`}
-                    {event.metadata.current_hp !== undefined && ` | Target HP: ${event.metadata.current_hp}/${event.metadata.max_hp}`}
+                    Roll: {meta.attack_roll || '?'} (Raw: [{meta.raw_rolls?.join(', ') || '?'}] + {meta.modifier || 0}) vs AC {meta.target_ac || '?'}
+                    {event.damage > 0 && ` | Damage: ${event.damage} (${meta.damage_rolls?.join('+') || '?'} + ${meta.damage_modifier || 0})`}
+                    {meta.current_hp !== undefined && ` | Target HP: ${meta.current_hp}/${meta.max_hp}`}
                   </small>
                 </div>
               );

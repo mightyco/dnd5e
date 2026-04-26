@@ -58,6 +58,19 @@ get '/api/health' do
     ui_built: File.exist?(File.join(UI_DIST_DIR, 'index.html')) }.to_json
 end
 
+get '/api/metadata' do
+  content_type :json
+  {
+    classes: %w[fighter wizard rogue],
+    subclasses: {
+      fighter: %w[champion battlemaster],
+      wizard: %w[evoker abjurer],
+      rogue: []
+    },
+    monsters: %w[goblin bugbear ogre]
+  }.to_json
+end
+
 ['/simulations', '/api/simulations'].each do |path|
   get path do
     content_type :json
