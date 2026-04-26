@@ -60,8 +60,8 @@ task :examples do
   puts "\nAll examples passed."
 end
 
-desc 'Run tests and linting'
-task all: %i[test lint examples]
+desc 'Run tests, linting, and e2e'
+task all: %i[test lint ui:e2e examples]
 
 desc 'Run tests with coverage enabled'
 task :coverage do

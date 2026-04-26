@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-export const SimulationLibrary = ({ onRun }) => {
+export const SimulationLibrary = ({ onRun, onEdit }) => {
   const [simulations, setSimulations] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,6 +27,17 @@ export const SimulationLibrary = ({ onRun }) => {
       onRun(results);
     } catch (err) {
       alert('Failed to run simulation');
+    }
+  };
+
+  const editSimulation = async (id) => {
+    try {
+      const response = await fetch(`/api/simulations/${id}`);
+      if (!response.ok) throw new Error('Failed to fetch preset details');
+      const data = await response.json();
+      onEdit(data);
+    } catch (err) {
+      alert('Error loading preset for editing');
     }
   };
 
@@ -73,23 +84,41 @@ export const SimulationLibrary = ({ onRun }) => {
                 <span>Level {sim.level}</span>
                 <span>{sim.num_simulations} Runs</span>
               </div>
-              <button 
-                onClick={() => runSimulation(sim.id)} 
-                data-testid={`run-preset-${sim.id}`}
-                style={{ 
-                  width: '100%',
-                  padding: '8px', 
-                  background: '#1976d2', 
-                  color: '#fff', 
-                  border: 'none', 
-                  borderRadius: '6px', 
-                  cursor: 'pointer',
-                  fontSize: '0.9rem',
-                  fontWeight: 'bold'
-                }}
-              >
-                Run Scenario
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button 
+                  onClick={() => runSimulation(sim.id)} 
+                  data-testid={`run-preset-${sim.id}`}
+                  style={{ 
+                    flexGrow: 2,
+                    padding: '8px', 
+                    background: '#2e7d32', 
+                    color: '#fff', 
+                    border: 'none', 
+                    borderRadius: '6px', 
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Run Scenario
+                </button>
+                <button 
+                  onClick={() => editSimulation(sim.id)} 
+                  data-testid={`edit-preset-${sim.id}`}
+                  style={{ 
+                    flexGrow: 1,
+                    padding: '8px', 
+                    background: '#fff', 
+                    color: '#1976d2', 
+                    border: '1px solid #1976d2', 
+                    borderRadius: '6px', 
+                    cursor: 'pointer',
+                    fontSize: '0.9rem'
+                  }}
+                >
+                  Edit in Lab
+                </button>
+              </div>
             </div>
           </div>
         ))}

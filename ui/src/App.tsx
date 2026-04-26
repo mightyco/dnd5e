@@ -1,7 +1,7 @@
 import { SimulationDashboard } from './components/Simulation'
 
 function App() {
-  const version = __APP_VERSION__;
+  const version = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'DEV';
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       <meta name="build-time" content={version} />

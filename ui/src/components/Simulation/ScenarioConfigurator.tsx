@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CharacterBuilder } from './CharacterBuilder';
 
-export const ScenarioConfigurator = ({ onRun }) => {
+export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) => {
   const [characterPool, setCharacterPool] = useState([]);
   const [variables, setVariables] = useState({});
   const [teams, setTeams] = useState([
@@ -15,6 +15,26 @@ export const ScenarioConfigurator = ({ onRun }) => {
   });
 
   const [newVar, setNewVar] = useState({ name: '', values: '' });
+
+  React.useEffect(() => {
+    if (initialConfig) {
+      setSimConfig({
+        name: `Copy of ${initialConfig.name}`,
+        level: initialConfig.level || 1,
+        num_simulations: initialConfig.num_simulations || 100
+      });
+      setVariables(initialConfig.variables || {});
+      
+      const newTeams = initialConfig.teams.map(t => ({
+        name: t.name,
+        count: String(t.count || (t.members ? t.members.length : 1)),
+        members: t.members ? t.members.map(m => ({ ...m, id: Math.random() })) : 
+                 (t.template ? [{ ...t.template, id: Math.random() }] : [])
+      }));
+      setTeams(newTeams);
+      if (onConfigHandled) onConfigHandled();
+    }
+  }, [initialConfig, onConfigHandled]);
 
   const addVariable = () => {
     if (!newVar.name || !newVar.values) return;
@@ -75,7 +95,7 @@ export const ScenarioConfigurator = ({ onRun }) => {
   };
 
   return (
-    <div style={{ marginTop: '3rem', padding: '2.5rem', background: '#ffffff', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+    <div className="scenario-configurator" style={{ marginTop: '3rem', padding: '2.5rem', background: '#ffffff', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
       <h2 style={{ borderBottom: '2px solid #f0f0f0', paddingBottom: '0.5rem', marginBottom: '2rem' }}>Scientific Lab Runner</h2>
       
       {/* Variable Editor */}

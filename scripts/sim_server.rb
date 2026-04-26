@@ -65,6 +65,15 @@ end
   end
 end
 
+['/simulations/:id', '/api/simulations/:id'].each do |path|
+  get path do
+    content_type :json
+    sim = find_simulation(params[:id])
+    halt 404, { error: 'Simulation not found' }.to_json unless sim
+    sim.to_json
+  end
+end
+
 ['/simulations/run/:id', '/api/simulations/run/:id'].each do |path|
   post path do
     content_type :json
