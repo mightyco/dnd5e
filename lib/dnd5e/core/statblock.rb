@@ -11,7 +11,6 @@ module Dnd5e
     class Statblock
       include StatblockInitialization
 
-      attr_reader :name, :hit_die, :level, :condition_manager, :size
       attr_accessor :strength, :dexterity, :constitution, :intelligence, :wisdom, :charisma, :hit_points,
                     :saving_throw_proficiencies, :equipped_armor, :equipped_shield,
                     :extra_attacks, :resources, :speed, :crit_threshold, :heroic_inspiration,
@@ -27,7 +26,8 @@ module Dnd5e
         @name = name
         initialize_from_options(options)
         @resources = ResourcePool.new(options[:resources] || {})
-        @hit_points = options[:hit_points] || calculate_hit_points
+        @max_hp = options[:hit_points] || calculate_hit_points
+        @hit_points = options[:hit_points] || @max_hp
         @condition_manager = ConditionManager.new
         sync_initial_conditions
       end
@@ -98,16 +98,14 @@ module Dnd5e
       def heal(amount)
         raise ArgumentError, 'Healing amount must be non-negative' if amount.negative?
 
-        @hit_points = [calculate_hit_points, @hit_points + amount].min
+        @hit_points = [@max_hp, @hit_points + amount].min
       end
 
       def alive?
         @hit_points.positive?
       end
 
-      def max_hp
-        calculate_hit_points
-      end
+      attr_reader :name, :hit_die, :level, :condition_manager, :size, :max_hp
 
       def calculate_hit_points
         sides = @hit_die.sub('d', '').to_i

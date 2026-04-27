@@ -21,6 +21,7 @@ module Dnd5e
         @name = name
         @statblock = nil
         @attacks = []
+        @strategy = Core::Strategies::SimpleStrategy.new
       end
 
       # Sets the statblock for the monster.
@@ -100,7 +101,7 @@ module Dnd5e
         raise InvalidMonsterError, 'Monster must have a name' if @name.nil? || @name.empty?
         raise InvalidMonsterError, 'Monster must have a statblock' if @statblock.nil?
 
-        Core::Monster.new(name: @name, statblock: @statblock, attacks: @attacks)
+        Core::Monster.new(name: @name, statblock: @statblock, attacks: @attacks, strategy: @strategy)
       end
     end
   end

@@ -2,11 +2,14 @@
 
 require 'json'
 require_relative 'combat_result_handler'
+require_relative 'attack_formatting'
 
 module Dnd5e
   module Simulation
     # Collects detailed combat data and exports it as JSON for visualization.
     class JSONCombatResultHandler < CombatResultHandler
+      include AttackFormatting
+
       attr_reader :combat_data
 
       def initialize
@@ -86,13 +89,21 @@ module Dnd5e
       def handle_combat_end(data)
         return unless @current_combat
 
-        @current_combat[:winner] = data[:winner]&.name
-        @current_combat[:combatants] = data[:combatants].map do |c|
-          { name: c.name, hit_points: c.statblock.hit_points, max_hp: c.statblock.max_hp }
-        end
+        @current_combat[:winner] = identify_winner(data[:winner])
+        @current_combat[:combatants] = format_combatants(data[:combatants])
         @current_combat[:initiative_winner] = data[:initiative_winner]&.name
         @combat_data << @current_combat
         @current_combat = nil
+      end
+
+      def identify_winner(winner)
+        winner.respond_to?(:name) ? winner.name : winner.to_s
+      end
+
+      def format_combatants(combatants)
+        combatants.map do |c|
+          { name: c.name, hit_points: c.statblock.hit_points, max_hp: c.statblock.max_hp }
+        end
       end
 
       def spatial_snapshot(combat)
@@ -109,22 +120,6 @@ module Dnd5e
 
       def find_ctx_pos(combatant)
         combatant.instance_variable_get(:@combat_context)&.grid&.find_position(combatant)
-      end
-
-      def format_attack_event(res)
-        base = { type: res.type, attacker: res.attacker.name, defender: res.defender.name,
-                 attack_name: res.attack.name, success: res.success }
-        base.merge(damage: res.damage, is_crit: res.is_crit, is_dead: res.is_dead,
-                   metadata: extract_metadata(res))
-      end
-
-      def extract_metadata(res)
-        { attack_roll: res.attack_roll, picked_roll: res.raw_roll, raw_rolls: res.rolls,
-          modifier: res.modifier, proficiency_bonus: res.proficiency_bonus,
-          target_ac: res.target_ac, damage_rolls: res.damage_rolls,
-          damage_modifier: res.damage_modifier, current_hp: res.current_hp,
-          max_hp: res.max_hp, save_roll: res.save_roll, save_dc: res.save_dc,
-          maneuver: res.respond_to?(:maneuver) ? res.maneuver : nil }
       end
     end
   end

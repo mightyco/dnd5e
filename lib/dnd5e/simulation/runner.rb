@@ -95,7 +95,7 @@ module Dnd5e
 
       def clone_member(member)
         stat = member.statblock.deep_copy
-        stat.hit_points = stat.calculate_hit_points
+        stat.hit_points = stat.max_hp
 
         member.class.new(
           name: member.name, statblock: stat, strategy: member.strategy,

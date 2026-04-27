@@ -9,6 +9,8 @@ module Dnd5e
       class DamageRollHelper
         def self.calculate_dice(attacker, attack, is_crit, options)
           base_dice = attack.damage_dice_for(attacker.statblock.level)
+          return base_dice unless base_dice.is_a?(Dice)
+
           context = { attacker: attacker, attack: attack, dice: base_dice, options: options, is_crit: is_crit }
           base_dice = attacker.feature_manager.apply_hook(:on_damage_calculation, context, base_dice)
 

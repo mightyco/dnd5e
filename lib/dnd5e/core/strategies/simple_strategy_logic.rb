@@ -182,8 +182,15 @@ module Dnd5e
           combatant.statblock.resources.consume(:action_surge)
           combat.notify_observers(:resource_used, { combatant: combatant, resource: :action_surge })
 
+          # 2024: Action Surge grants one additional action.
+          # We manually reset availability just for this call.
+          original_actions = combatant.turn_context.instance_variable_get(:@actions_used)
           combatant.turn_context.instance_variable_set(:@actions_used, 0)
           execute_action(combatant, combat)
+          # Restoration: If execute_action used the surge action, actions_used should now be 1.
+          # We want to restore the PRE-surge state PLUS the fact that we might have used the surge.
+          # However, simple restoration to (original + 1) is safer if surge is always 1 action.
+          combatant.turn_context.instance_variable_set(:@actions_used, original_actions + 1)
         end
 
         def find_target(combatant, combat)

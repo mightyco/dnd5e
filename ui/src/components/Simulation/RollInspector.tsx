@@ -42,7 +42,30 @@ export const RollInspector = ({ data }) => {
                 );
               }
 
+              if (event.type === 'move') {
+                return (
+                  <div key={idx} style={{ padding: '0.2rem 0', color: '#666', fontSize: '0.85rem' }}>
+                    [MOVE] {event.combatant} moved to ({event.to?.x}, {event.to?.y})
+                  </div>
+                );
+              }
+
               const meta = event.metadata || {};
+              if (event.type === 'save') {
+                return (
+                  <div key={idx} style={{ paddingLeft: '1rem', margin: '0.5rem 0', fontSize: '0.9rem' }}>
+                    <span style={{ color: event.success ? '#2e7d32' : '#d32f2f' }}>
+                      [SAVE]
+                    </span> {event.defender} vs {event.attacker} ({event.attack_name})
+                    <br/>
+                    <small style={{ color: '#666' }}>
+                      Roll: {meta.save_roll || '?'} vs DC {meta.save_dc || '?'}
+                      {event.damage > 0 && ` | Damage: ${event.damage}`}
+                    </small>
+                  </div>
+                );
+              }
+
               return (
                 <div key={idx} style={{ paddingLeft: '1rem', margin: '0.5rem 0', fontSize: '0.9rem' }}>
                   <span style={{ color: event.success ? '#2e7d32' : '#d32f2f' }}>

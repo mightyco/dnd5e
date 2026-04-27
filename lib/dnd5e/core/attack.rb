@@ -29,7 +29,7 @@ module Dnd5e
       # @param properties [Array<Symbol>] List of weapon properties (e.g., :light, :finesse).
       def initialize(name:, damage_dice:, relevant_stat: :strength, dice_roller: DiceRoller.new, **options)
         @name = name
-        @damage_dice = damage_dice
+        @damage_dice = damage_dice.is_a?(String) ? Dice.parse(damage_dice) : damage_dice
         @relevant_stat = relevant_stat
         @dice_roller = dice_roller
         @magic_bonus = options[:magic_bonus] || 0
