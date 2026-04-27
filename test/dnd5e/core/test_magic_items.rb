@@ -20,7 +20,7 @@ module Dnd5e
         assert_equal 1, attack.magic_bonus
 
         # Attack mod: Str (3) + PB (2) + Magic (1) = 6
-        mod = Helpers::AttackRollHelper.calculate_modifier(hero, attack, {})
+        mod = Helpers::AttackRollHelper.calculate_modifier(hero, nil, attack, {})
 
         assert_equal 6, mod
 

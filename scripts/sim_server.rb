@@ -61,11 +61,20 @@ end
 get '/api/metadata' do
   content_type :json
   {
-    classes: %w[fighter wizard rogue],
+    classes: %w[fighter wizard rogue barbarian paladin monk ranger cleric bard druid sorcerer warlock],
     subclasses: {
       fighter: %w[champion battlemaster],
       wizard: %w[evoker abjurer],
-      rogue: []
+      rogue: %w[assassin],
+      barbarian: %w[berserker],
+      paladin: %w[devotion],
+      monk: [],
+      ranger: %w[hunter],
+      cleric: %w[life],
+      bard: %w[valor],
+      druid: %w[moon],
+      sorcerer: %w[draconic],
+      warlock: %w[fiend]
     },
     monsters: %w[goblin bugbear ogre]
   }.to_json

@@ -1,0 +1,4 @@
+    end\n  end\nend\n# rubocop:enable Metrics/ModuleLength
+    end
+  end
+end

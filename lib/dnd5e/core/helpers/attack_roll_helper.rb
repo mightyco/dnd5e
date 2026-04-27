@@ -8,7 +8,7 @@ module Dnd5e
       # Helper for attack calculations.
       class AttackRollHelper
         def self.roll_attack(attacker, defender, attack, options)
-          modifier = calculate_modifier(attacker, attack, options)
+          modifier = calculate_modifier(attacker, defender, attack, options)
           distance = options[:distance] || 5
           adv, dis = determine_advantage_disadvantage(attacker, defender, attack, distance, options)
 
@@ -21,11 +21,11 @@ module Dnd5e
             rolls: rolls, advantage: adv, disadvantage: dis }
         end
 
-        def self.calculate_modifier(attacker, attack, options)
+        def self.calculate_modifier(attacker, defender, attack, options)
           mod = attacker.statblock.ability_modifier(attack.relevant_stat)
           mod += attacker.statblock.proficiency_bonus
           mod += attack.magic_bonus if attack.respond_to?(:magic_bonus)
-          context = { attacker: attacker, attack: attack, options: options }
+          context = { attacker: attacker, defender: defender, attack: attack, options: options }
           attacker.feature_manager.apply_modifier_hook(:on_attack_roll, context, mod)
         end
 

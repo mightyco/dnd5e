@@ -7,70 +7,43 @@ The **D&D 2024 Combat Simulator** is a robust, table-driven simulation engine fo
 - **Ruby 3.3.x (3.3.9+)**: Primary programming language.
 - **Minitest**: Testing framework.
 - **RuboCop**: Linting and style enforcement.
-- **pdf-reader**: For rule extraction from source PDFs.
+- **Puppeteer**: UI End-to-End testing.
 
 ### Core Architecture
-- **Combat Engine (`Dnd5e::Core::Combat`)**: Orchestrates the flow of encounters, managing rounds, turns, and initiative.
-- **Modular Feature System (`FeatureManager`)**: A hook-based architecture for implementing feats (e.g., GWM, Sharpshooter) and class traits (e.g., Sneak Attack) without bloating the core logic.
-- **Tactical AI (`Strategy`)**: Pluggable strategies for combatant behavior, including kiting, AOE preservation, and priority targeting.
-- **Builders (`CharacterBuilder`, `MonsterBuilder`)**: Fluent interfaces for constructing complex combatants and their equipment.
-- **Rules Ingestion**: Dynamic extraction of class tables and spell slots from text references in `srd_reference/`.
+- **Combat Engine (`Dnd5e::Core::Combat`)**: Orchestrates the flow of encounters.
+- **Modular Feature System (`FeatureManager`)**: Hook-based architecture for feats and traits.
+- **Tactical AI (`Strategy`)**: Pluggable strategies for combatant behavior.
+- **Builders (`CharacterBuilder`, `MonsterBuilder`)**: Fluent interfaces for construction.
 
-## 🛠 Project Infrastructure
+## 🛠 Engineering Standards (MANDATORY)
 
-### Developer Resources
-For detailed guides on rule extraction, linter configuration, and performance benchmarking, see [DEVELOPER.md](DEVELOPER.md).
+### 1. Verification-First Architecture
+The AI assistant **MUST** follow a strict **Reproduce -> Fix -> Prove** cycle.
+- **Empirical Reproduction**: Every bug report MUST be reproduced with a standalone script or test case BEFORE a fix is attempted.
+- **Holistic Verification**: A backend fix affecting the UI is NOT complete until a Puppeteer/E2E test confirms the UI is functional.
+- **The "Liar" Gate**: Any claim of completion ("I have fixed X") without an accompanying test execution or log snippet in the *current turn* is a violation of project integrity.
 
-### Coding Standards (MANDATORY)
-The AI assistant **MUST** strictly adhere to the project's [STYLE_GUIDE.md](STYLE_GUIDE.md). Key mandates include:
-- **Frozen String Literals**: Must be present in every Ruby file.
-- **Complexity**: Maximum 10 lines per method and 100 lines per class (hard limit).
-- **Boolean Naming**: Predicate methods must end in `?`.
-- **Testing**: Use `assert_predicate` and `refute_predicate` for all boolean checks.
+### 2. Deep Context Requirement
+- **UI Components**: If a UI element is being modified, the agent **MUST** perform a `read_file` of the *entire* component to understand state management before applying a `replace`.
+- **Subclass Awareness**: Changes to base logic (e.g., `SimpleStrategy`) **MUST** be verified against all specialized subclasses (e.g., `BattleMasterStrategy`).
 
-## Building and Running
-
-### Prerequisites
-- Ruby 3.3.x (3.3.9+)
-- Bundler
-
-### Key Commands
-- `bundle install`: Install dependencies.
-- `bundle exec rake rules:build`: Ingest rules from reference files (using `extract_rules.rb` for source PDF handling).
-- `bundle exec rake test`: Run the full test suite.
-- `bundle exec rake lint`: Run RuboCop linter.
-- `bundle exec rake all`: Run tests, linting, and verify all examples.
-- `ruby examples/example_science_class_balance.rb`: Run a specific simulation experiment.
-
-### Rules Management & Ignored Files
-- **Research Policy**: Files and directories listed in `.gitignore` (such as `rules_reference/`) are **not off-limits** for reading. They often contain critical context (e.g., rule text, PDFs) that must be used during the research phase.
-- **Commit Policy**: While these files should be read for information, they must **never** be staged or committed to the repository.
-- **Tooling**: When searching for rules or context, use tools with `no_ignore: true` or `respect_git_ignore: false` to ensure ignored reference material is included in the search.
-
-### Validation & Quality Standards
-- **Math Transparency**: Ensure rolls and critical logic are logged with full metadata for debugging and validation. Resolution objects like `AttackResult` must carry enough metadata for deep analysis.
-- **Empirical Proof**: For balance changes or mechanical implementations, provide a simulation script (in `examples/`) that runs at least 10,000 rounds to verify expected mathematical outcomes.
-- **Fast Development Cycle**: Use `FAST_SIM=true bundle exec rake all` to skip slow simulations (> 5s) and run examples in parallel.
-- **Modular Design**: Even in experimental scripts, extract logic into focused methods (< 10 lines) to satisfy complexity constraints.
+### 3. Functional Integrity > Style Metrics
+- **RuboCop**: Zero offenses is the goal, but **Functional Correctness MUST NOT** be sacrificed to satisfy complexity metrics.
+- If a method exceeds 10 lines but splitting it would break logic or reduce readability, use `# rubocop:disable` with a clear justification.
 
 ## 🏁 Definition of Done (DoD)
-All changes MUST meet the following criteria before being considered complete:
-1.  **Test Coverage**: Coverage MUST NOT decrease. "At least not worse" is the hard floor.
-2.  **CI Validation**: Full test suite and balance regression MUST be green in CI. No code shall be merged or finalized without a successful CI run.
-3.  **RuboCop Compliance**: Zero linting offenses.
-4.  **Mathematical Integrity**: High-precision balance audit (`rake test:balance:full`) must pass for any changes affecting combat logic.
-5.  **Documentation**: Relevant OpenSpecs and DESIGN docs must be synchronized with implementation.
-
-## 🖥️ UI Verification Protocol
-Every UI change MUST follow this explicit verification sequence in the test phase:
-1.  **Step 1: Version Sync**: Confirm the version running in the browser is the version just built (use build timestamps or git hashes).
-2.  **Step 2: Landmark Check**: Confirm major UI elements and "design anchors" (e.g. a specific header or `data-testid`) are present and visible.
-3.  **Step 4: Functional Exercise**: Execute the core user flow (click, input, submit) to test the logic.
-4.  **Step 5: Evidence Capture**: Record a screenshot or console log output as empirical proof.
-5.  **Step 6: Validation**: Final pass/fail based on visual and data integrity.
+All changes MUST meet these criteria:
+1.  **Mechanical Gate**: Standalone script or unit test proves the logic change.
+2.  **UI Gate**: Puppeteer test (`rake ui:e2e`) proves the dashboard/lab functionality.
+3.  **CI Validation**: `bundle exec rake all` MUST be green.
+4.  **Math Transparency**: Rolls and critical logic MUST be logged with full metadata.
 
 ## 🛠️ Systematic Troubleshooting
-If a task fails more than twice, or if a build does not reflect changes in the runtime:
-1.  **ACTIVATE SKILL**: You MUST call `activate_skill(name: 'troubleshooter')`.
-2.  **Lock Source**: Stop guessing variable names or overwriting files blindly.
-3.  **Trace Pipeline**: Systematically verify Disk -> Compiler -> Artifact -> Server -> Browser.
+If a task fails more than twice:
+1.  **ACTIVATE SKILL**: `activate_skill(name: 'troubleshooter')`.
+2.  **Tiered Inventory**: Maintain a live inventory in `.gemini/troubleshoot_inventory.md`.
+    - **Tier 1**: Ground Truths (logs, cat, direct observation).
+    - **Tier 2**: Strong Inferences.
+    - **Tier 3**: Guesses (untested).
+    - **Tier 4**: Falsified Hypotheses.
+3.  **No Guessing**: Every change must be a verified probe or a fix rooted in Tier 1/2 data.

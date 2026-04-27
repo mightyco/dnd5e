@@ -14,12 +14,12 @@ class TestEditFlow < Minitest::Test
 
   def test_get_simulation_detail
     # Verify the API endpoint works
-    get '/api/simulations/fighter-vs-goblin'
+    get '/api/simulations/champion-vs-bugbear-pack'
 
     assert_predicate last_response, :ok?, "Expected OK response but got #{last_response.status}"
     data = JSON.parse(last_response.body)
 
-    assert_equal 'fighter-vs-goblin', data['id']
+    assert_equal 'champion-vs-bugbear-pack', data['id']
     assert_includes data.keys, 'teams'
   end
 
@@ -29,9 +29,9 @@ class TestEditFlow < Minitest::Test
     assert_predicate last_response, :ok?
     sims = JSON.parse(last_response.body)
 
-    fighter = sims.find { |s| s['id'] == 'fighter-vs-goblin' }
+    fighter = sims.find { |s| s['id'] == 'champion-vs-bugbear-pack' }
 
-    assert fighter, 'Fighter vs Goblin preset not found in list'
+    assert fighter, 'Champion vs Bugbear Pack preset not found in list'
     # Metadata should be present for the library view
     assert_includes fighter.keys, 'name'
     assert_includes fighter.keys, 'description'

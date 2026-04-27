@@ -27,7 +27,7 @@ module Dnd5e
           return [] if attacker.turn_context.instance_variable_get(:@assassinate_used)
 
           attacker.turn_context.instance_variable_set(:@assassinate_used, true)
-          [Dice.new(0, 0, modifier: attacker.statblock.level)]
+          [Dice.new(1, 1, modifier: attacker.statblock.level - 1)]
         end
 
         private

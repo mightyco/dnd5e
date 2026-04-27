@@ -20,18 +20,19 @@ module Dnd5e
           true
         end
 
-        def on_attack_roll(context)
+        def on_after_attack_roll(context)
           attacker = context[:attacker]
-          return 0 unless attacker.condition?(:inspired)
-
           roll_data = context[:current_value]
-          ac = context[:defender].statblock.armor_class
+          return nil unless attacker.condition?(:inspired)
 
-          if roll_data[:total] < ac
-            attacker.remove_condition(:inspired)
-            return DiceRoller.new.roll('1d6')
-          end
-          0
+          ac = context[:defender].statblock.armor_class
+          return nil if roll_data[:total] >= ac
+
+          # Use inspiration if it would make a difference
+          attacker.remove_condition(:inspired)
+          bonus = DiceRoller.new.roll('1d6')
+          roll_data[:total] += bonus
+          roll_data
         end
 
         private

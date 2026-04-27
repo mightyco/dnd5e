@@ -1,0 +1,25 @@
+{
+  "id": "battlemaster-vs-bugbear-pack",
+  "name": "Battle Master vs Bugbear Pack (Level 5)",
+  "description": "Level 5 Battle Master Fighter with 2024 rules (Maneuvers, Tactical Shift) against a pack of 2 Bugbears.",
+  "num_simulations": 100,
+  "level": 5,
+  "teams": [
+    {
+      "name": "Heroes",
+      "members": [
+        { "name": "BM Hero", "type": "fighter", "subclass": "battlemaster", "abilities": { "strength": 16, "dexterity": 14, "constitution": 14 } }
+      ]
+    },
+    {
+      "name": "Monsters",
+      "members": [
+        { "name": "Bugbear 1", "type": "bugbear" },
+        { "name": "Bugbear 2", "type": "bugbear" }
+      ]
+    }
+  ],
+  "expectations": [
+    { "combatant": "Heroes", "metric": "win_rate", "min": 20.0, "max": 80.0 }
+  ]
+}

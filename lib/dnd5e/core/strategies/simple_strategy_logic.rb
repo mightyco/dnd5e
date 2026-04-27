@@ -31,7 +31,9 @@ module Dnd5e
         def try_cleave_attack(combatant, target, attack, combat)
           return unless attack.mastery == :cleave && !target.statblock.alive?
 
-          new_target = (combat.combatants - [combatant, target]).find { |c| c.statblock.alive? }
+          new_target = (combat.combatants - [combatant, target]).find do |c|
+            c.statblock.alive? && combat.enemy?(combatant, c)
+          end
           combat.attack(combatant, new_target, attack: attack) if new_target
         end
 
@@ -117,7 +119,8 @@ module Dnd5e
         def in_range?(combatant, target, attack, combat)
           return false unless target
 
-          combat.grid.distance(combatant, target) <= attack.range
+          range = attack.respond_to?(:range) ? attack.range : 5
+          combat.grid.distance(combatant, target) <= range
         end
 
         def execute_attacks(combatant, target, attack, combat)

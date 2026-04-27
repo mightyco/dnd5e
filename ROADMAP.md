@@ -68,6 +68,7 @@ Our primary scientific goal is to model and compare the **Champion** and **Battl
 - [ ] **Feat Selection System**: Unified interface for GWM, Sharpshooter, and Dual Wielder.
 - [x] **Wizard Subclasses**: 2024 Evoker and Abjurer implementations.
 - [ ] **Multi-Classing**: Heterogeneous level scaling and resource management.
+- [ ] **Scientific Parameter Sweeps**: Recreate the ability to sweep variables (e.g. level, AC, count) to determine mathematical inflection points.
 - [ ] **Party Composition**: Pre-defined 4-person party templates (Tank, Healer, DPS).
 
 ### Tree 2: Tactical Grid (The Map) (Completed)

@@ -105,24 +105,30 @@ module Dnd5e
         @hit_points.positive?
       end
 
-      attr_reader :name, :hit_die, :level, :condition_manager, :size, :max_hp
+      attr_reader :name, :hit_die, :class_levels, :condition_manager, :size, :max_hp
+
+      def level
+        @class_levels.values.sum
+      end
 
       def calculate_hit_points
         sides = @hit_die.sub('d', '').to_i
         base = sides + ability_modifier(:constitution)
-        return base if @level == 1
+        current_level = level
+        return base if current_level == 1
 
         growth = ((sides + 1) / 2.0).ceil + ability_modifier(:constitution)
-        base + (growth * (@level - 1))
+        base + (growth * (current_level - 1))
       end
 
-      def level_up
-        @level += 1
+      def level_up(class_name = :character)
+        @class_levels[class_name.to_sym] ||= 0
+        @class_levels[class_name.to_sym] += 1
         @hit_points = calculate_hit_points
       end
 
       def proficiency_bonus
-        Proficiency.calculate(@level)
+        Proficiency.calculate(level)
       end
 
       def deep_copy

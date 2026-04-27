@@ -8,6 +8,7 @@ import { DeltaAnalysis } from './LabAnalysis';
 import { TrendChart } from './TrendChart';
 import { LuckAnalyzer } from './LuckAnalyzer';
 import { CombatPlayback } from './CombatPlayback';
+import { HeroEfficiency } from './HeroEfficiency';
 
 export const SimulationDashboard = () => {
   const [history, setHistory] = useState([]);
@@ -152,7 +153,11 @@ export const SimulationDashboard = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
                   {!compareMode ? (
                     <>
-                      <SurvivalChart data={currentRun.payload.results[0].data} />
+                      {currentRun.payload.id?.includes('swarm') ? (
+                        <HeroEfficiency data={currentRun.payload.results[0].data} />
+                      ) : (
+                        <SurvivalChart data={currentRun.payload.results[0].data} />
+                      )}
                       <div style={{ padding: '1rem', background: '#fff', border: '1px solid #ddd', borderRadius: '8px' }}>
                         <h3>Quick Stats</h3>
                         <ul>

@@ -192,10 +192,16 @@ module Dnd5e
 
       def enemy?(comb1, comb2)
         return false if comb1 == comb2
-        return false if comb1.team && comb2.team && comb1.team == comb2.team
 
-        # Fallback for when teams aren't explicitly set but we want to avoid friendly fire
-        true
+        t1 = comb1.respond_to?(:team) ? comb1.team : nil
+        t2 = comb2.respond_to?(:team) ? comb2.team : nil
+
+        # If both have teams, they are enemies only if teams are different
+        return t1 != t2 if t1 && t2
+
+        # If one has a team and the other doesn't, or both don't,
+        # assume they are NOT enemies for safety (prevents FF in swarm)
+        false
       end
 
       private

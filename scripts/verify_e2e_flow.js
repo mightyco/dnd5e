@@ -22,15 +22,15 @@ import puppeteer from 'puppeteer';
   await page.waitForSelector('[data-testid^="edit-preset-"]', { timeout: 10000 });
   
   // 2. Click "Edit in Lab" for a known preset
-  console.log('Clicking "Edit in Lab" for fighter-vs-goblin...');
-  await page.click('[data-testid="edit-preset-fighter-vs-goblin"]');
+  console.log('Clicking "Edit in Lab" for champion-vs-bugbear-pack...');
+  await page.click('[data-testid="edit-preset-champion-vs-bugbear-pack"]');
   
   // 3. Verify ScenarioConfigurator is visible and has data
   console.log('Verifying Scenario Configurator...');
   await page.waitForSelector('.scenario-configurator');
   
-  // Check if the "Experiment Name" input has the expected value (Copy of Fighter vs Goblin (Level 1))
-  const experimentName = await page.$eval('input[type="text"][value^="Copy of Fighter vs Goblin"]', el => el.value);
+  // Check if the "Experiment Name" input has the expected value (Copy of Champion vs Bugbear Pack (Level 1))
+  const experimentName = await page.$eval('input[type="text"][value^="Copy of Champion vs Bugbear Pack"]', el => el.value);
   console.log('Found Experiment Name:', experimentName);
   
   // Verify Character Pool has loaded members from preset

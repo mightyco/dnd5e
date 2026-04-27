@@ -29,7 +29,7 @@ module Dnd5e
         end
 
         def find_highest_slot(attacker)
-          attacker.statblock.resources.all.keys
+          attacker.statblock.resources.resources.keys
                   .select { |k| k.to_s.start_with?('spell_slot_') }
                   .select { |k| attacker.statblock.resources.available?(k) }
                   .sort.reverse.first

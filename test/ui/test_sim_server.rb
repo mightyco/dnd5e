@@ -42,11 +42,11 @@ class SimServerTest < Minitest::Test
     results = JSON.parse(last_response.body)
 
     assert_kind_of Array, results
-    assert(results.any? { |s| s['id'] == 'fighter-vs-goblin' })
+    assert(results.any? { |s| s['id'] == 'champion-vs-bugbear-pack' })
   end
 
   def test_run_preset_simulation
-    post '/api/simulations/run/fighter-vs-goblin'
+    post '/api/simulations/run/champion-vs-bugbear-pack'
 
     assert_predicate last_response, :ok?
     batch = JSON.parse(last_response.body)

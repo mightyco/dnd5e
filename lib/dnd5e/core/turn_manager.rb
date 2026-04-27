@@ -68,6 +68,16 @@ module Dnd5e
         @current_turn_index.zero? && @turn_order.size.positive?
       end
 
+      def acted_this_round?(combatant)
+        idx = @turn_order.index(combatant)
+        return false unless idx
+
+        # If current_turn_index is 0 but turn_order is full, we might be at the start of a round
+        # or end. In next_turn, we increment index after returning.
+        # So if current_turn_index is 1, the 0th combatant has acted.
+        idx < @current_turn_index - 1
+      end
+
       private
 
       # Adds a combatant to the turn manager.
