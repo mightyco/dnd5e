@@ -118,9 +118,20 @@ module Dnd5e
         extra_dmg, extra_rolls = Helpers::DamageRollHelper.roll_extra(ctx[:attacker], ctx[:defender],
                                                                       ctx[:attack], ctx[:options])
         total_dmg = base_damage + extra_dmg
-        ctx[:defender].statblock.take_damage(total_dmg)
-        ctx[:attacker].statblock.record_damage_dealt(total_dmg) if total_dmg.positive?
+        total_dmg = apply_damage_taken_hooks(ctx[:defender], ctx[:attacker], ctx[:attack], total_dmg, ctx[:options])
+
+        apply_final_damage(ctx[:defender], ctx[:attacker], total_dmg)
         { damage: total_dmg, rolls: base_rolls + extra_rolls, modifier: mod }
+      end
+
+      def apply_final_damage(defender, attacker, total_dmg)
+        defender.statblock.take_damage(total_dmg)
+        attacker.statblock.record_damage_dealt(total_dmg) if total_dmg.positive?
+      end
+
+      def apply_damage_taken_hooks(defender, attacker, attack, damage, options)
+        context = { defender: defender, attacker: attacker, attack: attack, options: options }
+        defender.feature_manager.apply_hook(:on_damage_taken, context, damage)
       end
     end
   end

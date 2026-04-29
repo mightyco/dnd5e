@@ -117,6 +117,10 @@ module Dnd5e
         assert_equal 8, d8minus.sides
         assert_equal(-2, d8minus.modifier)
       end
+
+      def test_parse_invalid_notation
+        assert_raises(ArgumentError) { Dice.parse('invalid') }
+      end
     end
   end
 end

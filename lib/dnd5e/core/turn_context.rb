@@ -66,6 +66,11 @@ module Dnd5e
       def bonus_action_available?
         @bonus_actions_used < 1
       end
+
+      # Checks if a reaction is available.
+      def reaction_available?
+        @reactions_used < 1
+      end
     end
   end
 end

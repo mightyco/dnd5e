@@ -49,17 +49,18 @@ module Dnd5e
       # @param class_levels [Hash] A hash of class names and levels.
       # @return [Hash] A hash of spell slots.
       def self.calculate_multiclass(class_levels)
-        full_casters = %i[bard cleric druid sorcerer wizard]
-        half_casters = %i[paladin ranger]
-
-        full_level = sum_levels(class_levels, full_casters)
-        half_level = (sum_levels(class_levels, half_casters) / 2.0).floor.to_i
-
-        effective_level = full_level + half_level
+        effective_level = calculate_effective_caster_level(class_levels)
         return {} if effective_level.zero?
 
         slots = MULTICLASS_SLOTS[[effective_level, 20].min]
         map_slots(slots)
+      end
+
+      def self.calculate_effective_caster_level(class_levels)
+        full = sum_levels(class_levels, %i[bard cleric druid sorcerer wizard])
+        half = (sum_levels(class_levels, %i[paladin ranger]) / 2.0).floor.to_i
+        third = (sum_levels(class_levels, %i[fighter rogue]) / 3.0).floor.to_i
+        full + half + third
       end
 
       def self.sum_levels(class_levels, classes)

@@ -6,6 +6,7 @@ module Dnd5e
   module Core
     module Features
       # Implementation of the Warlock's Agonizing Blast invocation.
+      # Feature for Warlock Agonizing Blast.
       class AgonizingBlast < Feature
         def initialize
           super(name: 'Agonizing Blast')

@@ -30,7 +30,7 @@ module Dnd5e
         def test_rage_resistance
           @barbarian.add_condition(:raging)
 
-          context = { defender: @barbarian, damage: 10, damage_type: :slashing }
+          context = { defender: @barbarian, damage: 10, current_value: 10, damage_type: :slashing }
           reduced_damage = @rage.on_damage_taken(context)
 
           assert_equal 5, reduced_damage

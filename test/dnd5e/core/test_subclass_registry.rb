@@ -48,8 +48,20 @@ module Dnd5e
       end
 
       def test_unknown_subclass_raises_argument_error
-        assert_raises(ArgumentError) { SubclassRegistry.features_for(:paladin, 3) }
-        assert_raises(ArgumentError) { SubclassRegistry.strategy_for(:paladin, 3) }
+        assert_raises(ArgumentError) { SubclassRegistry.features_for(:fake_subclass, 3) }
+        assert_raises(ArgumentError) { SubclassRegistry.strategy_for(:fake_subclass, 3) }
+      end
+
+      def test_all_subclasses_load_successfully
+        SubclassRegistry::SUBCLASSES.each_key do |subclass|
+          features = SubclassRegistry.features_for(subclass, 3)
+
+          assert_instance_of Array, features
+
+          strategy = SubclassRegistry.strategy_for(subclass, 3)
+
+          refute_nil strategy
+        end
       end
 
       def test_known_returns_true_for_valid_subclasses

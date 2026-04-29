@@ -48,11 +48,19 @@ export const CharacterBuilder = ({ onSave }) => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
         <div>
           <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Name: </label>
-          <input type="text" name="name" value={char.name} onChange={handleChange} style={{ width: '100%', padding: '0.4rem' }} />
+          <input 
+            type="text" name="name" value={char.name} onChange={handleChange} 
+            style={{ width: '100%', padding: '0.4rem' }} 
+            data-testid="builder-name-input"
+          />
         </div>
         <div>
           <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Type: </label>
-          <select name="type" value={char.type} onChange={handleChange} style={{ width: '100%', padding: '0.4rem' }}>
+          <select 
+            name="type" value={char.type} onChange={handleChange} 
+            style={{ width: '100%', padding: '0.4rem' }}
+            data-testid="builder-type-select"
+          >
             <optgroup label="Classes">
               {metadata.classes.map(cls => (
                 <option key={cls} value={cls}>{cls.charAt(0).toUpperCase() + cls.slice(1)}</option>
@@ -67,12 +75,20 @@ export const CharacterBuilder = ({ onSave }) => {
         </div>
         <div>
           <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Level: </label>
-          <input type="number" name="level" value={char.level} onChange={handleChange} min="1" max="20" style={{ width: '100%', padding: '0.4rem' }} />
+          <input 
+            type="number" name="level" value={char.level} onChange={handleChange} 
+            min="1" max="20" style={{ width: '100%', padding: '0.4rem' }} 
+            data-testid="builder-level-input"
+          />
         </div>
         {isClass && subclasses.length > 0 && (
           <div>
             <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Subclass: </label>
-            <select name="subclass" value={char.subclass} onChange={handleChange} style={{ width: '100%', padding: '0.4rem' }}>
+            <select 
+              name="subclass" value={char.subclass} onChange={handleChange} 
+              style={{ width: '100%', padding: '0.4rem' }}
+              data-testid="builder-subclass-select"
+            >
               <option value="">Standard</option>
               {subclasses.map(sc => (
                 <option key={sc} value={sc}>{sc.charAt(0).toUpperCase() + sc.slice(1)}</option>

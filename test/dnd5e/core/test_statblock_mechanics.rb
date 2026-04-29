@@ -46,6 +46,12 @@ module Dnd5e
         assert_equal 10, @statblock.hit_points
       end
 
+      def test_record_damage_dealt
+        @statblock.record_damage_dealt(25)
+
+        assert_equal 25, @statblock.damage_dealt
+      end
+
       def test_ability_modifier_invalid_ability
         assert_raises(ArgumentError) { @statblock.ability_modifier(:invalid_ability) }
       end
@@ -66,6 +72,14 @@ module Dnd5e
         assert_equal 0, statblock.save_modifier(:intelligence) # Mod 0
         assert statblock.proficient_in_save?(:dexterity)
         refute statblock.proficient_in_save?(:intelligence)
+      end
+
+      def test_barbarian_unarmored_ac
+        # Manually set class levels as it's private to influence unarmored_class?
+        statblock = Statblock.new(name: 'Barb', dexterity: 14, constitution: 16)
+        statblock.instance_variable_set(:@class_levels, { barbarian: 1 })
+        # 10 + Dex(2) + Con(3) = 15
+        assert_equal 15, statblock.armor_class
       end
 
       private

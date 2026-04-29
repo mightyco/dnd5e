@@ -92,6 +92,37 @@ module Dnd5e
         assert_includes within_radius, @hero
         refute_includes within_radius, @goblin
       end
+
+      def test_neighbors
+        point = Point2D.new(10, 10)
+        neighbors = @grid.neighbors(point)
+
+        assert_equal 8, neighbors.size
+        assert_includes neighbors, Point2D.new(5, 5)
+        assert_includes neighbors, Point2D.new(15, 15)
+      end
+
+      def test_movement_cost
+        p_normal = Point2D.new(0, 0)
+        p_difficult = Point2D.new(5, 5)
+        @grid.set_terrain(p_difficult, :difficult)
+
+        assert_equal 5, @grid.movement_cost(p_normal)
+        assert_equal 10, @grid.movement_cost(p_difficult)
+      end
+
+      def test_traversable
+        assert @grid.traversable?(Point2D.new(100, 100))
+      end
+
+      def test_clear
+        @grid.place(@hero, @p1)
+        @grid.set_terrain(@p1, :difficult)
+        @grid.clear
+
+        assert_empty @grid.occupants
+        assert_equal 5, @grid.movement_cost(@p1)
+      end
     end
   end
 end

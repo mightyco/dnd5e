@@ -18,7 +18,7 @@ module Dnd5e
         print_report(current, baseline)
 
         errors = find_errors(current, baseline)
-        handle_results(errors)
+        handle_results(errors, current)
       end
 
       private
@@ -54,13 +54,15 @@ module Dnd5e
         errors
       end
 
-      def handle_results(errors)
+      def handle_results(errors, current)
         if errors.any?
           errors.each { |e| puts "  [FAILURE] #{e}" }
           puts "\nAction Required: Increase test coverage or run 'rake test:coverage:record'."
           exit 1
         else
           puts '  [SUCCESS] Coverage requirements met.'
+          File.write(@config::BASELINE_FILE, current.to_s)
+          puts "  [INFO] Auto-updated baseline to #{current}%"
         end
       end
     end

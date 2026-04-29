@@ -33,6 +33,12 @@ module Dnd5e
         end
       end
 
+      def test_build_empty_name
+        assert_raises MonsterBuilder::InvalidMonsterError do
+          MonsterBuilder.new(name: '').with_statblock(@statblock).build
+        end
+      end
+
       def test_build_missing_statblock
         assert_raises MonsterBuilder::InvalidMonsterError do
           MonsterBuilder.new(name: 'Test Monster').build

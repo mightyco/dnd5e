@@ -72,18 +72,86 @@ module Dnd5e
         assert_equal 17, character.statblock.armor_class # 16 (Chain Mail) + 1 (Magic)
       end
 
-      def test_map_class_name
-        builder = CharacterBuilder.new(name: 'Test')
-
-        assert_equal 'Fighter', builder.send(:map_class_name, :fighter)
-        assert_equal 'BattleMaster', builder.send(:map_class_name, :battle_master)
-      end
-
       private
 
       def assert_basic_character(character, name, strength)
         assert_equal name, character.name
         assert_equal strength, character.statblock.strength
+      end
+    end
+
+    class TestCharacterBuilderAdditions < Minitest::Test
+      def test_with_spell
+        spell = { name: 'Fireball' }
+        character = CharacterBuilder.new(name: 'Mage')
+                                    .as_wizard(level: 5)
+                                    .with_spell(spell)
+                                    .build
+
+        assert_includes character.spells, spell
+      end
+
+      def test_with_magic_armor_nil_safety
+        character = CharacterBuilder.new(name: 'Plain')
+                                    .as_barbarian(level: 1)
+                                    .with_magic_armor(1)
+                                    .build
+
+        assert_nil character.statblock.equipped_armor
+      end
+
+      def test_merge_abilities
+        builder = CharacterBuilder.new(name: 'Test')
+        merged = builder.send(:merge_abilities, { strength: 18, charisma: 14 })
+
+        assert_equal 18, merged[:strength]
+        assert_equal 14, merged[:charisma]
+        assert_equal 10, merged[:dexterity]
+      end
+
+      def test_with_magic_weapon_mismatch
+        character = CharacterBuilder.new(name: 'Plain')
+                                    .as_fighter(level: 1)
+                                    .with_magic_weapon('Missing', 5)
+                                    .build
+
+        assert_equal 0, character.attacks.first.instance_variable_get(:@magic_bonus)
+      end
+
+      def test_with_magic_weapon_case_insensitivity
+        character = CharacterBuilder.new(name: 'Fighter')
+                                    .as_fighter(level: 1)
+                                    .with_magic_weapon('longsword', 3)
+                                    .build
+
+        assert_equal 3, character.attacks.first.instance_variable_get(:@magic_bonus)
+      end
+
+      def test_with_strategy
+        strategy = Core::Strategies::SimpleStrategy.new
+        character = CharacterBuilder.new(name: 'Tactician')
+                                    .as_fighter(level: 1)
+                                    .with_strategy(strategy)
+                                    .build
+
+        assert_equal strategy, character.strategy
+      end
+
+      def test_with_feat
+        character = CharacterBuilder.new(name: 'Tough Guy')
+                                    .as_fighter(level: 1)
+                                    .with_feat(:tough)
+                                    .build
+
+        assert(character.feature_manager.features.any? { |f| f.is_a?(Core::Features::Tough) })
+      end
+
+      def test_build_invalid_name
+        builder = CharacterBuilder.new(name: '')
+        assert_raises(CharacterBuilder::InvalidCharacterError) { builder.build }
+
+        builder = CharacterBuilder.new(name: nil)
+        assert_raises(CharacterBuilder::InvalidCharacterError) { builder.build }
       end
     end
   end

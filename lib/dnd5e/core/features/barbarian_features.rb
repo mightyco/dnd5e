@@ -31,7 +31,7 @@ module Dnd5e
           return nil unless defender.condition?(:raging)
 
           # Rage provides resistance to bludgeoning, piercing, slashing
-          damage = context[:damage]
+          damage = context[:current_value]
           (damage / 2).to_i
         end
       end

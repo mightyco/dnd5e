@@ -96,6 +96,23 @@ module Dnd5e
         assert_equal 20, mock.roll('1d20')
         assert_equal 0, mock.roll('1d20')
       end
+
+      def test_roll_with_advantage_size
+        roller = DiceRoller.new
+        # We can't easily mock rand, but we can verify it rolls 2 dice
+        result = roller.roll_with_advantage(20)
+
+        assert_includes 1..20, result
+        assert_equal 2, roller.dice.rolls.size
+      end
+
+      def test_roll_with_disadvantage_size
+        roller = DiceRoller.new
+        result = roller.roll_with_disadvantage(20)
+
+        assert_includes 1..20, result
+        assert_equal 2, roller.dice.rolls.size
+      end
     end
   end
 end

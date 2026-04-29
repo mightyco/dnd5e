@@ -106,6 +106,13 @@ module Dnd5e
         assert_raises(InvalidWinnerError) { @combat.winner }
       end
 
+      def test_calc_grid_distance
+        # distance method calls find_primary_combatants and calc_grid_distance
+        @combat.distance = 50
+
+        assert_equal 50, @combat.distance
+      end
+
       def test_combat_emits_turn_and_resource_events
         combat, observer = setup_fighter_combat
 

@@ -4,18 +4,39 @@ require_relative 'features/battle_master'
 require_relative 'features/improved_critical'
 require_relative 'features/wizard_evoker'
 require_relative 'features/wizard_abjurer'
+require_relative 'features/wizard_diviner'
 require_relative 'features/barbarian_berserker'
+require_relative 'features/barbarian_wild_heart'
+require_relative 'features/barbarian_zealot'
 require_relative 'features/paladin_features'
 require_relative 'features/ranger_features'
 require_relative 'features/cleric_features'
+require_relative 'features/cleric_light'
 require_relative 'features/bard_features'
+require_relative 'features/bard_valor'
 require_relative 'features/druid_features'
+require_relative 'features/druid_moon'
 require_relative 'features/sorcerer_features'
 require_relative 'features/warlock_features'
 require_relative 'features/rogue_assassin'
+require_relative 'features/rogue_thief'
 require_relative 'features/monk_open_hand'
-require_relative 'features/bard_valor'
-require_relative 'features/druid_moon'
+require_relative 'features/monk_elements'
+require_relative 'features/monk_shadow'
+require_relative 'features/fighter_eldritch_knight'
+require_relative 'features/bard_lore'
+require_relative 'features/bard_glamour'
+require_relative 'features/cleric_trickery'
+require_relative 'features/druid_land'
+require_relative 'features/druid_sea'
+require_relative 'features/paladin_vengeance'
+require_relative 'features/paladin_glory'
+require_relative 'features/ranger_beast_master'
+require_relative 'features/ranger_fey_wanderer'
+require_relative 'features/sorcerer_wild_magic'
+require_relative 'features/sorcerer_aberrant'
+require_relative 'features/warlock_archfey'
+require_relative 'features/warlock_goo'
 require_relative 'strategies/battle_master_strategy'
 require_relative 'strategies/barbarian_strategy'
 require_relative 'strategies/paladin_strategy'
@@ -28,84 +49,18 @@ require_relative 'strategies/sorcerer_strategy'
 require_relative 'strategies/warlock_strategy'
 require_relative 'strategies/rogue_strategy'
 require_relative 'strategies/simple_strategy'
+require_relative 'subclasses/martial_subclasses'
+require_relative 'subclasses/caster_subclasses'
+require_relative 'subclasses/hybrid_subclasses'
 
 module Dnd5e
   module Core
-    # Maps fighter (and future class) subclasses to their canonical features and strategy.
-    # This is the single source of truth for "what does a battlemaster get?".
+    # Maps class subclasses to their canonical features and strategy.
     class SubclassRegistry
-      SUBCLASSES = {
-        battlemaster: {
-          class: :fighter,
-          features: ->(level) { [Features::BattleMaster.new(level: level)] },
-          strategy: ->(_level) { Strategies::BattleMasterStrategy.new }
-        },
-        champion: {
-          class: :fighter,
-          features: ->(_level) { [Features::ImprovedCritical.new] },
-          strategy: ->(_level) { Strategies::SimpleStrategy.new }
-        },
-        evoker: {
-          class: :wizard,
-          features: ->(_level) { [Features::SculptSpells.new, Features::EmpoweredEvocation.new] },
-          strategy: ->(_level) { Strategies::SimpleStrategy.new }
-        },
-        abjurer: {
-          class: :wizard,
-          features: ->(level) { [Features::ArcaneWard.new(level: level)] },
-          strategy: ->(_level) { Strategies::SimpleStrategy.new }
-        },
-        berserker: {
-          class: :barbarian,
-          features: ->(_level) { [Features::Frenzy.new] },
-          strategy: ->(_level) { Strategies::BarbarianStrategy.new }
-        },
-        devotion: {
-          class: :paladin,
-          features: ->(_level) { [Features::SacredWeapon.new] },
-          strategy: ->(_level) { Strategies::PaladinStrategy.new }
-        },
-        hunter: {
-          class: :ranger,
-          features: ->(_level) { [Features::ColossusSlayer.new] },
-          strategy: ->(_level) { Strategies::RangerStrategy.new }
-        },
-        life: {
-          class: :cleric,
-          features: ->(_level) { [Features::DiscipleOfLife.new] },
-          strategy: ->(_level) { Strategies::ClericStrategy.new }
-        },
-        valor: {
-          class: :bard,
-          features: ->(_level) { [Features::CombatInspiration.new] },
-          strategy: ->(_level) { Strategies::BardStrategy.new }
-        },
-        moon: {
-          class: :druid,
-          features: ->(level) { [Features::CombatWildShape.new(level: level)] },
-          strategy: ->(_level) { Strategies::DruidStrategy.new }
-        },
-        draconic: {
-          class: :sorcerer,
-          features: ->(_level) { [Features::DraconicResilience.new] },
-          strategy: ->(_level) { Strategies::SorcererStrategy.new }
-        },
-        fiend: {
-          class: :warlock,
-          features: ->(_level) { [Features::DarkOnesBlessing.new] },
-          strategy: ->(_level) { Strategies::WarlockStrategy.new }
-        },
-        assassin: {
-          class: :rogue,
-          features: ->(_level) { [Features::Assassinate.new] },
-          strategy: ->(_level) { Strategies::RogueStrategy.new }
-        },
-        openhand: {
-          class: :monk,
-          features: ->(_level) { [Features::OpenHandTechnique.new] },
-          strategy: ->(_level) { Strategies::MonkStrategy.new }
-        }
-      }.freeze
+      SUBCLASSES = {}.merge(Subclasses::MARTIAL_SUBCLASSES)
+                     .merge(Subclasses::CASTER_SUBCLASSES)
+                     .merge(Subclasses::HYBRID_SUBCLASSES)
+                     .freeze
 
       def self.features_for(subclass, level)
         entry = fetch(subclass)

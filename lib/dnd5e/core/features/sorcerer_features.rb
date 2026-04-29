@@ -6,6 +6,7 @@ module Dnd5e
   module Core
     module Features
       # Implementation of the Sorcerer's Innate Sorcery feature.
+      # Feature for Sorcerer Innate Sorcery.
       class InnateSorcery < Feature
         def initialize
           super(name: 'Innate Sorcery')

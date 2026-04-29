@@ -35,7 +35,7 @@ module Dnd5e
       def recalculate_all_resources
         levels = @statblock.class_levels
         # Aggregate all resources
-        res = if levels.size > 1
+        res = if levels.size > 1 || third_caster_subclass?
                 SpellSlotCalculator.calculate_multiclass(levels)
               else
                 calculate_single_class_slots(levels)
@@ -44,6 +44,10 @@ module Dnd5e
         # Merge class-specific resources (Rage, etc)
         res.merge!(calculate_class_resources(levels))
         res
+      end
+
+      def third_caster_subclass?
+        @subclass_name == 'eldritch_knight' || @subclass_name == 'arcane_trickster'
       end
 
       def calculate_single_class_slots(levels)

@@ -250,9 +250,16 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
                         style={{ fontSize: '0.8rem', padding: '4px', borderRadius: '4px', border: '1px solid #ddd' }}
                         data-testid="member-type-select"
                       >
-                        {options.map(opt => (
-                          <option key={opt} value={opt}>{opt.charAt(0).toUpperCase() + opt.slice(1)}</option>
-                        ))}
+                        <optgroup label="Classes">
+                          {metadata.classes.map(cls => (
+                            <option key={cls} value={cls}>{cls.charAt(0).toUpperCase() + cls.slice(1)}</option>
+                          ))}
+                        </optgroup>
+                        <optgroup label="Monsters">
+                          {metadata.monsters.map(mon => (
+                            <option key={mon} value={mon}>{mon.charAt(0).toUpperCase() + mon.slice(1)}</option>
+                          ))}
+                        </optgroup>
                       </select>
                       
                       {isClass && subclasses.length > 0 && (

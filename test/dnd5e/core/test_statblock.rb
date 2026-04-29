@@ -34,6 +34,30 @@ module Dnd5e
         assert_equal 100, statblock.hit_points
       end
 
+      def test_initialize_with_crit_threshold
+        statblock = Statblock.new(name: 'Critter', crit_threshold: 18)
+
+        assert_equal 18, statblock.crit_threshold
+      end
+
+      def test_initialize_with_conditions
+        statblock = Statblock.new(name: 'Sick', conditions: [:poisoned])
+
+        assert_includes statblock.instance_variable_get(:@conditions), :poisoned
+      end
+
+      def test_initialize_with_armor_class_override
+        statblock = Statblock.new(name: 'Armored', armor_class: 20)
+
+        assert_equal 20, statblock.armor_class
+      end
+
+      def test_initialize_with_generic_level
+        statblock = Statblock.new(name: 'Generic', level: 5)
+
+        assert_equal({ character: 5 }, statblock.class_levels)
+      end
+
       def test_calculate_hit_points
         assert_equal 10, @statblock.calculate_hit_points
         assert_equal 17, create_default_statblock(level: 2).calculate_hit_points

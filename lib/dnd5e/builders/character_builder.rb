@@ -109,9 +109,13 @@ module Dnd5e
       end
 
       def with_subclass(subclass, level: nil)
+        @subclass_name = subclass.to_s
         resolved_level = level || @statblock&.level || 1
         Core::SubclassRegistry.features_for(subclass, resolved_level).each { |f| with_feature(f) }
         @subclass_strategy = Core::SubclassRegistry.strategy_for(subclass, resolved_level)
+
+        # Trigger resource recalculation if statblock exists
+        @statblock.resources = Core::ResourcePool.new(recalculate_all_resources) if @statblock
         self
       end
 
