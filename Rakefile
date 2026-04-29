@@ -63,6 +63,9 @@ end
 desc 'Run tests, linting, and e2e'
 task all: %i[test test:coverage:check lint ui:e2e examples]
 
+desc 'Unified Holistic Verification Gate (Tests, Coverage, Lint, UI E2E, Examples)'
+task gate: :all
+
 desc 'Run tests with coverage enabled'
 task :coverage do
   ENV['COVERAGE'] = 'true'
