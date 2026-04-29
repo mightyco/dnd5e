@@ -83,27 +83,31 @@ module Dnd5e
       end
 
       def calculate_hit_points
-        return @max_hp if defined?(@max_hp) && @max_hp
+        return 0 if @class_levels.empty?
 
-        sides = @hit_die.sub('d', '').to_i
-        base = sides + ability_modifier(:constitution) + @hp_bonus_per_level
-        current_level = level
-        return base if current_level == 1
+        total = 0
+        @class_levels.each_with_index do |(class_name, lv), index|
+          total += calculate_class_hp(class_name, lv, index.zero?)
+        end
+        total
+      end
 
-        growth = ((sides + 1) / 2.0).ceil + ability_modifier(:constitution) + @hp_bonus_per_level
-        base + (growth * (current_level - 1))
+      def calculate_class_hp(class_name, levels, is_first)
+        sides = hit_die_for_class(class_name)
+        con_mod = ability_modifier(:constitution)
+        growth = ((sides + 1) / 2.0).ceil + con_mod + @hp_bonus_per_level
+
+        if is_first
+          (sides + con_mod + @hp_bonus_per_level) + (growth * (levels - 1))
+        else
+          growth * levels
+        end
       end
 
       def level_up(class_name = :character)
         @class_levels[class_name.to_sym] ||= 0
         @class_levels[class_name.to_sym] += 1
-
-        # Grow HP based on class hit die if possible
-        # For now, we still use @hit_die for the base class,
-        # but we could improve this to use a map of class -> hit_die
-        sides = hit_die_for_class(class_name)
-        growth = ((sides + 1) / 2.0).ceil + ability_modifier(:constitution) + @hp_bonus_per_level
-        @max_hp += growth
+        @max_hp = calculate_hit_points
         @hit_points = @max_hp
       end
 

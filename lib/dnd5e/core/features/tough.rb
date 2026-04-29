@@ -11,7 +11,8 @@ module Dnd5e
           super(name: 'Tough')
         end
 
-        def on_character_init(character)
+        def on_character_init(context)
+          character = context[:character]
           # 2024 Rules: +2 HP per level
           character.statblock.hp_bonus_per_level += 2
           # Force recalculation
