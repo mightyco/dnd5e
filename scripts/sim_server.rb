@@ -69,10 +69,10 @@ get '/api/metadata' do
   {
     classes: all_classes,
     subclasses: subclasses,
-    monsters: %w[goblin bugbear ogre]
+    monsters: %w[goblin bugbear ogre],
+    feats: Dnd5e::Core::FeatRegistry.all_keys
   }.to_json
 end
-
 ['/simulations', '/api/simulations'].each do |path|
   get path do
     content_type :json
@@ -207,5 +207,15 @@ def build_character(builder, cfg, level)
   abilities = (cfg['abilities'] || {}).transform_keys(&:to_sym)
   builder.send(method_name, level: level, abilities: abilities)
   builder.with_subclass(cfg['subclass'], level: level) if cfg['subclass']
+
+  apply_feats(builder, cfg['feats'])
   builder.build
+end
+
+def apply_feats(builder, feats)
+  return unless feats.is_a?(Array)
+
+  feats.each do |feat_key|
+    builder.with_feature(Dnd5e::Core::FeatRegistry.create(feat_key))
+  end
 end

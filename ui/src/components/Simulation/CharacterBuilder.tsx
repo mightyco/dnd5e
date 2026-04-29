@@ -28,8 +28,19 @@ export const CharacterBuilder = ({ onSave }) => {
     });
   };
 
+  const handleFeatToggle = (feat) => {
+    setChar(prev => {
+      const feats = prev.feats || [];
+      const updatedFeats = feats.includes(feat)
+        ? feats.filter(f => f !== feat)
+        : [...feats, feat];
+      return { ...prev, feats: updatedFeats };
+    });
+  };
+
   const isClass = metadata.classes.includes(char.type);
   const subclasses = metadata.subclasses[char.type] || [];
+  const selectedFeats = char.feats || [];
 
   return (
     <div style={{ padding: '1.5rem', border: '1px solid #ddd', borderRadius: '8px', background: '#fff', marginBottom: '1rem' }}>
@@ -70,6 +81,33 @@ export const CharacterBuilder = ({ onSave }) => {
           </div>
         )}
       </div>
+
+      {isClass && metadata.feats && metadata.feats.length > 0 && (
+        <div style={{ marginTop: '1rem' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Feats: </label>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', 
+            gap: '0.5rem',
+            marginTop: '0.5rem',
+            padding: '0.5rem',
+            border: '1px solid #eee',
+            borderRadius: '4px'
+          }}>
+            {metadata.feats.map(feat => (
+              <label key={feat} style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
+                <input 
+                  type="checkbox" 
+                  checked={selectedFeats.includes(feat)} 
+                  onChange={() => handleFeatToggle(feat)}
+                />
+                {feat.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
       <button 
         onClick={() => onSave(char)}
         style={{ 
