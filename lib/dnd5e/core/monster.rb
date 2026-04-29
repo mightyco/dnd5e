@@ -28,6 +28,8 @@ module Dnd5e
         @team = options[:team]
         @turn_context = TurnContext.new
         @feature_manager = FeatureManager.new(options[:features] || [])
+        @statblock.on_character_init(self)
+        @feature_manager.on_character_init(self)
       end
 
       # Prepares the monster for the start of their turn.

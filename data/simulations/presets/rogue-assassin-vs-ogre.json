@@ -1,0 +1,30 @@
+{
+  "id": "rogue-assassin-vs-ogre",
+  "name": "Assassin Rogue vs Ogre",
+  "description": "A Level 3 Assassin Rogue attempting to take down a lone Ogre using Sneak Attack and Assassinate.",
+  "level": 3,
+  "num_simulations": 100,
+  "teams": [
+    {
+      "name": "Hero",
+      "count": 1,
+      "template": {
+        "name": "Sly",
+        "type": "rogue",
+        "subclass": "assassin",
+        "abilities": {
+          "dexterity": 16,
+          "constitution": 14
+        }
+      }
+    },
+    {
+      "name": "Monsters",
+      "count": 1,
+      "template": {
+        "name": "Ogre",
+        "type": "ogre"
+      }
+    }
+  ]
+}

@@ -32,6 +32,7 @@ module Dnd5e
         @turn_context = TurnContext.new
         @strategy = strategy
         @feature_manager = FeatureManager.new(features)
+        @statblock.on_character_init(self)
         @feature_manager.on_character_init(self)
       end
 

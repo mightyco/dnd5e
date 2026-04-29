@@ -59,8 +59,28 @@ module Dnd5e
       end
 
       def test_known_returns_false_for_unknown_subclass
-        refute SubclassRegistry.known?(:paladin)
-        refute SubclassRegistry.known?(:rogue)
+        refute SubclassRegistry.known?(:unknown)
+      end
+
+      def test_subclasses_for_returns_list_for_class
+        fighters = SubclassRegistry.subclasses_for(:fighter)
+
+        assert_includes fighters, 'battlemaster'
+        assert_includes fighters, 'champion'
+
+        wizards = SubclassRegistry.subclasses_for('wizard')
+
+        assert_includes wizards, 'evoker'
+        assert_includes wizards, 'abjurer'
+      end
+
+      def test_all_by_class_returns_mapped_hash
+        mapping = SubclassRegistry.all_by_class
+
+        assert_instance_of Hash, mapping
+        assert_includes mapping[:fighter], 'battlemaster'
+        assert_includes mapping[:wizard], 'evoker'
+        assert_includes mapping[:monk], 'openhand'
       end
     end
   end

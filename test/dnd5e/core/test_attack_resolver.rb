@@ -194,6 +194,17 @@ module Dnd5e
         assert_equal 15, result.save_dc
         assert_equal 14, result.save_roll
       end
+
+      def test_calculate_save_damage_logic
+        attack_half = Attack.new(name: 'Half', damage_dice: Dice.new(1, 6), type: :save, half_damage_on_save: true)
+        attack_none = Attack.new(name: 'None', damage_dice: Dice.new(1, 6), type: :save, half_damage_on_save: false)
+
+        helper = Helpers::SaveResolutionHelper
+
+        assert_equal 10, helper.calculate_save_damage(attack_half, 20, true)
+        assert_equal 0, helper.calculate_save_damage(attack_none, 20, true)
+        assert_equal 20, helper.calculate_save_damage(attack_half, 20, false)
+      end
     end
   end
 end

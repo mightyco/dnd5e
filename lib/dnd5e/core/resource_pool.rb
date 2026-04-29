@@ -11,6 +11,10 @@ module Dnd5e
         @max_resources = initial_resources.dup
       end
 
+      def [](name)
+        @resources[name]
+      end
+
       # Checks if a resource is available.
       def available?(name, amount = 1)
         return true if name.nil?

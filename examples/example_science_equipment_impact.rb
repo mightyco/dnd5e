@@ -24,16 +24,16 @@ module Dnd5e
 
       def self.create_str_team(params)
         char = create_character('Str Knight', params[:level], { strength: 16, dexterity: 10, constitution: 14 })
-        chain_mail = Core::Armor.new(name: 'Chain Mail', base_ac: 16, type: :heavy, max_dex_bonus: 0,
-                                     stealth_disadvantage: true)
+        chain_mail = Core::Armor.new(name: 'Chain Mail', base_ac: 16, type: :heavy,
+                                     props: { max_dex_bonus: 0, stealth_disadvantage: true })
         char.statblock.equipped_armor = chain_mail
         Core::Team.new(name: 'Str Team', members: [char])
       end
 
       def self.create_dex_team(params)
         char = create_character('Dex Duelist', params[:level], { strength: 10, dexterity: 16, constitution: 14 })
-        studded_leather = Core::Armor.new(name: 'Studded Leather', base_ac: 12, type: :light, max_dex_bonus: nil,
-                                          stealth_disadvantage: false)
+        studded_leather = Core::Armor.new(name: 'Studded Leather', base_ac: 12, type: :light,
+                                          props: { max_dex_bonus: nil, stealth_disadvantage: false })
         char.statblock.equipped_armor = studded_leather
         equip_rapier(char)
         Core::Team.new(name: 'Dex Team', members: [char])

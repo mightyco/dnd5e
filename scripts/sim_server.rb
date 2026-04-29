@@ -60,22 +60,15 @@ end
 
 get '/api/metadata' do
   content_type :json
+  all_classes = %w[fighter wizard rogue barbarian paladin monk ranger cleric bard druid sorcerer warlock]
+  subclasses = Dnd5e::Core::SubclassRegistry.all_by_class
+
+  # Ensure all classes are present in the subclasses hash even if empty
+  all_classes.each { |cls| subclasses[cls.to_sym] ||= [] }
+
   {
-    classes: %w[fighter wizard rogue barbarian paladin monk ranger cleric bard druid sorcerer warlock],
-    subclasses: {
-      fighter: %w[champion battlemaster],
-      wizard: %w[evoker abjurer],
-      rogue: %w[assassin],
-      barbarian: %w[berserker],
-      paladin: %w[devotion],
-      monk: [],
-      ranger: %w[hunter],
-      cleric: %w[life],
-      bard: %w[valor],
-      druid: %w[moon],
-      sorcerer: %w[draconic],
-      warlock: %w[fiend]
-    },
+    classes: all_classes,
+    subclasses: subclasses,
     monsters: %w[goblin bugbear ogre]
   }.to_json
 end
@@ -185,24 +178,34 @@ def build_team_members(team_cfg, level)
 end
 
 def build_member(cfg, level)
-  case cfg['type']
-  when 'fighter' then build_fighter(Dnd5e::Builders::CharacterBuilder.new(name: cfg['name']), cfg, level)
-  when 'wizard' then Dnd5e::Builders::CharacterBuilder.new(name: cfg['name']).as_wizard(level: level).build
-  else build_monster(cfg)
+  classes = %w[fighter wizard rogue barbarian paladin monk ranger cleric bard druid sorcerer warlock]
+  if classes.include?(cfg['type'])
+    build_character(Dnd5e::Builders::CharacterBuilder.new(name: cfg['name']), cfg, level)
+  else
+    build_monster(cfg)
   end
 end
 
 def build_monster(cfg)
   builder = Dnd5e::Builders::MonsterBuilder.new(name: cfg['name'])
   case cfg['type']
-  when 'goblin' then builder.as_goblin.build
-  when 'bugbear' then builder.as_bugbear.build
-  when 'ogre' then builder.as_ogre.build
+  when 'goblin' then builder.as_goblin
+  when 'bugbear' then builder.as_bugbear
+  when 'ogre' then builder.as_ogre
   end
+
+  builder.with_ac(cfg['ac'].to_i) if cfg['ac']
+  builder.with_hp(cfg['hp'].to_i) if cfg['hp']
+
+  builder.build
 end
 
-def build_fighter(builder, cfg, level)
-  builder.as_fighter(level: level, abilities: (cfg['abilities'] || {}).transform_keys(&:to_sym))
+def build_character(builder, cfg, level)
+  class_name = cfg['type']
+  method_name = "as_#{class_name}"
+
+  abilities = (cfg['abilities'] || {}).transform_keys(&:to_sym)
+  builder.send(method_name, level: level, abilities: abilities)
   builder.with_subclass(cfg['subclass'], level: level) if cfg['subclass']
   builder.build
 end

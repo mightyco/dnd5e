@@ -5,7 +5,6 @@ require_relative '../feature'
 module Dnd5e
   module Core
     module Features
-      # rubocop:disable Naming/VariableNumber
       # Implementation of the Ranger's Hunter's Mark feature.
       class HuntersMark < Feature
         def initialize
@@ -22,16 +21,15 @@ module Dnd5e
 
         def try_activate(attacker, combat)
           return if attacker.condition?(:hunters_mark_active)
-          return unless attacker.statblock.resources.available?(:spell_slot_1)
+          return unless attacker.statblock.resources.available?(:lvl1_slots)
           return unless attacker.turn_context.bonus_action_available?
 
-          attacker.statblock.resources.consume(:spell_slot_1)
+          attacker.statblock.resources.consume(:lvl1_slots)
           attacker.add_condition(:hunters_mark_active)
-          combat.notify_observers(:resource_used, { combatant: attacker, resource: :spell_slot_1 })
+          combat.notify_observers(:resource_used, { combatant: attacker, resource: :lvl1_slots })
           attacker.turn_context.use_bonus_action
         end
       end
-      # rubocop:enable Naming/VariableNumber
 
       # Implementation of the Ranger's Hunter subclass: Colossus Slayer.
       class ColossusSlayer < Feature

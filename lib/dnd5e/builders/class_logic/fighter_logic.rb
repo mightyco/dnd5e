@@ -7,7 +7,7 @@ module Dnd5e
       module FighterLogic
         private
 
-        def build_fighter_statblock(level, abilities, armor_type)
+        def build_fighter_statblock(level, abilities, armor_type: :heavy)
           Core::Statblock.new(
             name: @name, strength: abilities[:strength], dexterity: abilities[:dexterity],
             constitution: abilities[:constitution], intelligence: abilities[:intelligence],

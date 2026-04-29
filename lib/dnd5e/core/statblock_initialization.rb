@@ -25,13 +25,17 @@ module Dnd5e
       end
 
       def initialize_class_levels(opt, stats)
-        @class_levels = if opt[:class_levels]
-                          opt[:class_levels]
-                        elsif opt[:level]
-                          { character: opt[:level] }
-                        else
-                          stats[:class_levels] || { character: stats[:level] || 1 }
-                        end
+        @class_levels = opt[:class_levels] || stats[:class_levels] || {}
+        return unless @class_levels.empty?
+
+        level = opt[:level] || stats[:level]
+        return unless level
+
+        @class_levels[:character] = level
+      end
+
+      def hit_die_sides
+        @hit_die.delete('d').to_i
       end
     end
   end

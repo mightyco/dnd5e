@@ -45,12 +45,12 @@ module Dnd5e
       def create_armor(type)
         case type
         when :light
-          Core::Armor.new(name: 'Studded Leather', base_ac: 12, type: :light, max_dex_bonus: 99)
+          Core::Armor.new(name: 'Studded Leather', base_ac: 12, type: :light, props: { max_dex_bonus: 99 })
         when :medium
-          Core::Armor.new(name: 'Breastplate', base_ac: 14, type: :medium, max_dex_bonus: 2)
+          Core::Armor.new(name: 'Breastplate', base_ac: 14, type: :medium, props: { max_dex_bonus: 2 })
         else
-          Core::Armor.new(name: 'Chain Mail', base_ac: 16, type: :heavy, max_dex_bonus: 0,
-                          stealth_disadvantage: true)
+          Core::Armor.new(name: 'Chain Mail', base_ac: 16, type: :heavy,
+                          props: { max_dex_bonus: 0, stealth_disadvantage: true })
         end
       end
 

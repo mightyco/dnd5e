@@ -69,6 +69,7 @@ module Dnd5e
 
       def notify_on_hit(attacker, defender, attack, outcome, dmg_data)
         context = { attacker: attacker, defender: defender, attack: attack,
+                    combat: outcome[:options][:combat],
                     options: outcome[:options], result: dmg_data, dice_roller: attack.dice_roller }
         attacker.feature_manager.execute_hook(:on_attack_hit, context)
       end

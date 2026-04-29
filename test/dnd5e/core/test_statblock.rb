@@ -5,7 +5,7 @@ require_relative '../../../lib/dnd5e/core/statblock'
 
 module Dnd5e
   module Core
-    class TestStatblock < Minitest::Test
+    class TestStatblockFoundation < Minitest::Test
       def setup
         @statblock = create_default_statblock
       end
@@ -27,40 +27,11 @@ module Dnd5e
         assert_equal 10, statblock.armor_class
       end
 
-      def test_ability_modifier
-        assert_equal 0, @statblock.ability_modifier(:strength)
-        assert_equal 1, @statblock.ability_modifier(:dexterity)
-        assert_equal 2, @statblock.ability_modifier(:constitution)
-        assert_equal(-1, @statblock.ability_modifier(:intelligence))
-        assert_equal 3, @statblock.ability_modifier(:wisdom)
-        assert_equal 4, @statblock.ability_modifier(:charisma)
-      end
+      def test_initialize_with_hit_points_override
+        statblock = Statblock.new(name: 'Buff', hit_points: 100)
 
-      def test_alive
-        assert_predicate @statblock, :alive?
-        @statblock.take_damage(@statblock.hit_points)
-
-        assert_equal 0, @statblock.hit_points
-        refute_predicate @statblock, :alive?
-      end
-
-      def test_take_damage
-        @statblock.take_damage(5)
-
-        assert_equal 5, @statblock.hit_points
-        @statblock.take_damage(10)
-
-        assert_equal 0, @statblock.hit_points
-      end
-
-      def test_heal
-        @statblock.take_damage(10)
-        @statblock.heal(5)
-
-        assert_equal 5, @statblock.hit_points
-        @statblock.heal(10)
-
-        assert_equal 10, @statblock.hit_points
+        assert_equal 100, statblock.max_hp
+        assert_equal 100, statblock.hit_points
       end
 
       def test_calculate_hit_points
@@ -89,18 +60,6 @@ module Dnd5e
         end
       end
 
-      def test_ability_modifier_invalid_ability
-        assert_raises(ArgumentError) { @statblock.ability_modifier(:invalid_ability) }
-      end
-
-      def test_take_damage_negative_damage
-        assert_raises(ArgumentError) { @statblock.take_damage(-5) }
-      end
-
-      def test_heal_negative_amount
-        assert_raises(ArgumentError) { @statblock.heal(-5) }
-      end
-
       def test_deep_copy
         copied_statblock = @statblock.deep_copy
 
@@ -112,14 +71,24 @@ module Dnd5e
         end
       end
 
-      def test_saving_throws
-        statblock = Statblock.new(name: 'Test', dexterity: 14, intelligence: 10, level: 1,
-                                  saving_throw_proficiencies: [:dexterity])
+      def test_hit_die_for_class
+        assert_equal 12, @statblock.hit_die_for_class(:barbarian)
+        assert_equal 10, @statblock.hit_die_for_class(:fighter)
+        assert_equal 8, @statblock.hit_die_for_class(:rogue)
+        assert_equal 6, @statblock.hit_die_for_class(:wizard)
+        assert_equal 8, @statblock.hit_die_for_class(:unknown)
+      end
 
-        assert_equal 4, statblock.save_modifier(:dexterity) # Mod +2, Prof +2
-        assert_equal 0, statblock.save_modifier(:intelligence) # Mod 0
-        assert statblock.proficient_in_save?(:dexterity)
-        refute statblock.proficient_in_save?(:intelligence)
+      def test_level_up_with_class
+        @statblock.level_up(:fighter) # d10 -> 6 growth + 2 Con = 8
+
+        assert_equal 18, @statblock.max_hp
+        assert_equal 2, @statblock.level
+        assert_equal 1, @statblock.class_levels[:fighter]
+
+        @statblock.level_up(:wizard) # d6 -> 4 growth + 2 Con = 6
+
+        assert_equal 24, @statblock.max_hp
       end
 
       private

@@ -33,6 +33,19 @@ module Dnd5e
         self
       end
 
+      def with_hp(hit_points)
+        @statblock ||= Core::Statblock.new(name: @name)
+        @statblock.max_hp = hit_points
+        @statblock.hit_points = hit_points
+        self
+      end
+
+      def with_ac(armor_class)
+        @statblock ||= Core::Statblock.new(name: @name)
+        @statblock.armor_class = armor_class
+        self
+      end
+
       # Adds an attack to the monster.
       #
       # @param attack [Attack] The attack to add.

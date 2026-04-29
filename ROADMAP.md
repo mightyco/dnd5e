@@ -63,13 +63,14 @@ Our primary scientific goal is to model and compare the **Champion** and **Battl
 ## 🚀 The Path to Tactical Simulation
 
 ### Tree 1: Rules Completion (Foundational)
-- [x] **Rogue Class Integration**: Core traits (Sneak Attack, Cunning Action, Evasion).
-- [x] **All 12 Core Classes (Level 3)**: Fighter, Rogue, Wizard, Barbarian, Paladin, Monk, Ranger, Cleric, Bard, Druid, Sorcerer, Warlock.
-- [ ] **Feat Selection System**: Unified interface for GWM, Sharpshooter, and Dual Wielder.
-- [x] **Wizard Subclasses**: 2024 Evoker and Abjurer implementations.
-- [ ] **Multi-Classing**: Heterogeneous level scaling and resource management.
-- [ ] **Scientific Parameter Sweeps**: Recreate the ability to sweep variables (e.g. level, AC, count) to determine mathematical inflection points.
-- [ ] **Party Composition**: Pre-defined 4-person party templates (Tank, Healer, DPS).
+- [x] Rogue Class Integration: Core traits (Sneak Attack, Cunning Action, Evasion).
+- [x] All 12 Core Classes (Level 3): Fighter, Rogue, Wizard, Barbarian, Paladin, Monk, Ranger, Cleric, Bard, Druid, Sorcerer, Warlock.
+- [ ] Feat Selection System: Unified interface for GWM, Sharpshooter, and Dual Wielder.
+- [x] Wizard Subclasses: 2024 Evoker and Abjurer implementations.
+- [x] Multi-Classing: Heterogeneous level scaling and resource management.
+- [x] Scientific Parameter Sweeps: Recreate the ability to sweep variables (e.g. level, AC, count) to determine mathematical inflection points.
+- [x] Party Composition: Pre-defined 4-person party templates (Tank, Healer, DPS).
+
 
 ### Tree 2: Tactical Grid (The Map) (Completed)
 - [x] **2D Coordinate System**: Move from 1D "distance" to a proper (X, Y) grid.

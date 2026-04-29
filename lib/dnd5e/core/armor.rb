@@ -11,18 +11,16 @@ module Dnd5e
       # @param name [String] Name of the armor (e.g., "Chain Mail")
       # @param base_ac [Integer] Base AC value
       # @param type [Symbol] :light, :medium, :heavy, or :shield
-      # @param max_dex_bonus [Integer, nil] Maximum Dex modifier to apply (nil for unlimited, 0 for none)
-      # @param stealth_disadvantage [Boolean] Whether armor imposes stealth disadvantage
-      # rubocop:disable Metrics/ParameterLists
-      def initialize(name:, base_ac:, type:, max_dex_bonus: nil, stealth_disadvantage: false, magic_bonus: 0)
+      # @param props [Hash] Optional properties (max_dex_bonus, stealth_disadvantage, magic_bonus)
+      def initialize(name:, base_ac:, type:, props: {})
         raise ArgumentError, 'Invalid armor type' unless TYPES.include?(type)
 
         @name = name
         @base_ac = base_ac
         @type = type
-        @max_dex_bonus = max_dex_bonus
-        @stealth_disadvantage = stealth_disadvantage
-        @magic_bonus = magic_bonus
+        @max_dex_bonus = props[:max_dex_bonus]
+        @stealth_disadvantage = props[:stealth_disadvantage] || false
+        @magic_bonus = props[:magic_bonus] || 0
       end
 
       def calculate_ac(dex_modifier)
@@ -40,4 +38,3 @@ module Dnd5e
     end
   end
 end
-# rubocop:enable Metrics/ParameterLists

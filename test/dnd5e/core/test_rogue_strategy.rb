@@ -7,20 +7,33 @@ require_relative '../../../lib/dnd5e/core/strategies/rogue_strategy'
 
 class TestRogueStrategy < Minitest::Test
   def setup
+    initialize_rogue
+    initialize_target
+    initialize_combat
+    initialize_dice
+    @rogue.start_turn
+  end
+
+  def initialize_rogue
     @rogue = Dnd5e::Core::Character.new(
       name: 'Rogue',
       statblock: Dnd5e::Core::Statblock.new(name: 'Rogue'),
       strategy: Dnd5e::Core::Strategies::RogueStrategy.new
     )
+  end
+
+  def initialize_target
     @target = Dnd5e::Core::Character.new(name: 'Target', statblock: Dnd5e::Core::Statblock.new(name: 'Target'))
+  end
 
+  def initialize_combat
     @combat = Dnd5e::Core::Combat.new(combatants: [@rogue, @target])
+  end
 
+  def initialize_dice
     @dice_roller = Dnd5e::Core::MockDiceRoller.new([20, 10, 5]) # Init, Attack, Dmg
     @rogue.attacks << Dnd5e::Core::Attack.new(name: 'Dagger', damage_dice: Dnd5e::Core::Dice.new(1, 4),
                                               dice_roller: @dice_roller)
-
-    # We need to inject dice roller into combat for consistency if needed, but attack has its own.
   end
 
   def test_rogue_hides_and_attacks_with_advantage

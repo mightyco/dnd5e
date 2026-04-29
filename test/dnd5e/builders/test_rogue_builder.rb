@@ -6,12 +6,12 @@ require_relative '../../../lib/dnd5e/builders/character_builder'
 module Dnd5e
   module Builders
     class TestRogueBuilder < Minitest::Test
-      def setup
-        @builder = CharacterBuilder.new(name: 'Vax')
+      def builder
+        CharacterBuilder.new(name: 'Vax')
       end
 
       def test_build_level_1_rogue
-        rogue = @builder.as_rogue(level: 1, abilities: { dexterity: 16 }).build
+        rogue = builder.as_rogue(level: 1, abilities: { dexterity: 16 }).build
 
         assert_equal 'Vax', rogue.name
         assert_equal 1, rogue.statblock.level
@@ -20,21 +20,29 @@ module Dnd5e
       end
 
       def test_rogue_has_sneak_attack
-        rogue = @builder.as_rogue(level: 1).build
+        rogue = builder.as_rogue(level: 1).build
 
         assert(rogue.feature_manager.features.any? { |f| f.name == 'Sneak Attack' })
       end
 
       def test_rogue_has_cunning_action_at_level_two
-        rogue = @builder.as_rogue(level: 2).build
+        rogue = builder.as_rogue(level: 2).build
 
         assert(rogue.feature_manager.features.any? { |f| f.name == 'Cunning Action' })
       end
 
       def test_rogue_has_evasion_at_level_seven
-        rogue = @builder.as_rogue(level: 7).build
+        rogue = builder.as_rogue(level: 7).build
 
         assert(rogue.feature_manager.features.any? { |f| f.name == 'Evasion' })
+      end
+
+      def test_rogue_equipment
+        rogue = builder.as_rogue(level: 1).build
+
+        assert_equal 2, rogue.attacks.count
+        assert_includes rogue.attacks.map(&:name), 'Shortsword'
+        assert_includes rogue.attacks.map(&:name), 'Shortbow'
       end
     end
   end

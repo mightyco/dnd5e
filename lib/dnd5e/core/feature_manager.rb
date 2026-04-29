@@ -10,6 +10,10 @@ module Dnd5e
         @features = features
       end
 
+      def add_feature(feature)
+        @features << feature
+      end
+
       # Called when character is initialized.
       def on_character_init(character)
         context = { character: character }

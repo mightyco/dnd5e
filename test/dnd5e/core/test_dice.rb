@@ -93,6 +93,30 @@ module Dnd5e
 
         assert_equal '1d20', dice.to_s
       end
+
+      def test_parse_standard
+        d6 = Dice.parse('1d6')
+
+        assert_equal 1, d6.count
+        assert_equal 6, d6.sides
+        assert_equal 0, d6.modifier
+      end
+
+      def test_parse_missing_count
+        d20plus = Dice.parse('d20+5')
+
+        assert_equal 1, d20plus.count
+        assert_equal 20, d20plus.sides
+        assert_equal 5, d20plus.modifier
+      end
+
+      def test_parse_negative_modifier
+        d8minus = Dice.parse('2d8-2')
+
+        assert_equal 2, d8minus.count
+        assert_equal 8, d8minus.sides
+        assert_equal(-2, d8minus.modifier)
+      end
     end
   end
 end

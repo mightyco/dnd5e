@@ -61,7 +61,7 @@ task :examples do
 end
 
 desc 'Run tests, linting, and e2e'
-task all: %i[test lint ui:e2e examples]
+task all: %i[test test:coverage:check lint ui:e2e examples]
 
 desc 'Run tests with coverage enabled'
 task :coverage do

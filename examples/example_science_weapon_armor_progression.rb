@@ -68,7 +68,7 @@ module Dnd5e
       def create_str_shield(level)
         char = create_fighter('Str Shield', level, { strength: 16, dexterity: 10, constitution: 14 })
         char.statblock.equipped_armor = create_heavy_armor(level)
-        char.statblock.equipped_shield = Core::Armor.new(name: 'Shield', base_ac: 2, type: :shield)
+        char.statblock.equipped_shield = Core::Armor.new(name: 'Shield', base_ac: 2, type: :shield, props: {})
         char
       end
 
@@ -83,7 +83,7 @@ module Dnd5e
       def create_dex_shield(level)
         char = create_fighter('Dex Shield', level, { strength: 10, dexterity: 16, constitution: 14 })
         char.statblock.equipped_armor = create_light_or_medium_armor(level)
-        char.statblock.equipped_shield = Core::Armor.new(name: 'Shield', base_ac: 2, type: :shield)
+        char.statblock.equipped_shield = Core::Armor.new(name: 'Shield', base_ac: 2, type: :shield, props: {})
         equip_rapier(char)
         char
       end
@@ -101,14 +101,15 @@ module Dnd5e
 
       def create_heavy_armor(level)
         name, ac = level >= 7 ? ['Plate', 18] : ['Chain Mail', 16]
-        Core::Armor.new(name: name, base_ac: ac, type: :heavy, max_dex_bonus: 0, stealth_disadvantage: true)
+        Core::Armor.new(name: name, base_ac: ac, type: :heavy,
+                        props: { max_dex_bonus: 0, stealth_disadvantage: true })
       end
 
       def create_light_or_medium_armor(level)
         if level >= 5
-          Core::Armor.new(name: 'Breastplate', base_ac: 14, type: :medium, max_dex_bonus: 2)
+          Core::Armor.new(name: 'Breastplate', base_ac: 14, type: :medium, props: { max_dex_bonus: 2 })
         else
-          Core::Armor.new(name: 'Studded Leather', base_ac: 12, type: :light, max_dex_bonus: nil)
+          Core::Armor.new(name: 'Studded Leather', base_ac: 12, type: :light, props: { max_dex_bonus: nil })
         end
       end
 

@@ -99,6 +99,15 @@ module Dnd5e
       def pos_from_value(val)
         val.is_a?(Integer) ? Point2D.new(val, 0) : val
       end
+
+      def setup_stationary_grid(dist)
+        @combatants.each { |c| @grid.remove(c) }
+        mid = [@combatants.size / 2, 1].max
+        @combatants.uniq.each_with_index do |c, i|
+          pos = i < mid ? Point2D.new(0, 0) : Point2D.new(dist, 0)
+          @grid.place(c, pos)
+        end
+      end
     end
 
     # Manages the flow of a combat encounter.
@@ -196,29 +205,23 @@ module Dnd5e
         t1 = comb1.respond_to?(:team) ? comb1.team : nil
         t2 = comb2.respond_to?(:team) ? comb2.team : nil
 
-        # If both have teams, they are enemies only if teams are different
-        return t1 != t2 if t1 && t2
-
-        # If one has a team and the other doesn't, or both don't,
-        # assume they are NOT enemies for safety (prevents FF in swarm)
-        false
+        different_teams?(t1, t2)
       end
 
       private
+
+      def different_teams?(team1, team2)
+        return false unless team1 && team2
+
+        n1 = team1.respond_to?(:name) ? team1.name : team1.to_s
+        n2 = team2.respond_to?(:name) ? team2.name : team2.to_s
+        n1 != n2
+      end
 
       def execute_move_step(combatant, step_pos)
         check_opportunity_attacks(combatant, step_pos)
         @grid.move(combatant, step_pos)
         notify_observers(:move_resolved, combatant: combatant, position: step_pos)
-      end
-
-      def setup_stationary_grid(dist)
-        @combatants.each { |c| @grid.remove(c) }
-        mid = [@combatants.size / 2, 1].max
-        @combatants.uniq.each_with_index do |c, i|
-          pos = i < mid ? Point2D.new(0, 0) : Point2D.new(dist, 0)
-          @grid.place(c, pos)
-        end
       end
 
       def check_timeout

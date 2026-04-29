@@ -1,0 +1,24 @@
+{
+  "id": "party-vs-boss",
+  "name": "Standard Party vs Ogre Boss",
+  "description": "A balanced 4-person party (Fighter, Cleric, Wizard, Rogue) against a single Ogre Boss.",
+  "level": 3,
+  "num_simulations": 100,
+  "teams": [
+    {
+      "name": "Heroes",
+      "members": [
+        { "name": "Tank", "type": "fighter", "subclass": "battlemaster", "abilities": { "strength": 16, "constitution": 14 } },
+        { "name": "Healer", "type": "cleric", "subclass": "life", "abilities": { "wisdom": 16, "constitution": 14 } },
+        { "name": "Blaster", "type": "wizard", "subclass": "evoker", "abilities": { "intelligence": 16, "constitution": 14 } },
+        { "name": "Striker", "type": "rogue", "subclass": "assassin", "abilities": { "dexterity": 16, "constitution": 14 } }
+      ]
+    },
+    {
+      "name": "Monsters",
+      "members": [
+        { "name": "Ogre Boss", "type": "ogre" }
+      ]
+    }
+  ]
+}

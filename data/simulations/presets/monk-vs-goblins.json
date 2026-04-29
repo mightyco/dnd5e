@@ -1,0 +1,31 @@
+{
+  "id": "monk-vs-goblins",
+  "name": "Monk (Open Hand) vs Goblins",
+  "description": "A Level 3 Monk of the Open Hand facing a swarm of 4 Goblins to test Open Hand Technique (Addle/Topple).",
+  "level": 3,
+  "num_simulations": 100,
+  "teams": [
+    {
+      "name": "Hero",
+      "count": 1,
+      "template": {
+        "name": "Hiro",
+        "type": "monk",
+        "subclass": "openhand",
+        "abilities": {
+          "dexterity": 16,
+          "wisdom": 14,
+          "constitution": 14
+        }
+      }
+    },
+    {
+      "name": "Goblins",
+      "count": 4,
+      "template": {
+        "name": "Goblin",
+        "type": "goblin"
+      }
+    }
+  ]
+}

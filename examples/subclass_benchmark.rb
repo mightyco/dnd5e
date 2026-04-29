@@ -11,28 +11,31 @@ require_relative '../lib/dnd5e/simulation/json_combat_result_handler'
 # This script runs a battery of tests for each subclass against different encounter types.
 
 SUBCLASSES = [
-  { method: :as_fighter, subclass: :champion },
-  { method: :as_fighter, subclass: :battlemaster },
-  { method: :as_rogue, subclass: :assassin },
   { method: :as_barbarian, subclass: :berserker },
-  { method: :as_paladin, subclass: :devotion },
-  { method: :as_monk, subclass: nil },
-  { method: :as_ranger, subclass: :hunter },
-  { method: :as_cleric, subclass: :life },
   { method: :as_bard, subclass: :valor },
+  { method: :as_cleric, subclass: :life },
   { method: :as_druid, subclass: :moon },
+  { method: :as_fighter, subclass: :battlemaster },
+  { method: :as_fighter, subclass: :champion },
+  { method: :as_monk, subclass: :openhand },
+  { method: :as_paladin, subclass: :devotion },
+  { method: :as_ranger, subclass: :hunter },
+  { method: :as_rogue, subclass: :assassin },
   { method: :as_sorcerer, subclass: :draconic },
   { method: :as_warlock, subclass: :fiend }
 ].freeze
 
 ENCOUNTERS = [
   { name: 'Duel (vs 1 Bugbear)', monsters: 1, type: :bugbear },
-  { name: 'Pack (vs 3 Bugbears)', monsters: 3, type: :bugbear },
+  { name: 'Duel (vs 2 Bugbear)', monsters: 2, type: :bugbear },
+  { name: 'Swarm (vs 3 Goblins)', monsters: 3, type: :goblin },
+  { name: 'Swarm (vs 6 Goblins)', monsters: 6, type: :goblin },
+  { name: 'Swarm (vs 9 Goblins)', monsters: 9, type: :goblin },
   { name: 'Swarm (vs 12 Goblins)', monsters: 12, type: :goblin }
 ].freeze
 
 # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
-def run_benchmark(subclass_info, encounter)
+def run_benchmark(subclass_info, encounter, runs = 100)
   builder = Dnd5e::Builders::CharacterBuilder.new(name: 'Hero')
   if subclass_info[:subclass]
     builder.send(subclass_info[:method], level: 5, subclass: subclass_info[:subclass])
@@ -53,7 +56,7 @@ def run_benchmark(subclass_info, encounter)
     Dnd5e::Core::Team.new(name: 'Monsters', members: monsters)
   ]
 
-  scenario = Dnd5e::Simulation::Scenario.new(teams: teams, num_simulations: 50)
+  scenario = Dnd5e::Simulation::Scenario.new(teams: teams, num_simulations: runs)
   handler = Dnd5e::Simulation::JSONCombatResultHandler.new
   runner = Dnd5e::Simulation::Runner.new(scenario: scenario, result_handler: handler)
   runner.run
@@ -68,7 +71,6 @@ end
 
 puts 'D&D 2024 Subclass Benchmark'
 puts '==========================='
-puts "Running 50 simulations per combination...\n"
 
 # rubocop:disable Style/FormatStringToken
 printf "%-20s | %-20s | %-10s | %-10s\n", 'Subclass', 'Encounter', 'Win Rate', 'Avg Rounds'

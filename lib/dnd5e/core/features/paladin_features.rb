@@ -30,13 +30,13 @@ module Dnd5e
 
         def find_highest_slot(attacker)
           attacker.statblock.resources.resources.keys
-                  .select { |k| k.to_s.start_with?('spell_slot_') }
+                  .select { |k| k.to_s.match?(/lvl\d_slots/) }
                   .select { |k| attacker.statblock.resources.available?(k) }
                   .sort.reverse.first
         end
 
         def execute_smite(attacker, slot, result)
-          slot_level = slot.to_s.split('_').last.to_i
+          slot_level = slot.to_s.match(/lvl(\d)_slots/)[1].to_i
           attacker.statblock.resources.consume(slot)
           attacker.turn_context.use_bonus_action
           attacker.turn_context.instance_variable_set(:@smite_used, true)

@@ -51,9 +51,13 @@ module Dnd5e
         end
 
         def execute_flurry(combatant, target, attack, combat)
-          combat.attack(combatant, target, attack: attack)
+          # Clone the attack to rename it for trigger matching
+          flurry_attack = attack.dup
+          flurry_attack.instance_variable_set(:@name, 'Flurry of Blows')
+
+          combat.attack(combatant, target, attack: flurry_attack)
           target = ensure_alive_target(combatant, target, combat)
-          combat.attack(combatant, target, attack: attack) if target
+          combat.attack(combatant, target, attack: flurry_attack) if target
         end
 
         def execute_martial_arts(combatant, target, attack)

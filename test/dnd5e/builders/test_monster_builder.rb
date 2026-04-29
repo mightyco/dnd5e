@@ -62,6 +62,25 @@ module Dnd5e
         assert_equal 'Morningstar', monster.attacks.first.name
         assert_equal 1, monster.statblock.extra_attacks
       end
+
+      def test_as_ogre
+        monster = MonsterBuilder.new(name: 'Shrek').as_ogre.build
+
+        assert_equal 'Shrek', monster.name
+        assert_equal 40, monster.statblock.max_hp
+      end
+
+      def test_with_hp_and_ac_overrides
+        monster = MonsterBuilder.new(name: 'Buff Gobby')
+                                .as_goblin
+                                .with_hp(100)
+                                .with_ac(20)
+                                .build
+
+        assert_equal 100, monster.statblock.max_hp
+        assert_equal 100, monster.statblock.hit_points
+        assert_equal 20, monster.statblock.armor_class
+      end
     end
   end
 end

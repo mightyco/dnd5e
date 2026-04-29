@@ -3,6 +3,7 @@
 require_relative 'features/great_weapon_master'
 require_relative 'features/sharpshooter'
 require_relative 'features/dual_wielder'
+require_relative 'features/tough'
 
 module Dnd5e
   module Core
@@ -11,7 +12,8 @@ module Dnd5e
       FEATS = {
         'great_weapon_master' => Features::GreatWeaponMaster,
         'sharpshooter' => Features::Sharpshooter,
-        'dual_wielder' => Features::DualWielder
+        'dual_wielder' => Features::DualWielder,
+        'tough' => Features::Tough
       }.freeze
 
       def self.create(feat_key)
