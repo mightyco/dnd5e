@@ -205,7 +205,12 @@ module Dnd5e
         t1 = comb1.respond_to?(:team) ? comb1.team : nil
         t2 = comb2.respond_to?(:team) ? comb2.team : nil
 
-        different_teams?(t1, t2)
+        # If both have teams, they are enemies only if the teams are different
+        return different_teams?(t1, t2) if t1 && t2
+
+        # Fallback: if one lacks a team, assume enemy (standard for monsters vs players)
+        # unless they are explicitly the same instance
+        true
       end
 
       private

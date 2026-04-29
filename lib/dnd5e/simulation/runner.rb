@@ -97,9 +97,11 @@ module Dnd5e
         stat = member.statblock.deep_copy
         stat.hit_points = stat.max_hp
 
+        # Character uses features: [], Monster uses features: [] in options
+        features = member.feature_manager.features
         member.class.new(
           name: member.name, statblock: stat, strategy: member.strategy,
-          attacks: member.attacks, features: member.feature_manager.features
+          attacks: member.attacks, features: features
         )
       end
     end
