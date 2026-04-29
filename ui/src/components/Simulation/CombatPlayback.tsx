@@ -63,7 +63,45 @@ const CombatantToken = ({ name, state, isActive }: { name: string, state: Combat
   );
 };
 
-export const CombatPlayback = ({ combatData }) => {
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: any }> {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '2rem', background: '#fff1f0', border: '1px solid #ffa39e', borderRadius: '8px' }}>
+          <h3 style={{ color: '#cf1322' }}>Playback Error</h3>
+          <p style={{ fontSize: '0.85rem' }}>An error occurred during combat replay. This is often caused by switching scenarios while playback is active.</p>
+          <pre style={{ fontSize: '0.7rem', padding: '0.5rem', background: '#fff', border: '1px solid #ddd' }}>
+            {this.state.error?.message}
+          </pre>
+          <button 
+            onClick={() => this.setState({ hasError: false, error: null })}
+            style={{ padding: '4px 12px', background: '#f5222d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+          >
+            Retry Replay
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export const CombatPlayback = (props) => (
+  <ErrorBoundary>
+    <CombatPlaybackContent {...props} />
+  </ErrorBoundary>
+);
+
+const CombatPlaybackContent = ({ combatData }) => {
   const [simulationIndex, setSimulationIndex] = useState(0);
   const [eventIndex, setEventIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -75,6 +113,12 @@ export const CombatPlayback = ({ combatData }) => {
   const currentCombat = Array.isArray(combatData) ? combatData[simulationIndex] : combatData;
   const events = useMemo(() => currentCombat?.rounds.flatMap(r => r.events) || [], [currentCombat]);
   
+  // Reset eventIndex when combatData or simulationIndex changes
+  useEffect(() => {
+    setEventIndex(0);
+    setIsPlaying(false);
+  }, [combatData, simulationIndex]);
+
   const tickRate = 1000 / speed;
 
   useEffect(() => {

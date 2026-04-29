@@ -87,20 +87,29 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
   };
 
   const updateMemberField = (teamIdx, memberIdx, field, val) => {
-    const newTeams = [...teams];
-    const member = newTeams[teamIdx].members[memberIdx];
-    member[field] = val;
-    
-    if (field === 'type') {
-      const isClass = metadata.classes.includes(val);
-      if (isClass) {
-        member.subclass = (metadata.subclasses[val] && metadata.subclasses[val][0]) || '';
-      } else {
-        delete member.subclass;
-      }
-    }
-    
-    setTeams(newTeams);
+    setTeams(prevTeams => {
+      return prevTeams.map((team, tIdx) => {
+        if (tIdx !== teamIdx) return team;
+        
+        const newMembers = team.members.map((member, mIdx) => {
+          if (mIdx !== memberIdx) return member;
+          
+          const updatedMember = { ...member, [field]: val };
+          
+          if (field === 'type') {
+            const isClass = metadata.classes.includes(val);
+            if (isClass) {
+              updatedMember.subclass = (metadata.subclasses[val] && metadata.subclasses[val][0]) || '';
+            } else {
+              delete updatedMember.subclass;
+            }
+          }
+          return updatedMember;
+        });
+        
+        return { ...team, members: newMembers };
+      });
+    });
   };
 
   const handleRun = async () => {
@@ -218,9 +227,15 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
                       />
                       <button 
                         onClick={() => {
-                          const newTeams = [...teams];
-                          newTeams[idx].members.splice(mIdx, 1);
-                          setTeams(newTeams);
+                          setTeams(prevTeams => {
+                            const newTeams = [...prevTeams];
+                            const team = { ...newTeams[idx] };
+                            const members = [...team.members];
+                            members.splice(mIdx, 1);
+                            team.members = members;
+                            newTeams[idx] = team;
+                            return newTeams;
+                          });
                         }}
                         style={{ background: 'none', border: 'none', color: '#d32f2f', fontSize: '0.7rem', cursor: 'pointer' }}
                       >
