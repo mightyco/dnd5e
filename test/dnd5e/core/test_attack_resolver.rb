@@ -81,8 +81,8 @@ module Dnd5e
       end
     end
 
-    class TestAttackResolver < AttackResolverTestBase
-      def test_resolve_critical_hit
+    class AttackResolverTest < AttackResolverTestBase
+      def test_resolve_critical_hit_logic
         # Attack roll (20), Damage (simulated 2d8=11)
         # 20 + 2 (Str mod) + 2 (Prof) = 24
         @mock_dice_roller = MockDiceRoller.new([20, 11])
@@ -92,31 +92,49 @@ module Dnd5e
 
         assert result.success
         assert_equal 24, result.attack_roll
+      end
 
+      def test_resolve_critical_hit_damage
+        @mock_dice_roller = MockDiceRoller.new([20, 11])
+        @attack.instance_variable_set(:@dice_roller, @mock_dice_roller)
+
+        @attack_resolver.resolve(@hero, @goblin, @attack)
         last_dice = @mock_dice_roller.last_dice_params.last
 
         assert_equal 2, last_dice.count, 'Expected damage dice count to be 2 (doubled for crit)'
         assert_equal 8, last_dice.sides
       end
 
-      def test_resolve_attack_hits
+      def test_resolve_attack_hits_logic
         initial_hp = @goblin.statblock.hit_points
         result = @attack_resolver.resolve(@hero, @goblin, @attack)
 
         assert_attack_success(result, initial_hp, 7)
+      end
+
+      def test_resolve_attack_hits_metadata
+        result = @attack_resolver.resolve(@hero, @goblin, @attack)
+
         assert_equal :attack, result.type
         assert_equal 104, result.attack_roll # 100 + 2 (Str mod) + 2 (Prof)
         assert_equal @goblin.statblock.armor_class, result.target_ac
       end
 
-      def test_resolve_attack_misses
+      def test_resolve_attack_misses_hp
         initial_hp = @hero.statblock.hit_points
+        @mock_dice_roller = MockDiceRoller.new([1, 5]) # Attack roll, Damage roll
+        @attack.instance_variable_set(:@dice_roller, @mock_dice_roller)
+        @attack_resolver.resolve(@goblin, @hero, @attack)
+
+        assert_equal initial_hp, @hero.statblock.hit_points
+      end
+
+      def test_resolve_attack_misses_logic
         @mock_dice_roller = MockDiceRoller.new([1, 5]) # Attack roll, Damage roll
         @attack.instance_variable_set(:@dice_roller, @mock_dice_roller)
         result = @attack_resolver.resolve(@goblin, @hero, @attack)
 
         # 1 + 2 (Str mod) + 2 (Prof) = 5
-        assert_equal initial_hp, @hero.statblock.hit_points
         refute result.success
         assert_equal 0, result.damage
         assert_equal 5, result.attack_roll

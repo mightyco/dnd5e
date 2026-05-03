@@ -25,7 +25,7 @@ module Dnd5e
 
         def can_smite?(attacker)
           attacker.turn_context.bonus_action_available? &&
-            !attacker.turn_context.instance_variable_get(:@smite_used)
+            !attacker.turn_context.flags[:smite_used]
         end
 
         def find_highest_slot(attacker)
@@ -39,7 +39,7 @@ module Dnd5e
           slot_level = slot.to_s.match(/lvl(\d)_slots/)[1].to_i
           attacker.statblock.resources.consume(slot)
           attacker.turn_context.use_bonus_action
-          attacker.turn_context.instance_variable_set(:@smite_used, true)
+          attacker.turn_context.flags[:smite_used] = true
 
           damage = DiceRoller.new.roll("#{1 + slot_level}d8")
           apply_smite_damage(attacker, slot, result, damage)

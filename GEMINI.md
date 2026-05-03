@@ -29,6 +29,7 @@ The AI assistant **MUST** follow a strict **Reproduce -> Fix -> Prove** cycle.
 
 ### 3. Functional Integrity > Style Metrics
 - **RuboCop**: Zero offenses is the goal, but **Functional Correctness MUST NOT** be sacrificed to satisfy complexity metrics.
+- **Phase-Based Priority**: During the *Execution Phase* (Act), prioritizing green tests and behavioral correctness is mandatory. Refactoring to satisfy RuboCop (e.g., method length, ABC size) should occur as a distinct "cleanup" step *after* functional verification.
 - If a method exceeds 10 lines but splitting it would break logic or reduce readability, use `# rubocop:disable` with a clear justification.
 
 ## 🏁 Definition of Done (DoD)
@@ -37,6 +38,16 @@ All changes MUST meet these criteria:
 2.  **UI Gate**: Puppeteer test (`rake ui:e2e`) proves the dashboard/lab functionality.
 3.  **CI Validation**: `bundle exec rake all` MUST be green.
 4.  **Math Transparency**: Rolls and critical logic MUST be logged with full metadata.
+
+## 📈 Continuous Feedback & Scoring
+- **Automated Logging**: Whenever a command fails, the user expresses dissatisfaction (e.g., swearing, complaints), or you are asked to redo a task that should have been correct, you MUST immediately log the event.
+- **Log Location**: Append to `/Users/chuckmcintyre/src/dnd5e/.gemini/feedback_log.md`.
+- **Non-Interactive Mandate**: You MUST verify non-interactive flags (e.g., `--yes`, `-y`, `--consent`) before running any CLI tool for the first time. If unsure, run `command --help` first.
+- **Log Format**:
+  ```markdown
+  - [YYYY-MM-DD HH:MM] SCORE: -1 | TYPE: [FAILURE|COMPLAINT|REDO] | CONTEXT: [Brief description of what happened and why it failed]
+  ```
+- **Proactive Retro**: If a failure is severe or repetitive, suggest running `/retro`.
 
 ## 🛠️ Systematic Troubleshooting
 If a task fails more than twice:

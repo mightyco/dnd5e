@@ -11,12 +11,14 @@ module Dnd5e
       include AttackFormatting
 
       attr_reader :combat_data
+      attr_accessor :capture_snapshots
 
-      def initialize
-        super
+      def initialize(capture_snapshots: false)
+        super()
         @combat_data = []
         @current_combat = nil
         @combatants_list = []
+        @capture_snapshots = capture_snapshots
       end
 
       def update(event, data)
@@ -48,7 +50,7 @@ module Dnd5e
         @current_combat = {
           teams: @combatants_list.map(&:name),
           rounds: [],
-          initial_positions: spatial_snapshot(data[:combat])
+          initial_positions: @capture_snapshots ? spatial_snapshot(data[:combat]) : nil
         }
       end
 
@@ -57,11 +59,12 @@ module Dnd5e
       end
 
       def handle_turn_start(data)
-        @current_combat[:rounds].last[:events] << {
+        event = {
           type: 'turn_start',
-          combatant: data[:combatant].name,
-          snapshot: spatial_snapshot(data[:combat])
+          combatant: data[:combatant].name
         }
+        event[:snapshot] = spatial_snapshot(data[:combat]) if @capture_snapshots
+        @current_combat[:rounds].last[:events] << event
       end
 
       def handle_move_resolved(data)
@@ -82,7 +85,7 @@ module Dnd5e
 
         result = data[:result]
         event = format_attack_event(result)
-        event[:snapshot] = spatial_snapshot(nil)
+        event[:snapshot] = spatial_snapshot(nil) if @capture_snapshots
         @current_combat[:rounds].last[:events] << event
       end
 

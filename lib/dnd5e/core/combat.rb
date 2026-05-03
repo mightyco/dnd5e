@@ -7,47 +7,72 @@ require_relative 'attack_resolver'
 require_relative 'combat_attack_handler'
 require_relative 'publisher'
 require_relative 'tactical_grid'
-require_relative 'point_2d'
-require 'logger'
 
 module Dnd5e
   module Core
-    class InvalidAttackError < StandardError; end
-    class InvalidWinnerError < StandardError; end
     class CombatTimeoutError < StandardError; end
+    class InvalidWinnerError < StandardError; end
 
-    # Manages combat preparation and conclusion.
+    # Lifecycle methods for Combat.
     module CombatLifecycle
-      private
+      def over?
+        # Detect teams from combatants if not explicitly set
+        teams = @combatants.map { |c| c.respond_to?(:team) ? c.team : nil }.compact.uniq
+        return @combatants.count { |c| c.statblock.alive? } <= 1 if teams.empty?
+
+        teams.count { |team| !team.all_members_defeated? } <= 1
+      end
+
+      def winner
+        teams = @combatants.map { |c| c.respond_to?(:team) ? c.team : nil }.compact.uniq
+        w = teams.empty? ? @combatants.find { |c| c.statblock.alive? } : teams.reject(&:all_members_defeated?).first
+
+        raise InvalidWinnerError, 'No winner found' if w.nil?
+
+        w
+      end
+
+      def run_combat
+        notify_observers(:combat_start, combat: self, combatants: @combatants)
+        prepare_combat
+        run_rounds
+        finalize_combat
+      end
 
       def prepare_combat
         @turn_manager.roll_initiative
         @turn_manager.sort_by_initiative
-        @round_counter = 1
-        notify_observers(:combat_start, combat: self, combatants: @combatants)
-        notify_observers(:round_start, round: @round_counter)
       end
 
-      def conclude_combat
+      def finalize_combat
         init_winner = @turn_manager.turn_order.first
         begin
-          notify_observers(:combat_end, winner: winner, initiative_winner: init_winner, combatants: @combatants)
+          w = winner
+          notify_observers(:combat_end, winner: w, initiative_winner: init_winner, combatants: @combatants)
         rescue InvalidWinnerError
           notify_observers(:combat_end, winner: nil, initiative_winner: init_winner, combatants: @combatants)
         end
+        winner
+      rescue InvalidWinnerError
+        nil
       end
 
       def run_rounds
+        notify_observers(:round_start, round: @round_counter)
         until over?
-          process_turn_cycle
           check_timeout
+          process_turn_cycle
         end
       end
 
       def process_turn_cycle
-        current = @turn_manager.next_turn
-        take_turn(current) if current.statblock.alive? && !over?
-        increment_round if @turn_manager.all_turns_complete?
+        @turn_manager.turn_order.each do |combatant|
+          break if over?
+          next unless combatant.statblock.alive?
+
+          take_turn(combatant)
+        end
+        increment_round
       end
 
       def increment_round
@@ -80,20 +105,33 @@ module Dnd5e
         old_pos = @grid.find_position(mover)
         return unless old_pos
 
-        (combatants - [mover]).each do |potential_attacker|
-          next unless potential_attacker.statblock.alive? &&
-                      potential_attacker.turn_context.reactions_used.zero? &&
-                      enemy?(potential_attacker, mover)
+        (combatants - [mover]).each do |attacker|
+          next unless valid_opportunity_attacker?(attacker, mover)
 
-          enemy_pos = @grid.find_position(potential_attacker)
-          trigger_opportunity_attack(potential_attacker, mover) if leaving_threatened_zone?(old_pos, new_pos, enemy_pos)
+          enemy_pos = @grid.find_position(attacker)
+          trigger_opportunity_attack(attacker, mover) if leaving_threatened_zone?(old_pos, new_pos, enemy_pos)
         end
+      end
+
+      def valid_opportunity_attacker?(attacker, mover)
+        attacker.statblock.alive? &&
+          attacker.turn_context.reactions_used.zero? &&
+          enemy?(attacker, mover) &&
+          melee_reach?(attacker)
+      end
+
+      def melee_reach?(combatant)
+        combatant.attacks.any? { |a| !a.properties.include?(:ranged) && a.range <= 10 }
       end
 
       def leaving_threatened_zone?(old_pos, new_pos, enemy_pos)
         return false unless enemy_pos
 
-        @grid.distance(old_pos, enemy_pos) <= 5 && @grid.distance(new_pos, enemy_pos) > 5
+        # Old standard reach is 5ft
+        old_dist = @grid.distance(old_pos, enemy_pos)
+        new_dist = @grid.distance(new_pos, enemy_pos)
+
+        old_dist <= 5 && new_dist > 5
       end
 
       def pos_from_value(val)
@@ -122,7 +160,7 @@ module Dnd5e
       def initialize(combatants:, dice_roller: DiceRoller.new, max_rounds: 10, distance: 30)
         @combatants = combatants
         @combatants.each { |c| c.instance_variable_set(:@combat_context, self) }
-        @turn_manager = TurnManager.new(combatants: @combatants)
+        @turn_manager = TurnManager.new(combatants: @combatants, dice_roller: dice_roller)
         @dice_roller = dice_roller
         @max_rounds = max_rounds
         @round_counter = 0
@@ -131,11 +169,18 @@ module Dnd5e
         setup_stationary_grid(distance)
       end
 
+      def find_valid_defender(attacker)
+        potential = @combatants.select do |c|
+          c.statblock.alive? && c != attacker && enemy?(attacker, c)
+        end
+        potential.min_by { |c| c.statblock.hit_points }
+      end
+
       def distance
         return 0 if @combatants.size < 2
 
-        c1, c2 = find_primary_combatants
-        calc_grid_distance(c1, c2)
+        comb1, comb2 = find_primary_combatants
+        calc_grid_distance(comb1, comb2)
       end
 
       def distance=(val)
@@ -154,69 +199,21 @@ module Dnd5e
 
       def take_turn(attacker)
         notify_observers(:turn_start, combatant: attacker, combat: self)
-        if attacker.respond_to?(:strategy)
-          attacker.strategy.execute_turn(attacker, self)
-        else
-          defender = find_valid_defender(attacker)
-          attack(attacker, defender) if defender
-        end
+        attacker.start_turn
+        attacker.strategy.execute_turn(attacker, self)
+        @turn_manager.complete_turn(attacker)
       end
 
-      def move_combatant(combatant, val)
-        path = val.is_a?(Array) ? val : [pos_from_value(val)]
-        path.each_with_index do |step_pos, index|
-          next if index == path.size - 1 && !@grid.can_end_at?(step_pos, combatant)
-
+      def move_combatant(combatant, path)
+        Array(path).each do |step_pos|
           execute_move_step(combatant, step_pos)
-          break unless combatant.statblock.alive?
         end
-      end
-
-      def over?
-        alive = @combatants.select { |c| c.statblock.alive? }
-        return true if alive.size <= 1
-
-        first_team = alive.first.team
-        return true if first_team && alive.all? { |c| c.team == first_team }
-
-        false
-      end
-
-      def winner
-        alive = @combatants.select { |c| c.statblock.alive? }
-        raise InvalidWinnerError, 'No winner found' if alive.empty?
-
-        alive.first.team || alive.first
-      end
-
-      def run_combat
-        prepare_combat
-        run_rounds
-        conclude_combat
-      end
-
-      def find_valid_defender(attacker)
-        @combatants.select { |c| c.statblock.alive? && enemy?(attacker, c) }.first
       end
 
       def enemy?(comb1, comb2)
-        return false if comb1 == comb2
-
-        t1 = comb1.respond_to?(:team) ? comb1.team : nil
-        t2 = comb2.respond_to?(:team) ? comb2.team : nil
-
-        # If both have teams, they are enemies only if the teams are different
-        return different_teams?(t1, t2) if t1 && t2
-
-        # Fallback: if one lacks a team, assume enemy (standard for monsters vs players)
-        # unless they are explicitly the same instance
-        true
-      end
-
-      private
-
-      def different_teams?(team1, team2)
-        return false unless team1 && team2
+        team1 = comb1.respond_to?(:team) ? comb1.team : comb1.instance_variable_get(:@team)
+        team2 = comb2.respond_to?(:team) ? comb2.team : comb2.instance_variable_get(:@team)
+        return true if team1.nil? || team2.nil?
 
         n1 = team1.respond_to?(:name) ? team1.name : team1.to_s
         n2 = team2.respond_to?(:name) ? team2.name : team2.to_s
@@ -224,7 +221,8 @@ module Dnd5e
       end
 
       def execute_move_step(combatant, step_pos)
-        check_opportunity_attacks(combatant, step_pos)
+        old_pos = @grid.find_position(combatant)
+        check_opportunity_attacks(combatant, step_pos) if old_pos
         @grid.move(combatant, step_pos)
         notify_observers(:move_resolved, combatant: combatant, position: step_pos)
       end

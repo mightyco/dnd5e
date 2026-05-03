@@ -64,6 +64,15 @@ module Dnd5e
         prev_combatant.statblock.condition_manager.end_turn
       end
 
+      def complete_turn(combatant)
+        return if @turn_order.empty?
+
+        idx = @turn_order.index(combatant)
+        return unless idx
+
+        @current_turn_index = (idx + 1) % @turn_order.size
+      end
+
       def all_turns_complete?
         @current_turn_index.zero? && @turn_order.size.positive?
       end

@@ -26,7 +26,7 @@ module Dnd5e
       def initialize_enemy
         @enemy = Builders::MonsterBuilder.new(name: 'Orc')
                                          .with_statblock(Dnd5e::Core::Statblock.new(name: 'Enemy', hit_points: 15,
-                                                                                    armor_class: 13))
+                                                                                    armor_class: 10))
                                          .build
         @monster_team = Dnd5e::Core::Team.new(name: 'Monsters', members: [@enemy])
         @enemy.team = @monster_team
@@ -36,12 +36,24 @@ module Dnd5e
         @combat = Combat.new(combatants: [@ranger, @enemy])
       end
 
-      def test_ranger_uses_hunters_mark
-        # Manually add Hunter's Mark feature
-        mark = Features::HuntersMark.new
-        @ranger.feature_manager.features << mark
+      def test_ranger_uses_ensnaring_strike_first
+        # Ranger strategy now prioritizes Ensnaring Strike
+        @ranger.statblock.resources.set_max(:lvl1_slots, 1)
 
-        # Strategy should try to activate it
+        # Ensure it hits (low AC 10)
+        @ranger.strategy.execute_turn(@ranger, @combat)
+
+        # Ensnaring strike should have been triggered.
+        # Since Orc has low STR, it likely failed save, but we check colossus slayer as a proxy
+        # that an attack happened after bonus action.
+        assert @ranger.turn_context.flags.key?(:ensnaring_strike_active), 'Should have used Ensnaring Strike'
+      end
+
+      def test_ranger_uses_hunters_mark_as_fallback
+        # Out of slots for ensnaring strike, but has free Hunters Mark uses
+        @ranger.statblock.resources.set_max(:lvl1_slots, 0)
+        @ranger.statblock.resources.set_max(:hunters_mark, 1)
+
         @ranger.strategy.execute_turn(@ranger, @combat)
 
         # Hunter's Mark adds a condition

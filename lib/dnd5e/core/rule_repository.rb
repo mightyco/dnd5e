@@ -14,7 +14,7 @@ module Dnd5e
     class RuleRepository
       include Singleton
 
-      CACHE_FILE = 'data/rules_cache.json'
+      CACHE_FILE = File.expand_path('../../../data/rules_cache.json', __dir__)
 
       attr_reader :spells, :conditions, :items, :mechanics, :class_tables
 

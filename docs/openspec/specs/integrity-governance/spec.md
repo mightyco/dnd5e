@@ -6,16 +6,16 @@ To maintain the high engineering standards defined in SPEC-0011, this capability
 
 ## Requirements
 
-### Requirement: Atomic Development Units
-Development SHALL occur in small, verifiable increments to prevent error propagation.
+### Requirement: Concurrent & Pragmatic Development
+Development SHALL balance safety with velocity, utilizing concurrency for bulk tasks.
 
-#### Scenario: Turn-Based File Limit
-- **WHEN** an AI agent is performing a feature implementation.
-- **THEN** it SHALL NOT create or modify more than 2 distinct logic files in a single conversational turn.
+#### Scenario: Concurrent Delegation for Bulk Tasks
+- **WHEN** multiple files are required for a repetitive or additive task (e.g., creating 10 subclasses).
+- **THEN** the developer or agent SHALL utilize concurrent subagents (e.g., the `generalist` subagent) or parallel shell operations to process them efficiently, rather than sequential single-file turns.
 
-#### Scenario: Bulk Generation Prohibited
-- **WHEN** multiple files are required for a subclass or feature set.
-- **THEN** they SHALL be implemented sequentially in distinct turns, each followed by immediate verification (RuboCop and tests).
+#### Scenario: Targeted Verification Over Full Gates
+- **WHEN** iterating quickly within a development loop.
+- **THEN** the developer SHOULD use fast, targeted unit tests (`bundle exec ruby -Ilib:test path/to/test.rb`) instead of the slow holistic `rake gate`, reserving the full gate for PRs and major milestones.
 
 ### Requirement: Refactor-First Threshold
 The agent MUST proactively refactor code before it violates complexity limits.

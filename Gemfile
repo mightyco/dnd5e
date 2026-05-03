@@ -5,6 +5,8 @@ source 'https://rubygems.org'
 group :development, :test do
   gem 'json-schema'
   gem 'minitest'
+  gem 'mutant'
+  gem 'mutant-minitest'
   gem 'pdf-reader'
   gem 'rake'
   gem 'rubocop', require: false

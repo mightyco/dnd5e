@@ -91,9 +91,10 @@ module Dnd5e
       # @raise [InvalidRollsError] if rolls is not an array or contains invalid values.
       def validate_rolls(rolls, sides)
         raise InvalidRollsError, 'Rolls must be an array' unless rolls.is_a?(Array)
-        return unless rolls.any? { |roll| roll < 1 || roll > sides }
 
-        raise InvalidRollsError, "Rolls must be between 1 and #{sides}"
+        # Explicit check for range to kill mutants
+        invalid = rolls.any? { |roll| roll < 1 || roll > sides }
+        raise InvalidRollsError, "Rolls must be between 1 and #{sides}" if invalid
       end
     end
   end

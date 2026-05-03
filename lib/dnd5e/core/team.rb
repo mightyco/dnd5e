@@ -16,6 +16,7 @@ module Dnd5e
         @name = name
         @members = members
         @members.each { |member| member.team = self }
+        @defeated_cache = false
       end
 
       # Adds a member to the team.
@@ -24,13 +25,20 @@ module Dnd5e
       def add_member(member)
         @members << member
         member.team = self
+        @defeated_cache = false
       end
 
       # Checks if all members of the team are defeated.
       #
       # @return [Boolean] True if all members are defeated, false otherwise.
       def all_members_defeated?
-        @members.all? { |member| !member.statblock.alive? }
+        return true if @defeated_cache
+
+        if @members.all? { |member| !member.statblock.alive? }
+          @defeated_cache = true
+          return true
+        end
+        false
       end
 
       # Checks if any members of the team are alive.

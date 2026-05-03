@@ -10,6 +10,7 @@ Our primary scientific goal is to model and compare the **Champion** and **Battl
 *   **Tactical AI**: Intelligent kiting, self-preservation, and priority targeting implemented.
 *   **Subclasses**: Full 2024 implementations for Champion and Battlemaster.
 *   **Scientific Dashboard**: Interactive DPR, survival, and roll-level analysis.
+*   **A* Pathfinding**: Optimal navigation around obstacles and through difficult terrain.
 
 ---
 
@@ -58,6 +59,11 @@ Our primary scientific goal is to model and compare the **Champion** and **Battl
 - [x] **Design Validation**: Clean up the landing page starting with the Scientific Lab Runner.
 - [x] **End-to-End Testing**: Integrated Puppeteer-based E2E flow into `rake all` to prevent UI regressions.
 
+### Phase 9: Continuous Feedback & Retrospectives (Completed)
+- [x] **Continuous Feedback Loop**: Automated logging of negative scores (-1) for failures/redos in `.gemini/feedback_log.md`.
+- [x] **Unified Retro Skill**: Structured `/retro` command for Immediate (RCA) and Aggregate (Start/Stop/Continue) analysis.
+- [x] **Governance Refinement**: Updating project instructions based on retrospective findings (e.g., Non-Interactive Mandate).
+
 ---
 
 ## 🚀 The Path to Tactical Simulation
@@ -78,13 +84,14 @@ Our primary scientific goal is to model and compare the **Champion** and **Battl
 - [x] **Aura & Area Logic**: Grid-based resolution for Paladin auras and spell radii.
 - [x] **Opportunity Attack Zones**: True "threatened area" management.
 
-### Tree 3: Strategy & Tactics (Grid-Aware AI)
-- [ ] **Pathfinding**: A* implementation for intelligent movement around obstacles.
-- [ ] **Positioning Logic**: AI should seek cover, optimize AOE clusters, and kite effectively on 2D.
+### Tree 3: Strategy & Tactics (Grid-Aware AI) (In Progress)
+- [x] **Pathfinding**: A* implementation for intelligent movement around obstacles and difficult terrain.
+- [ ] **Positioning Logic**: AI should seek cover, optimize AOE clusters, and kite effectively on 2D using the new pathfinder.
 - [ ] **Role-Based Behavior**: Specific AI for Defenders (staying between enemy and squishies) and Strikers (flanking).
+- [ ] **Multi-Square Pathfinding**: Extend A* to support Large (2x2) and Huge (3x3) creatures (SPEC-0014).
 
-### Tree 4: "Video Game Mode" (UI/UX)
-- [ ] **Visual Combat Playback**: A 2D canvas-based renderer for viewing simulation rounds.
+### Tree 4: "Video Game Mode" (UI/UX) (Next Up)
+- [ ] **Visual Combat Playback**: A 2D canvas-based renderer for viewing simulation rounds (SPEC-0009).
 - [ ] **Interactive Mode**: Allow a human player to control one combatant against the AI.
 - [ ] **Rich Aesthetics**: Sprites, movement animations, and floating combat text.
 
@@ -93,5 +100,3 @@ Our primary scientific goal is to model and compare the **Champion** and **Battl
 ## Future Vision
 *   **Scientific Benchmarking**: Using the grid to determine the "True Value" of movement speed and reach.
 *   **Campaign Simulation**: Simulating a series of encounters with short/long rest resource tracking.
-
-

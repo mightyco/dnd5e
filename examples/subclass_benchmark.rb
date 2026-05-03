@@ -36,11 +36,13 @@ ENCOUNTERS = [
 
 # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
 def run_benchmark(subclass_info, encounter, runs = 100)
+  abilities = { strength: 18, dexterity: 18, constitution: 18, intelligence: 18, wisdom: 18, charisma: 18 }
+
   builder = Dnd5e::Builders::CharacterBuilder.new(name: 'Hero')
   if subclass_info[:subclass]
-    builder.send(subclass_info[:method], level: 5, subclass: subclass_info[:subclass])
+    builder.send(subclass_info[:method], level: 5, subclass: subclass_info[:subclass], abilities: abilities)
   else
-    builder.send(subclass_info[:method], level: 5)
+    builder.send(subclass_info[:method], level: 5, abilities: abilities)
   end
   hero = builder.build
 

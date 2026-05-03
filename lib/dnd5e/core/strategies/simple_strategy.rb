@@ -18,13 +18,12 @@ module Dnd5e
         def execute_turn(combatant, combat)
           try_second_wind(combatant, combat)
 
+          # Move and Action sequence
           target, attack = prepare_turn_data(combatant, combat)
-          move_towards_target(combatant, target, attack, combat) if target && attack
-
-          execute_action(combatant, combat)
-
-          target, attack = prepare_turn_data(combatant, combat)
-          move_towards_target(combatant, target, attack, combat) if target && attack
+          if target && attack
+            move_towards_target(combatant, target, attack, combat)
+            execute_action(combatant, combat)
+          end
 
           try_action_surge(combatant, combat)
         end
@@ -33,7 +32,8 @@ module Dnd5e
 
         def prepare_turn_data(combatant, combat)
           target = find_target(combatant, combat)
-          [target, select_attack(combatant, target, combat)]
+          attack = target ? select_attack(combatant, target, combat) : nil
+          [target, attack]
         end
 
         def execute_action(combatant, combat)
@@ -49,8 +49,9 @@ module Dnd5e
           if in_range?(combatant, target, attack, combat)
             execute_attacks(combatant, target, attack, combat)
           else
-            combatant.turn_context.instance_variable_set(:@movement_used, 0)
+            # Try to close distance if not in range
             move_towards_target(combatant, target, attack, combat)
+            execute_attacks(combatant, target, attack, combat) if in_range?(combatant, target, attack, combat)
           end
         end
       end

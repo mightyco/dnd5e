@@ -35,14 +35,21 @@ module Dnd5e
 
       def record_iteration(data, count, m_stats)
         hero = @builder.call
+        run_standard_combat(hero, count, m_stats)
+
+        data[:deals] += hero.statblock.damage_dealt
+        data[:takes] += hero.statblock.damage_taken
+        data[:wins] += 1 if hero.statblock.alive?
+      end
+
+      def run_standard_combat(hero, count, m_stats)
         combat = Core::TeamCombat.new(teams: [
                                         Core::Team.new(name: 'Hero', members: [hero]),
                                         build_monster_team(count, m_stats)
                                       ], max_rounds: 100)
         combat.run_combat
-        data[:deals] += hero.statblock.damage_dealt
-        data[:takes] += hero.statblock.damage_taken
-        data[:wins] += 1 if hero.statblock.alive?
+      rescue Core::CombatTimeoutError
+        # Treat timeout as a non-win
       end
 
       def build_monster_team(count, m_stats)

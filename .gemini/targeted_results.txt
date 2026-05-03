@@ -1,0 +1,14 @@
+as_barbarian (berserker): Duel (1 Bugbear) -> 93.0%
+as_barbarian (berserker): Swarm (6 Goblins) -> 79.0%
+as_fighter (battlemaster): Duel (1 Bugbear) -> 92.0%
+as_fighter (battlemaster): Swarm (6 Goblins) -> 54.0%
+as_fighter (champion): Duel (1 Bugbear) -> 17.0%
+as_fighter (champion): Swarm (6 Goblins) -> 5.0%
+as_monk (openhand): Duel (1 Bugbear) -> 21.0%
+as_monk (openhand): Swarm (6 Goblins) -> 0.0%
+as_paladin (devotion): Duel (1 Bugbear) -> 9.0%
+as_paladin (devotion): Swarm (6 Goblins) -> 5.0%
+as_ranger (hunter): Duel (1 Bugbear) -> 0.0%
+as_ranger (hunter): Swarm (6 Goblins) -> 0.0%
+as_rogue (assassin): Duel (1 Bugbear) -> 28.999999999999996%
+as_rogue (assassin): Swarm (6 Goblins) -> 0.0%

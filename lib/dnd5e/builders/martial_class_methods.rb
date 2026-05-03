@@ -36,7 +36,8 @@ module Dnd5e
       def as_ranger(level: 1, abilities: {}, subclass: nil)
         add_class_levels(:ranger, level, abilities)
         with_attack(Core::Attack.new(name: 'Longbow', damage_dice: Core::Dice.new(1, 8),
-                                     relevant_stat: :dexterity, range: 150, properties: [:ranged]))
+                                     relevant_stat: :dexterity, range: 150, properties: [:ranged],
+                                     mastery: :slow))
         with_subclass(subclass, level: level) if subclass
         self
       end

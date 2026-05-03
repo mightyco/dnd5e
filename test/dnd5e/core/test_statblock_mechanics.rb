@@ -5,17 +5,32 @@ require_relative '../../../lib/dnd5e/core/statblock'
 
 module Dnd5e
   module Core
-    class TestStatblockMechanics < Minitest::Test
+    class StatblockMechanicsTest < Minitest::Test
       def setup
         @statblock = create_default_statblock
       end
 
-      def test_ability_modifier
+      def test_ability_modifier_strength
         assert_equal 0, @statblock.ability_modifier(:strength)
+      end
+
+      def test_ability_modifier_dexterity
         assert_equal 1, @statblock.ability_modifier(:dexterity)
+      end
+
+      def test_ability_modifier_constitution
         assert_equal 2, @statblock.ability_modifier(:constitution)
+      end
+
+      def test_ability_modifier_intelligence
         assert_equal(-1, @statblock.ability_modifier(:intelligence))
+      end
+
+      def test_ability_modifier_wisdom
         assert_equal 3, @statblock.ability_modifier(:wisdom)
+      end
+
+      def test_ability_modifier_charisma
         assert_equal 4, @statblock.ability_modifier(:charisma)
       end
 
@@ -64,12 +79,18 @@ module Dnd5e
         assert_raises(ArgumentError) { @statblock.heal(-5) }
       end
 
-      def test_saving_throws
+      def test_saving_throw_modifier
         statblock = Statblock.new(name: 'Test', dexterity: 14, intelligence: 10, level: 1,
                                   saving_throw_proficiencies: [:dexterity])
 
         assert_equal 4, statblock.save_modifier(:dexterity) # Mod +2, Prof +2
         assert_equal 0, statblock.save_modifier(:intelligence) # Mod 0
+      end
+
+      def test_saving_throw_proficiency
+        statblock = Statblock.new(name: 'Test', dexterity: 14, intelligence: 10, level: 1,
+                                  saving_throw_proficiencies: [:dexterity])
+
         assert statblock.proficient_in_save?(:dexterity)
         refute statblock.proficient_in_save?(:intelligence)
       end

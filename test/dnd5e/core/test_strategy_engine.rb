@@ -34,12 +34,15 @@ class TestStrategyEngine < Minitest::Test
   def test_strategy_does_not_act_if_no_action
     strategy = Dnd5e::Core::Strategies::SimpleStrategy.new
     @attacker.strategy = strategy
+
+    # We must NOT use combat.take_turn because it calls start_turn which resets actions
+    @attacker.start_turn
     @attacker.turn_context.use_action # Pre-use action
 
     # Reset dice roller calls to verify no attack happened
     @dice_roller.calls.clear
 
-    @combat.take_turn(@attacker)
+    strategy.execute_turn(@attacker, @combat)
 
     assert_empty @dice_roller.calls, 'Should not attack if action is already used'
   end

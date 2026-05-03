@@ -23,9 +23,9 @@ module Dnd5e
 
           # 2024: Once per turn, add PB to damage
           return [] unless attack.properties.include?(:heavy)
-          return [] if attacker.turn_context.instance_variable_get(:@gwm_damage_used)
+          return [] if attacker.turn_context.flags[:gwm_damage_used]
 
-          attacker.turn_context.instance_variable_set(:@gwm_damage_used, true)
+          attacker.turn_context.flags[:gwm_damage_used] = true
           [Dice.new(1, 1, modifier: attacker.statblock.proficiency_bonus - 1)] # Hack to add PB damage
         end
       end

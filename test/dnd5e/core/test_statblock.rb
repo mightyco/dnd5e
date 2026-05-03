@@ -5,24 +5,32 @@ require_relative '../../../lib/dnd5e/core/statblock'
 
 module Dnd5e
   module Core
-    class TestStatblockFoundation < Minitest::Test
+    class StatblockTest < Minitest::Test
       def setup
         @statblock = create_default_statblock
       end
 
-      def test_initialize
+      def test_initialize_basic
         assert_equal 'Test', @statblock.name
         assert_equal 10, @statblock.strength
-        assert_equal 10, @statblock.hit_points # (8 + 2)
-        assert_equal 11, @statblock.armor_class
         assert_equal 1, @statblock.level
       end
 
-      def test_initalize_with_defaults
+      def test_initialize_derived
+        assert_equal 10, @statblock.hit_points # (8 + 2)
+        assert_equal 11, @statblock.armor_class
+      end
+
+      def test_initalize_with_defaults_metadata
         statblock = Statblock.new(name: 'Test')
 
         assert_equal 10, statblock.strength
         assert_equal 1, statblock.level
+      end
+
+      def test_initalize_with_defaults_derived
+        statblock = Statblock.new(name: 'Test')
+
         assert_equal 'd8', statblock.hit_die
         assert_equal 10, statblock.armor_class
       end
@@ -84,31 +92,44 @@ module Dnd5e
         end
       end
 
-      def test_deep_copy
+      def test_deep_copy_values
         copied_statblock = @statblock.deep_copy
 
         assert_equal @statblock.name, copied_statblock.name
         assert_equal @statblock.hit_points, copied_statblock.hit_points
-        refute_same @statblock, copied_statblock
         %i[strength dexterity constitution intelligence wisdom charisma].each do |stat|
           assert_equal @statblock.public_send(stat), copied_statblock.public_send(stat)
         end
       end
 
-      def test_hit_die_for_class
+      def test_deep_copy_identity
+        copied_statblock = @statblock.deep_copy
+
+        refute_same @statblock, copied_statblock
+      end
+
+      def test_hit_die_for_class_standard
         assert_equal 12, @statblock.hit_die_for_class(:barbarian)
         assert_equal 10, @statblock.hit_die_for_class(:fighter)
         assert_equal 8, @statblock.hit_die_for_class(:rogue)
+      end
+
+      def test_hit_die_for_class_other
         assert_equal 6, @statblock.hit_die_for_class(:wizard)
         assert_equal 8, @statblock.hit_die_for_class(:unknown)
       end
 
-      def test_level_up_with_class
+      def test_level_up_with_class_metadata
+        @statblock.level_up(:fighter)
+
+        assert_equal 2, @statblock.level
+        assert_equal 1, @statblock.class_levels[:fighter]
+      end
+
+      def test_level_up_with_class_hp
         @statblock.level_up(:fighter) # d10 -> 6 growth + 2 Con = 8
 
         assert_equal 18, @statblock.max_hp
-        assert_equal 2, @statblock.level
-        assert_equal 1, @statblock.class_levels[:fighter]
 
         @statblock.level_up(:wizard) # d6 -> 4 growth + 2 Con = 6
 

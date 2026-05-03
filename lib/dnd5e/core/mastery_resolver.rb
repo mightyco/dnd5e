@@ -6,15 +6,37 @@ module Dnd5e
   module Core
     # Resolves weapon mastery effects.
     class MasteryResolver
-      def self.apply(attacker, defender, attack, options)
+      def self.apply(attacker, defender, attack, options = {})
         case attack.mastery
         when :vex then attacker.add_condition(:vexing, { target: defender, expiry: :turn_end })
         when :topple then resolve_topple(attacker, defender, attack)
-        when :sap then defender.add_condition(:sapped, { expiry: :turn_start })
-        when :slow then defender.add_condition(:slowed, { expiry: :turn_start })
-        when :push then options[:combat].distance += 10 if options[:combat]
+        when :push then resolve_push(attacker, defender, options[:combat])
         end
       end
+
+      # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+      def self.resolve_push(attacker, defender, combat)
+        return unless combat
+
+        att_pos = combat.grid.find_position(attacker)
+        defn_pos = combat.grid.find_position(defender)
+        return unless att_pos && defn_pos
+
+        # Calculate direction vector
+        dx = defn_pos.x - att_pos.x
+        dy = defn_pos.y - att_pos.y
+
+        # Normalize to 5ft steps (approx)
+        mag = Math.sqrt((dx**2) + (dy**2))
+        return if mag.zero?
+
+        push_x = ((dx / mag) * 10).round / 5 * 5
+        push_y = ((dy / mag) * 10).round / 5 * 5
+
+        new_pos = Point2D.new(defn_pos.x + push_x, defn_pos.y + push_y)
+        combat.grid.move(defender, new_pos)
+      end
+      # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
       def self.resolve_topple(att, defn, atk)
         dc = Helpers::SaveResolutionHelper.calculate_dc(att, atk)

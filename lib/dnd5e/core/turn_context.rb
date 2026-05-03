@@ -4,10 +4,11 @@ module Dnd5e
   module Core
     # Tracks the usage of actions, bonus actions, and movement during a turn.
     class TurnContext
-      attr_reader :actions_used, :bonus_actions_used, :reactions_used, :movement_used, :nick_used, :max_movement
+      attr_reader :actions_used, :bonus_actions_used, :reactions_used, :movement_used, :nick_used, :max_movement, :flags
 
       def initialize
         @max_movement = 0
+        @flags = {}
         reset!
       end
 
@@ -19,6 +20,7 @@ module Dnd5e
         @reactions_used = 0
         @movement_used = 0
         @nick_used = false
+        @flags.clear
       end
 
       def movement_available?

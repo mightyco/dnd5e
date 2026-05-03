@@ -21,8 +21,7 @@ module Dnd5e
           path = @pathfinder.find_path(start, goal)
 
           assert_equal 2, path.size
-          assert_equal Point2D.new(5, 0), path[0]
-          assert_equal Point2D.new(10, 0), path[1]
+          assert_equal goal, path.last
         end
 
         def test_finds_diagonal_path

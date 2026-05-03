@@ -5,7 +5,7 @@ require_relative '../feature'
 module Dnd5e
   module Core
     module Features
-      # Implementation of the Ranger's Hunter's Mark feature.
+      # Implementation of the Ranger's Hunter's Mark feature (2024).
       class HuntersMark < Feature
         def initialize
           super(name: "Hunter's Mark")
@@ -20,33 +20,33 @@ module Dnd5e
         end
 
         def try_activate(attacker, combat)
-          return if attacker.condition?(:hunters_mark_active)
-          return unless attacker.statblock.resources.available?(:lvl1_slots)
-          return unless attacker.turn_context.bonus_action_available?
+          return if already_active?(attacker) || !can_mark?(attacker)
 
-          attacker.statblock.resources.consume(:lvl1_slots)
+          consume_resource(attacker)
           attacker.add_condition(:hunters_mark_active)
-          combat.notify_observers(:resource_used, { combatant: attacker, resource: :lvl1_slots })
+          combat.notify_observers(:resource_used, { combatant: attacker, resource: :hunters_mark })
           attacker.turn_context.use_bonus_action
         end
-      end
 
-      # Implementation of the Ranger's Hunter subclass: Colossus Slayer.
-      class ColossusSlayer < Feature
-        def initialize
-          super(name: 'Colossus Slayer')
+        private
+
+        def already_active?(attacker)
+          attacker.condition?(:hunters_mark_active)
         end
 
-        def on_attack_hit(context)
-          attacker = context[:attacker]
-          defender = context[:defender]
+        def can_mark?(attacker)
+          return false unless attacker.turn_context.bonus_action_available?
 
-          return if defender.statblock.hit_points >= defender.statblock.calculate_hit_points
-          return if attacker.turn_context.instance_variable_get(:@colossus_slayer_used)
+          attacker.statblock.resources.available?(:hunters_mark) ||
+            attacker.statblock.resources.available?(:lvl1_slots)
+        end
 
-          extra_damage = DiceRoller.new.roll('1d8')
-          context[:result][:damage] += extra_damage
-          attacker.turn_context.instance_variable_set(:@colossus_slayer_used, true)
+        def consume_resource(attacker)
+          if attacker.statblock.resources.available?(:hunters_mark)
+            attacker.statblock.resources.consume(:hunters_mark)
+          else
+            attacker.statblock.resources.consume(:lvl1_slots)
+          end
         end
       end
     end

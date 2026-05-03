@@ -9,7 +9,9 @@ namespace :rules do
   task :build do
     puts 'Building rules cache...'
     ingestor = Dnd5e::Ingest::RuleIngestor.new
-    rules = ingestor.ingest(%w[rules_reference srd_reference])
+    # We only use srd_reference by default as rules_reference contains messy OCR files
+    # that can corrupt the ingestion process.
+    rules = ingestor.ingest(%w[srd_reference])
 
     serializable_rules = build_serializable_rules(rules)
     save_rules_cache(serializable_rules)

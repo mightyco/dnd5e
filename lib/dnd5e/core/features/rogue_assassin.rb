@@ -24,9 +24,9 @@ module Dnd5e
 
           # 2024: Extra damage equal to Rogue level on first hit against creature that hasn't acted
           return [] unless defender_hasnt_acted?(context[:defender])
-          return [] if attacker.turn_context.instance_variable_get(:@assassinate_used)
+          return [] if attacker.turn_context.flags[:assassinate_used]
 
-          attacker.turn_context.instance_variable_set(:@assassinate_used, true)
+          attacker.turn_context.flags[:assassinate_used] = true
           [Dice.new(1, 1, modifier: attacker.statblock.level - 1)]
         end
 

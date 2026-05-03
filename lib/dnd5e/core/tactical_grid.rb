@@ -9,13 +9,15 @@ module Dnd5e
       attr_reader :occupants
 
       def initialize
-        @occupants = {} # Point2D => Array<Combatant>
-        @terrain = {}   # Point2D => Symbol (:difficult, etc)
+        @occupants = {}      # Point2D => Array<Combatant>
+        @position_cache = {} # Combatant => Point2D
+        @terrain = {}        # Point2D => Symbol (:difficult, etc)
       end
 
       # Resets the grid.
       def clear
         @occupants.clear
+        @position_cache.clear
         @terrain.clear
       end
 
@@ -33,6 +35,7 @@ module Dnd5e
       def place(combatant, point)
         @occupants[point] ||= []
         @occupants[point] << combatant unless @occupants[point].include?(combatant)
+        @position_cache[combatant] = point
       end
 
       # Moves a combatant to a new point.
@@ -43,9 +46,9 @@ module Dnd5e
 
       # Removes a combatant from the grid.
       def remove(combatant)
-        @occupants.each_value do |list|
-          list.delete(combatant)
-        end
+        old_pos = @position_cache[combatant]
+        @occupants[old_pos]&.delete(combatant) if old_pos
+        @position_cache.delete(combatant)
       end
 
       def occupied?(point)
@@ -62,29 +65,34 @@ module Dnd5e
       end
 
       # Returns true if a combatant can enter this square.
-      # For now, we allow entering any square, but will enforce "end of move" occupancy later.
-      def traversable?(_point, _combatant = nil)
-        # Placeholder for future difficult terrain or wall logic
-        true
+      def traversable?(point, combatant = nil)
+        return true unless occupied?(point)
+        return true if combatant && ally_occupied?(point, combatant)
+
+        false
       end
+
+      # Returns true if the square is occupied by an ally of the combatant.
+      def ally_occupied?(point, combatant)
+        list = @occupants[point]
+        return false unless list
+        return false unless combatant.respond_to?(:team) && combatant.team
+
+        list.any? { |occ| occ.respond_to?(:team) && occ.team == combatant.team }
+      end
+
+      NEIGHBOR_OFFSETS = [-5, 0, 5].product([-5, 0, 5]).reject { |x, y| x.zero? && y.zero? }.freeze
 
       # Returns adjacent 5ft squares (orthogonal and diagonal).
       def neighbors(point)
-        (-1..1).flat_map do |dx|
-          (-1..1).map do |dy|
-            next if dx.zero? && dy.zero?
-
-            Point2D.new(point.x + (dx * 5), point.y + (dy * 5))
-          end
-        end.compact
+        NEIGHBOR_OFFSETS.map do |dx, dy|
+          Point2D.new(point.x + dx, point.y + dy)
+        end
       end
 
       # Finds the current position of a combatant.
       def find_position(combatant)
-        @occupants.each do |pos, list|
-          return pos if list.include?(combatant)
-        end
-        nil
+        @position_cache[combatant]
       end
 
       # Calculates the D&D 5e/2024 distance between two entities or points.

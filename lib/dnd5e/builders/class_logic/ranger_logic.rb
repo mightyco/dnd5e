@@ -22,6 +22,10 @@ module Dnd5e
 
         def add_ranger_features(_level)
           with_feature(Core::Features::HuntersMark.new)
+          with_feature(Core::Features::EnsnaringStrike.new)
+          with_feature(Core::Features::ArcheryStyle.new)
+          with_feature(Core::Features::ColossusSlayer.new)
+          with_feature(Core::Features::HordeBreaker.new)
           @subclass_strategy = Core::Strategies::RangerStrategy.new
         end
       end

@@ -32,7 +32,12 @@ module Dnd5e
 
         scenario = Core::TeamCombat.new(teams: new_teams, max_rounds: 100)
         scenario.add_observer(@result_handler) if @result_handler.respond_to?(:update)
-        scenario.run_combat
+
+        begin
+          scenario.run_combat
+        rescue Core::CombatTimeoutError => e
+          @logger.warn "Combat timed out: #{e.message}"
+        end
 
         # Add result to local results if available
         return unless @result_handler.respond_to?(:results) && @result_handler.results.any?

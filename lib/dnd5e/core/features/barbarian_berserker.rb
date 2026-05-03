@@ -15,7 +15,7 @@ module Dnd5e
           attacker = context[:attacker]
           return nil unless can_frenzy?(attacker, context[:options])
 
-          attacker.turn_context.instance_variable_set(:@frenzy_used, true)
+          attacker.turn_context.flags[:frenzy_used] = true
           calculate_frenzy_dice(attacker, context[:dice])
         end
 
@@ -24,7 +24,7 @@ module Dnd5e
         def can_frenzy?(attacker, options)
           attacker.condition?(:raging) &&
             options[:reckless] &&
-            !attacker.turn_context.instance_variable_get(:@frenzy_used)
+            !attacker.turn_context.flags[:frenzy_used]
         end
 
         def calculate_frenzy_dice(attacker, base_dice)

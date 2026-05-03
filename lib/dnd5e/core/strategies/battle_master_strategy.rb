@@ -96,8 +96,8 @@ module Dnd5e
           path = Helpers::Pathfinder.new(combat.grid).find_path(current_pos, target_pos)
           return if path.empty?
 
-          max_squares = move_dist / 5
-          combat.move_combatant(combatant, path[0...max_squares])
+          segment, = calculate_move_segment(path, move_dist, combat.grid)
+          combat.move_combatant(combatant, segment)
         end
 
         def pick_maneuver(combatant, target)
