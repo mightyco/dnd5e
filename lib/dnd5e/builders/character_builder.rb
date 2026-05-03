@@ -118,6 +118,21 @@ module Dnd5e
         self
       end
 
+      # rubocop:disable Metrics/CyclomaticComplexity
+      def with_fighting_style(style_key)
+        feature = case style_key.to_sym
+                  when :archery then Core::Features::ArcheryStyle.new
+                  when :defense then Core::Features::DefenseStyle.new
+                  when :dueling then Core::Features::DuelingStyle.new
+                  when :great_weapon_fighting then Core::Features::GreatWeaponFightingStyle.new
+                  when :protection then Core::Features::ProtectionStyle.new
+                  when :two_weapon_fighting then Core::Features::TwoWeaponFightingStyle.new
+                  end
+        @features << feature if feature
+        self
+      end
+      # rubocop:enable Metrics/CyclomaticComplexity
+
       def with_armor(armor_key)
         armor = Core::ArmorRegistry.create(armor_key)
         @statblock&.instance_variable_set(:@equipped_armor, armor)

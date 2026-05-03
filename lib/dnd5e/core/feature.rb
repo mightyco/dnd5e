@@ -60,6 +60,19 @@ module Dnd5e
       def on_damage_taken(_context)
         nil
       end
+
+      # New hooks for 2024 features
+      def ac_bonus(_context)
+        0
+      end
+
+      def extra_damage_modifier(_context)
+        0
+      end
+
+      def on_damage_roll_modification(_context)
+        0
+      end
     end
   end
 end

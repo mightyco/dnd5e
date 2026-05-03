@@ -18,6 +18,7 @@ module Dnd5e
           Dice.new(count, base_dice.sides, modifier: base_dice.modifier)
         end
 
+        # rubocop:disable Metrics/AbcSize
         def self.calculate_modifier(attacker, attack, options)
           # Start with weapon's built-in modifier and magic bonus
           base_mod = attack.damage_dice.modifier + (attack.respond_to?(:magic_bonus) ? attack.magic_bonus : 0)
@@ -28,12 +29,17 @@ module Dnd5e
           # 2024 Two-Weapon Fighting rules:
           # If it's an offhand attack, only add ability modifier if they have the TWF Fighting Style.
           if options[:offhand]
-            has_twf_style = attacker.feature_manager.features.any? { |f| f.name == 'Two-Weapon Fighting' }
+            has_twf_style = attacker.feature_manager.features.any? { |f| f.name.include?('Two-Weapon Fighting') }
             ability_mod = 0 unless has_twf_style
           end
 
-          base_mod + ability_mod
+          # Add Fighting Style damage bonuses (e.g. Dueling)
+          require_relative 'fighting_style_helper'
+          fighting_style_mod = FightingStyleHelper.extra_damage_modifier(attacker, attack, options)
+
+          base_mod + ability_mod + fighting_style_mod
         end
+        # rubocop:enable Metrics/AbcSize
 
         def self.roll_extra(attacker, defender, attack, options)
           context = { attacker: attacker, defender: defender, attack: attack, options: options }

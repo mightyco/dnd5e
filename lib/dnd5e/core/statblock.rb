@@ -70,6 +70,7 @@ module Dnd5e
         @character = character
       end
 
+      # rubocop:disable Metrics/MethodLength
       def armor_class
         return @armor_class if defined?(@armor_class) && @armor_class
 
@@ -80,8 +81,16 @@ module Dnd5e
                end
 
         base += @equipped_shield.base_ac if @equipped_shield
+
+        # Apply fighting style and feature bonuses
+        if @character
+          require_relative 'helpers/fighting_style_helper'
+          base += Helpers::FightingStyleHelper.ac_bonus(@character)
+        end
+
         base
       end
+      # rubocop:enable Metrics/MethodLength
 
       attr_writer :armor_class
 

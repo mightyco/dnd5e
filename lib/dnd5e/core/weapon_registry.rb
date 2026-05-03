@@ -14,7 +14,8 @@ module Dnd5e
         'greataxe' => { damage: '1d12', stat: :strength, mastery: :cleave, properties: %i[heavy two_handed] },
         'warhammer' => { damage: '1d8', stat: :strength, mastery: :topple, properties: [:versatile] },
         'pike' => { damage: '1d10', stat: :strength, mastery: :push, properties: %i[heavy reach two_handed] },
-        'rapier' => { damage: '1d8', stat: :dexterity, mastery: :vex, properties: [:finesse] }
+        'rapier' => { damage: '1d8', stat: :dexterity, mastery: :vex, properties: [:finesse] },
+        'battleaxe' => { damage: '1d8', stat: :strength, mastery: :topple, properties: [:versatile] }
       }.freeze
 
       def self.create(key)
