@@ -3,15 +3,16 @@
 require_relative '../helpers/pathfinder'
 require_relative 'extra_attack_helper'
 require_relative 'targeting_helper'
+require_relative 'movement_strategy_helper'
 
 module Dnd5e
   module Core
     module Strategies
       # Helper logic for SimpleStrategy to keep the main class small.
-      # rubocop:disable Metrics/ModuleLength
       module SimpleStrategyLogic
         include ExtraAttackHelper
         include TargetingHelper
+        include MovementStrategyHelper
 
         private
 
@@ -31,97 +32,14 @@ module Dnd5e
           execute_grid_move(combatant, current_pos, target_pos, combatant.turn_context.movement_available?, combat)
         end
 
-        # rubocop:disable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity
-        def move_away_from_target(combatant, target, combat)
-          current_pos = combat.grid.find_position(combatant)
-          target_pos = combat.grid.find_position(target)
-          return unless current_pos && target_pos
-
-          # Find the neighbor that maximizes distance from target
-          speed = combatant.turn_context.movement_available?
-
-          # Strategy: Check all neighbors, pick the one furthest from target
-          best_pos = combat.grid.neighbors(current_pos).select { |n| combat.grid.traversable?(n, combatant) }
-                           .max_by { |n| combat.grid.distance(n, target_pos) }
-
-          return unless best_pos
-          return unless combat.grid.distance(best_pos, target_pos) > combat.grid.distance(current_pos, target_pos)
-
-          # Move as far as possible in that direction
-          segment, used = calculate_move_segment_away(current_pos, best_pos, speed, combat)
-          return if segment.empty?
-
-          combat.move_combatant(combatant, segment)
-          combatant.turn_context.use_movement(used)
-        end
-        # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity
-
-        # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
-        def calculate_move_segment_away(start, direction, speed, combat)
-          remaining = speed
-          segment = []
-          curr = start
-          dx = direction.x - start.x
-          dy = direction.y - start.y
-
-          while remaining >= 5
-            nxt = Point2D.new(curr.x + dx, curr.y + dy)
-            break unless combat.grid.traversable?(nxt, nil) && combat.grid.can_end_at?(nxt)
-
-            segment << nxt
-            curr = nxt
-            remaining -= 5
-          end
-          [segment, speed - remaining]
-        end
-        # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
-
         def execute_grid_move(combatant, _cur_pos, target_pos, speed, combat)
-          path = Helpers::Pathfinder.new(combat.grid).find_path(combat.grid.find_position(combatant), target_pos)
-          if path.empty?
-            combatant.turn_context.use_movement(speed)
-            return
-          end
+          path = Helpers::Pathfinder.new(combat.grid).find_path(
+            combat.grid.find_position(combatant), target_pos, combatant
+          )
+          return if path.empty?
 
           trim_path_for_occupancy(path, target_pos, combat.grid)
           apply_move_segment(combatant, path, speed, combat)
-        end
-
-        def trim_path_for_occupancy(path, target_pos, grid)
-          path.pop if path.last == target_pos && grid.occupied?(target_pos)
-        end
-
-        def apply_move_segment(combatant, path, speed, combat)
-          segment, used = calculate_move_segment(path, speed, combat.grid)
-          return if segment.empty?
-
-          combat.move_combatant(combatant, segment)
-          combatant.turn_context.use_movement(used)
-        end
-
-        def calculate_move_segment(path, speed, grid)
-          remaining = speed
-          segment = []
-          path.each do |point|
-            cost = grid.movement_cost(point)
-            break if cost > remaining
-
-            segment << point
-            remaining -= cost
-          end
-          [segment, speed - remaining]
-        end
-
-        def should_kite?(combatant, target, combat)
-          dist = combat.grid.distance(combatant, target)
-          # Proactive Kiting: Always maintain at least 40ft if using a long-range weapon.
-          # This keeps us outside of normal movement + melee range.
-          is_ranged = combatant.attacks.any? { |a| a.range > 30 }
-
-          return dist <= 40 if is_ranged
-
-          # Standard kiting for others
-          dist <= 5 && combatant.attacks.any? { |a| a.range > 5 }
         end
 
         def execute_attacks(combatant, target, attack, combat)
@@ -197,7 +115,6 @@ module Dnd5e
           combatant.turn_context.instance_variable_set(:@actions_used, original_actions + 1)
         end
       end
-      # rubocop:enable Metrics/ModuleLength
     end
   end
 end

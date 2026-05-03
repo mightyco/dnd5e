@@ -89,14 +89,11 @@ module Dnd5e
         end
         # rubocop:enable Metrics/AbcSize
 
-        # Octile heuristic for 8-way movement on a 5ft grid.
+        # Chebyshev distance for 8-way movement on a 5ft grid (D&D 5e style).
         def heuristic(point_a, point_b)
           dx = (point_a.x - point_b.x).abs
           dy = (point_a.y - point_b.y).abs
-          # D&D 2024 usually uses max(dx, dy) for 5ft diagonals,
-          # but we use Octile as requested in the design spec.
-          # Cost is in feet (multiples of 5).
-          (dx + dy) + ((Math.sqrt(2) - 2) * [dx, dy].min)
+          [dx, dy].max
         end
       end
     end

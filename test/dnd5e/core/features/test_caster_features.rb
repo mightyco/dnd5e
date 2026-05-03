@@ -24,7 +24,7 @@ module Dnd5e
           feature = WardingFlare.new
           @char.statblock.resources.set_max(:warding_flare, 1)
           roll_data = { total: 15, raw: 10, modifier: 5, rolls: [10], advantage: false, disadvantage: false }
-          new_roll = feature.on_after_attack_roll({ defender: @char }, roll_data)
+          new_roll = feature.on_after_attack_roll({ defender: @char, current_value: roll_data })
 
           assert new_roll[:disadvantage]
         end

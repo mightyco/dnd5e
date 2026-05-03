@@ -35,9 +35,9 @@ module Dnd5e
           feature = CuttingWords.new
           target = Character.new(name: 'Lore Bard', statblock: Statblock.new(name: 'Lore Bard'))
           roll_data = { total: 20 }
-          context = { defender: target }
+          context = { defender: target, current_value: roll_data }
 
-          new_roll = feature.on_after_attack_roll(context, roll_data)
+          new_roll = feature.on_after_attack_roll(context)
 
           assert_equal 16, new_roll[:total]
         end
@@ -52,9 +52,9 @@ module Dnd5e
         def test_vow_of_enmity
           feature = VowOfEnmity.new
           roll_data = { advantage: false }
-          context = { options: { vow_target: true } }
+          context = { options: { vow_target: true }, current_value: roll_data }
 
-          assert feature.on_after_attack_roll(context, roll_data)[:advantage]
+          assert feature.on_after_attack_roll(context)[:advantage]
         end
 
         def test_arcane_trickster_slots

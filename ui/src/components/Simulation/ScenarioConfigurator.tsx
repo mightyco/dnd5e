@@ -9,6 +9,7 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
     subclasses: {}, 
     monsters: [],
     feats: [],
+    fighting_styles: [],
     weapons: [],
     armor: [],
     shields: []
@@ -56,6 +57,7 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
             weapon: 'longsword',
             armor: 'breastplate',
             feats: [],
+            fightingStyle: '',
             ...m, 
             id: Math.random() 
           };
@@ -298,7 +300,7 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
                           ))}
                         </div>
                         
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.75rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginTop: '0.75rem' }}>
                           <div>
                             <label style={labelStyle}>Weapon</label>
                             <select value={m.weapon || 'longsword'} onChange={e => updateMemberField(idx, mIdx, 'weapon', e.target.value)} style={{ width: '100%', fontSize: '0.75rem' }}>
@@ -312,6 +314,15 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
                               {metadata.armor.map(a => <option key={a} value={a}>{a.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</option>)}
                             </select>
                           </div>
+                          {['fighter', 'paladin', 'ranger'].includes(m.type) && (
+                            <div>
+                              <label style={labelStyle}>Style</label>
+                              <select value={m.fightingStyle || ''} onChange={e => updateMemberField(idx, mIdx, 'fightingStyle', e.target.value)} style={{ width: '100%', fontSize: '0.75rem' }}>
+                                <option value="">None</option>
+                                {metadata.fighting_styles.map(fs => <option key={fs} value={fs}>{fs.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>)}
+                              </select>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}

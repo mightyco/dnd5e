@@ -6,6 +6,7 @@ export const CharacterBuilder = ({ onSave }) => {
     subclasses: {}, 
     monsters: [], 
     feats: [],
+    fighting_styles: [],
     weapons: [],
     armor: [],
     shields: []
@@ -27,7 +28,8 @@ export const CharacterBuilder = ({ onSave }) => {
     weapon: 'longsword',
     armor: 'breastplate',
     shield: false,
-    feats: []
+    feats: [],
+    fightingStyle: ''
   });
 
   useEffect(() => {
@@ -141,7 +143,7 @@ export const CharacterBuilder = ({ onSave }) => {
       {isClass && (
         <>
           {/* Subclass & Abilities */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gap: '1rem' }}>
             <div style={sectionStyle}>
               <label style={labelStyle}>Subclass</label>
               <select name="subclass" value={char.subclass} onChange={handleChange} style={{ width: '100%', padding: '0.4rem' }}>
@@ -151,6 +153,18 @@ export const CharacterBuilder = ({ onSave }) => {
                 ))}
               </select>
             </div>
+
+            {['fighter', 'paladin', 'ranger'].includes(char.type) && (
+              <div style={sectionStyle}>
+                <label style={labelStyle}>Fighting Style</label>
+                <select name="fightingStyle" value={char.fightingStyle} onChange={handleChange} style={{ width: '100%', padding: '0.4rem' }}>
+                  <option value="">None</option>
+                  {(metadata.fighting_styles || []).map(fs => (
+                    <option key={fs} value={fs}>{fs.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             
             <div style={sectionStyle}>
               <label style={labelStyle}>Ability Scores</label>

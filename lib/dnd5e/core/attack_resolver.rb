@@ -49,7 +49,8 @@ module Dnd5e
 
       def apply_after_roll_hooks(attacker, defender, attack, roll_data, options)
         context = { attacker: attacker, defender: defender, attack: attack, options: options }
-        attacker.feature_manager.apply_hook(:on_after_attack_roll, context, roll_data)
+        roll_data = attacker.feature_manager.apply_hook(:on_after_attack_roll, context, roll_data)
+        defender.feature_manager.apply_hook(:on_after_attack_roll, context, roll_data)
       end
 
       def apply_and_build_result(attacker, defender, attack, roll_data, outcome)

@@ -72,6 +72,7 @@ get '/api/metadata' do
     subclasses: subclasses,
     monsters: %w[goblin bugbear ogre],
     feats: Dnd5e::Core::FeatRegistry.all_keys,
+    fighting_styles: %w[archery defense dueling great_weapon_fighting protection two_weapon_fighting],
     weapons: Dnd5e::Core::WeaponRegistry.all_keys,
     armor: Dnd5e::Core::ArmorRegistry.all_keys.reject { |k| k == 'shield' },
     shields: ['shield']
@@ -216,6 +217,7 @@ def build_character(builder, cfg, level)
   abilities = (cfg['abilities'] || {}).transform_keys(&:to_sym)
   builder.send(method_name, level: level, abilities: abilities)
   builder.with_subclass(cfg['subclass'], level: level) if cfg['subclass']
+  builder.with_fighting_style(cfg['fightingStyle']) if cfg['fightingStyle']
 
   apply_custom_equipment(builder, cfg)
   apply_feats(builder, cfg['feats'])

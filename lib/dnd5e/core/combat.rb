@@ -66,11 +66,10 @@ module Dnd5e
       end
 
       def process_turn_cycle
-        @turn_manager.turn_order.each do |combatant|
-          break if over?
-          next unless combatant.statblock.alive?
-
-          take_turn(combatant)
+        loop do
+          combatant = @turn_manager.next_turn
+          take_turn(combatant) if combatant.statblock.alive?
+          break if over? || @turn_manager.all_turns_complete?
         end
         increment_round
       end
@@ -199,9 +198,7 @@ module Dnd5e
 
       def take_turn(attacker)
         notify_observers(:turn_start, combatant: attacker, combat: self)
-        attacker.start_turn
         attacker.strategy.execute_turn(attacker, self)
-        @turn_manager.complete_turn(attacker)
       end
 
       def move_combatant(combatant, path)

@@ -38,15 +38,17 @@ All changes MUST meet these criteria:
 2.  **UI Gate**: Puppeteer test (`rake ui:e2e`) proves the dashboard/lab functionality.
 3.  **CI Validation**: `bundle exec rake all` MUST be green.
 4.  **Math Transparency**: Rolls and critical logic MUST be logged with full metadata.
+5.  **Source Integrity**: Changes must be staged and committed after successful verification (unless specifically requested otherwise).
 
 ## 📈 Continuous Feedback & Scoring
 - **Automated Logging**: Whenever a command fails, the user expresses dissatisfaction (e.g., swearing, complaints), or you are asked to redo a task that should have been correct, you MUST immediately log the event.
 - **Log Location**: Append to `/Users/chuckmcintyre/src/dnd5e/.gemini/feedback_log.md`.
 - **Non-Interactive Mandate**: You MUST verify non-interactive flags (e.g., `--yes`, `-y`, `--consent`) before running any CLI tool for the first time. If unsure, run `command --help` first.
 - **Execution Guardrails**: ANY ruby command expected to take more than 5 seconds MUST be wrapped in a `timeout` (e.g., `timeout 30s bundle exec ...`).
-- **Token Conservation**: Prefer `grep` and `cat` for targeted investigation over reading full directories or large log files. Avoid redundant `update_topic` calls for small sub-tasks.
-- **Loop Prevention**: If a debug trace produces repetitive output, terminate the tool early and propose a surgical fix rather than letting the log scroll indefinitely.
-- **Rules Integrity**: Verify mechanical claims (e.g., "OAs with a bow") against the project's SRD/Rules reference if there is any ambiguity. Do not state rules as fact without verification.
+- **Token Conservation**: Prefer `grep`, `cat`, and `tail` for targeted investigation. For any file >1MB, surgical tools (`tail`, `grep`, `sed`) are **MANDATORY**. Never perform a `read_file` or `cat` on massive logs.
+- **Safe Shell Syntax**: DO NOT use command substitution (`$()`, `` ` ``, `<()`) in `run_shell_command`. This triggers a security block. Use literal strings or multi-step commands instead.
+- **Loop Prevention**: If a debug trace produces repetitive output, terminate the tool early. Ensure simulation loops explicitly reset transient state (TurnManager) to prevent R0 hangs.
+- **Rules Integrity**: Verify mechanical claims (e.g., "OAs with a bow") against the project's SRD/Rules reference. Do not state rules as fact if they involve complex interactions or specific weapon/trait requirements.
 - **Log Format**:
   ```markdown
   - [YYYY-MM-DD HH:MM] SCORE: -1 | TYPE: [FAILURE|COMPLAINT|REDO] | CONTEXT: [Brief description of what happened and why it failed]

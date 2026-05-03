@@ -8,7 +8,8 @@ module Dnd5e
       class VowOfEnmity < Feature
         def initialize = super(name: 'Vow of Enmity')
 
-        def on_after_attack_roll(context, roll_data)
+        def on_after_attack_roll(context)
+          roll_data = context[:current_value]
           roll_data[:advantage] = true if context[:options][:vow_target]
           roll_data
         end

@@ -8,7 +8,8 @@ module Dnd5e
       class TidesOfChaos < Feature
         def initialize = super(name: 'Tides of Chaos')
 
-        def on_after_attack_roll(_context, roll_data)
+        def on_after_attack_roll(context)
+          roll_data = context[:current_value]
           roll_data[:advantage] = true if rand < 0.1
           roll_data
         end

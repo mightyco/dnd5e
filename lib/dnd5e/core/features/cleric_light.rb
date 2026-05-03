@@ -12,7 +12,8 @@ module Dnd5e
           super(name: 'Warding Flare')
         end
 
-        def on_after_attack_roll(context, roll_data)
+        def on_after_attack_roll(context)
+          roll_data = context[:current_value]
           defender = context[:defender]
           return roll_data unless flare_available?(defender) && !roll_data[:disadvantage]
 

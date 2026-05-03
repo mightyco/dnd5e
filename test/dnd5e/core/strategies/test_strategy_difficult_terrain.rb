@@ -41,6 +41,7 @@ module Dnd5e
           @combat.grid.place(wall_builder.build, Point2D.new(10, -5))
           @combat.grid.place(wall_builder.build, Point2D.new(0, 5))
           @combat.grid.place(wall_builder.build, Point2D.new(0, -5))
+          @combat.grid.place(wall_builder.build, Point2D.new(15, -5))
 
           @fighter.strategy.execute_turn(@fighter, @combat)
 

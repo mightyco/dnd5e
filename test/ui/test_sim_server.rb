@@ -35,6 +35,16 @@ class SimServerTest < Minitest::Test
     assert_equal 'online', results['status']
   end
 
+  def test_api_metadata_includes_fighting_styles
+    get '/api/metadata'
+
+    assert_predicate last_response, :ok?
+    results = JSON.parse(last_response.body)
+
+    assert_includes results['fighting_styles'], 'archery'
+    assert_includes results['weapons'], 'battleaxe'
+  end
+
   def test_list_simulations
     get '/api/simulations'
 

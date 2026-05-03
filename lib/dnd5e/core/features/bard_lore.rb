@@ -8,7 +8,8 @@ module Dnd5e
       class CuttingWords < Feature
         def initialize = super(name: 'Cutting Words')
 
-        def on_after_attack_roll(context, roll_data)
+        def on_after_attack_roll(context)
+          roll_data = context[:current_value]
           defender = context[:defender]
           return roll_data unless defender.name == 'Lore Bard'
 
