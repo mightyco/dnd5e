@@ -4,7 +4,15 @@ import { CharacterBuilder } from './CharacterBuilder';
 export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) => {
   const [characterPool, setCharacterPool] = useState([]);
   const [variables, setVariables] = useState({});
-  const [metadata, setMetadata] = useState({ classes: [], subclasses: {}, monsters: [] });
+  const [metadata, setMetadata] = useState({ 
+    classes: [], 
+    subclasses: {}, 
+    monsters: [],
+    feats: [],
+    weapons: [],
+    armor: [],
+    shields: []
+  });
   const [teams, setTeams] = useState([
     { name: 'Heroes', members: [], count: "1" },
     { name: 'Monsters', members: [], count: "1" }
@@ -12,7 +20,9 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
   const [simConfig, setSimConfig] = useState({
     name: 'Custom Sweep',
     level: 1,
-    num_simulations: 100
+    num_simulations: 100,
+    max_rounds: 100,
+    distance: 30
   });
 
   const [newVar, setNewVar] = useState({ name: '', values: '' });
@@ -29,7 +39,9 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
       setSimConfig({
         name: `Copy of ${initialConfig.name}`,
         level: initialConfig.level || 1,
-        num_simulations: initialConfig.num_simulations || 100
+        num_simulations: initialConfig.num_simulations || 100,
+        max_rounds: initialConfig.max_rounds || 100,
+        distance: initialConfig.distance || 30
       });
       setVariables(initialConfig.variables || {});
       
@@ -39,7 +51,14 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
         const sourceMembers = t.members || (t.template ? [t.template] : []);
         
         sourceMembers.forEach(m => {
-          const member = { ...m, id: Math.random() };
+          const member = { 
+            abilities: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 },
+            weapon: 'longsword',
+            armor: 'breastplate',
+            feats: [],
+            ...m, 
+            id: Math.random() 
+          };
           teamMembers.push(member);
           if (!newPool.some(p => p.name === m.name && p.type === m.type && p.subclass === m.subclass)) {
             newPool.push(member);
@@ -94,7 +113,16 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
         const newMembers = team.members.map((member, mIdx) => {
           if (mIdx !== memberIdx) return member;
           
-          const updatedMember = { ...member, [field]: val };
+          let updatedMember;
+          if (field.startsWith('ability.')) {
+            const ability = field.split('.')[1];
+            updatedMember = { 
+              ...member, 
+              abilities: { ...member.abilities, [ability]: parseInt(val) } 
+            };
+          } else {
+            updatedMember = { ...member, [field]: val };
+          }
           
           if (field === 'type') {
             const isClass = metadata.classes.includes(val);
@@ -137,6 +165,14 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
     }
   };
 
+  const labelStyle: React.CSSProperties = {
+    fontSize: '0.65rem',
+    fontWeight: 'bold',
+    color: '#888',
+    textTransform: 'uppercase',
+    marginBottom: '2px'
+  };
+
   return (
     <div className="scenario-configurator lab-card" style={{ marginTop: '3rem' }}>
       <h2>Scientific Lab Runner</h2>
@@ -160,15 +196,6 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
           <button onClick={addVariable} style={{ padding: '0.5rem 1rem' }}>
             Add Variable
           </button>
-        </div>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {Object.entries(variables).map(([name, vals]) => (
-            <span key={name} style={{ background: '#fff', border: '1px solid #90caf9', padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center' }}>
-              <strong>{name}</strong>:<span style={{marginLeft:'4px'}}>{JSON.stringify(vals)}</span>
-              <button onClick={() => { const v = {...variables}; delete v[name]; setVariables(v); }} style={{ marginLeft: '8px', border: 'none', background: '#ffcdd2', color: '#c62828', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
-            </span>
-          ))}
-          {Object.keys(variables).length === 0 && <span style={{ color: '#666', fontSize: '0.85rem', fontStyle: 'italic' }}>No variables defined. Single run mode.</span>}
         </div>
       </div>
 
@@ -209,73 +236,85 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
               </label>
             </div>
             
-            {team.members.length === 0 && <p style={{ color: '#999', fontStyle: 'italic', fontSize: '0.85rem' }}>No members added to this team yet.</p>}
-            
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               {team.members.map((m, mIdx) => {
                 const isClass = metadata.classes.includes(m.type);
-                const options = isClass ? metadata.classes : metadata.monsters;
                 const subclasses = metadata.subclasses[m.type] || [];
                 
                 return (
-                  <li key={m.id || mIdx} data-testid="team-member" style={{ padding: '0.75rem', background: '#fff', border: '1px solid rgba(0,0,0,0.05)', borderRadius: '6px', marginBottom: '0.5rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <li key={m.id || mIdx} data-testid="team-member" style={{ padding: '1rem', background: '#fff', border: '1px solid rgba(0,0,0,0.05)', borderRadius: '8px', marginBottom: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                       <input 
                         value={m.name} 
                         onChange={e => updateMemberField(idx, mIdx, 'name', e.target.value)}
-                        style={{ fontWeight: 'bold', border: 'none', borderBottom: '1px solid #eee', width: '60%' }}
+                        style={{ fontWeight: 'bold', border: 'none', borderBottom: '1px solid #eee', width: '70%', fontSize: '1rem' }}
                       />
-                      <button 
-                        onClick={() => {
-                          setTeams(prevTeams => {
-                            const newTeams = [...prevTeams];
-                            const team = { ...newTeams[idx] };
-                            const members = [...team.members];
-                            members.splice(mIdx, 1);
-                            team.members = members;
-                            newTeams[idx] = team;
-                            return newTeams;
-                          });
-                        }}
-                        style={{ background: 'none', border: 'none', color: '#d32f2f', fontSize: '0.7rem', cursor: 'pointer' }}
-                      >
-                        Remove
-                      </button>
+                      <button onClick={() => {
+                        const newTeams = [...teams];
+                        newTeams[idx].members.splice(mIdx, 1);
+                        setTeams(newTeams);
+                      }} style={{ background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer' }}>×</button>
                     </div>
                     
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.5rem' }}>
-                      <select 
-                        value={m.type} 
-                        onChange={e => updateMemberField(idx, mIdx, 'type', e.target.value)}
-                        style={{ fontSize: '0.8rem', padding: '4px', borderRadius: '4px', border: '1px solid #ddd' }}
-                        data-testid="member-type-select"
-                      >
-                        <optgroup label="Classes">
-                          {metadata.classes.map(cls => (
-                            <option key={cls} value={cls}>{cls.charAt(0).toUpperCase() + cls.slice(1)}</option>
-                          ))}
-                        </optgroup>
-                        <optgroup label="Monsters">
-                          {metadata.monsters.map(mon => (
-                            <option key={mon} value={mon}>{mon.charAt(0).toUpperCase() + mon.slice(1)}</option>
-                          ))}
-                        </optgroup>
-                      </select>
-                      
-                      {isClass && subclasses.length > 0 && (
-                        <select 
-                          value={m.subclass || ''} 
-                          onChange={e => updateMemberField(idx, mIdx, 'subclass', e.target.value)}
-                          style={{ fontSize: '0.8rem', padding: '4px', borderRadius: '4px', border: '1px solid #ddd' }}
-                          data-testid="member-subclass-select"
-                        >
-                          <option value="">Standard</option>
-                          {subclasses.map(sc => (
-                            <option key={sc} value={sc}>{sc.charAt(0).toUpperCase() + sc.slice(1)}</option>
-                          ))}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                      <div>
+                        <label style={labelStyle}>Type</label>
+                        <select value={m.type} onChange={e => updateMemberField(idx, mIdx, 'type', e.target.value)} style={{ width: '100%', padding: '4px' }} data-testid="member-type-select">
+                          <optgroup label="Classes">
+                            {metadata.classes.map(cls => <option key={cls} value={cls}>{cls.toUpperCase()}</option>)}
+                          </optgroup>
+                          <optgroup label="Monsters">
+                            {metadata.monsters.map(mon => <option key={mon} value={mon}>{mon.toUpperCase()}</option>)}
+                          </optgroup>
                         </select>
+                      </div>
+                      
+                      {isClass && (
+                        <div>
+                          <label style={labelStyle}>Subclass</label>
+                          <select value={m.subclass || ''} onChange={e => updateMemberField(idx, mIdx, 'subclass', e.target.value)} style={{ width: '100%', padding: '4px' }} data-testid="member-subclass-select">
+                            <option value="">Standard</option>
+                            {subclasses.map(sc => <option key={sc} value={sc}>{sc.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>)}
+                          </select>
+                        </div>
                       )}
                     </div>
+
+                    {isClass && (
+                      <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #f5f5f5' }}>
+                        <label style={labelStyle}>Abilities</label>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '4px' }}>
+                          {['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'].map(ab => (
+                            <div key={ab}>
+                              <div style={{ fontSize: '0.55rem', textAlign: 'center', color: '#aaa' }}>{ab.slice(0,3).toUpperCase()}</div>
+                              <input 
+                                type="number" 
+                                name={`ability.${ab}`} 
+                                value={m.abilities ? m.abilities[ab] : 10} 
+                                onChange={e => updateMemberField(idx, mIdx, `ability.${ab}`, e.target.value)}
+                                style={{ width: '100%', textAlign: 'center', fontSize: '0.75rem', padding: '2px' }}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.75rem' }}>
+                          <div>
+                            <label style={labelStyle}>Weapon</label>
+                            <select value={m.weapon || 'longsword'} onChange={e => updateMemberField(idx, mIdx, 'weapon', e.target.value)} style={{ width: '100%', fontSize: '0.75rem' }}>
+                              {metadata.weapons.map(w => <option key={w} value={w}>{w.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</option>)}
+                            </select>
+                          </div>
+                          <div>
+                            <label style={labelStyle}>Armor</label>
+                            <select value={m.armor || 'breastplate'} onChange={e => updateMemberField(idx, mIdx, 'armor', e.target.value)} style={{ width: '100%', fontSize: '0.75rem' }}>
+                              <option value="">Unarmored</option>
+                              {metadata.armor.map(a => <option key={a} value={a}>{a.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</option>)}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </li>
                 );
               })}
@@ -284,20 +323,40 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
         ))}
       </div>
 
-      <div style={{ marginTop: '3rem', padding: '1.5rem', background: '#f5f5f5', borderRadius: '8px', border: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <label style={{ fontWeight: 'bold', color: '#333' }}>Experiment Name:</label>
-          <input 
-            type="text" 
-            value={simConfig.name} 
-            onChange={(e) => setSimConfig({ ...simConfig, name: e.target.value })} 
-            style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc', minWidth: '250px' }}
-          />
+      <div style={{ marginTop: '3rem', padding: '1.5rem', background: '#f5f5f5', borderRadius: '8px', border: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem', flexGrow: 1 }}>
+          <div>
+            <label style={{ ...labelStyle, fontSize: '0.8rem', color: '#333' }}>Experiment Name</label>
+            <input 
+              type="text" 
+              value={simConfig.name} 
+              onChange={(e) => setSimConfig({ ...simConfig, name: e.target.value })} 
+              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            />
+          </div>
+          <div>
+            <label style={{ ...labelStyle, fontSize: '0.8rem', color: '#333' }}>Distance (ft)</label>
+            <input 
+              type="number" 
+              value={simConfig.distance} 
+              onChange={(e) => setSimConfig({ ...simConfig, distance: parseInt(e.target.value) })} 
+              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            />
+          </div>
+          <div>
+            <label style={{ ...labelStyle, fontSize: '0.8rem', color: '#333' }}>Max Rounds</label>
+            <input 
+              type="number" 
+              value={simConfig.max_rounds} 
+              onChange={(e) => setSimConfig({ ...simConfig, max_rounds: parseInt(e.target.value) })} 
+              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            />
+          </div>
         </div>
         <button 
           onClick={handleRun} 
           data-testid="launch-experiment"
-          style={{ padding: '12px 30px', fontSize: '1rem' }}
+          style={{ padding: '12px 30px', fontSize: '1rem', height: 'fit-content', marginTop: 'auto' }}
         >
           🚀 Launch Experiment
         </button>

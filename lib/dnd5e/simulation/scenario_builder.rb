@@ -4,8 +4,10 @@ module Dnd5e
   module Simulation
     # Builder for creating Simulation::Scenario objects.
     class ScenarioBuilder
-      def initialize(num_simulations: 1000)
+      def initialize(num_simulations: 1000, max_rounds: 100, distance: 30)
         @num_simulations = num_simulations
+        @max_rounds = max_rounds
+        @distance = distance
         @teams = []
       end
 
@@ -15,7 +17,12 @@ module Dnd5e
       end
 
       def build
-        Scenario.new(teams: @teams, num_simulations: @num_simulations)
+        Scenario.new(
+          teams: @teams,
+          num_simulations: @num_simulations,
+          max_rounds: @max_rounds,
+          distance: @distance
+        )
       end
     end
   end

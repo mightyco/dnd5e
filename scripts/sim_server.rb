@@ -154,7 +154,8 @@ def run_sim_batch(preset)
   scenarios = expander.expand(preset)
 
   results = scenarios.map do |payload|
-    handler = Dnd5e::Simulation::JSONCombatResultHandler.new
+    # Enable snapshots for UI visualization
+    handler = Dnd5e::Simulation::JSONCombatResultHandler.new(capture_snapshots: true)
     builder = build_scenario_from_payload(payload)
     Dnd5e::Simulation::Runner.new(scenario: builder.build, result_handler: handler, logger: Logger.new(nil)).run
     { parameters: payload['sweep_parameters'], data: JSON.parse(handler.to_json) }
@@ -164,7 +165,11 @@ def run_sim_batch(preset)
 end
 
 def build_scenario_from_payload(payload)
-  builder = Dnd5e::Simulation::ScenarioBuilder.new(num_simulations: payload['num_simulations'] || 100)
+  builder = Dnd5e::Simulation::ScenarioBuilder.new(
+    num_simulations: payload['num_simulations'] || 100,
+    max_rounds: payload['max_rounds'] || 100,
+    distance: payload['distance'] || 30
+  )
   payload['teams'].each do |team_cfg|
     members = build_team_members(team_cfg, payload['level'] || 1)
     builder.with_team(Dnd5e::Core::Team.new(name: team_cfg['name'], members: members))

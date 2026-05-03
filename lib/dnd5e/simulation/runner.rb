@@ -38,7 +38,11 @@ module Dnd5e
 
       def build_battle_scenario
         new_teams = create_teams
-        scenario = Core::TeamCombat.new(teams: new_teams, max_rounds: 100)
+        scenario = Core::TeamCombat.new(
+          teams: new_teams,
+          max_rounds: @scenario.max_rounds,
+          distance: @scenario.distance
+        )
         scenario.add_observer(@result_handler) if @result_handler.respond_to?(:update)
         scenario
       end
