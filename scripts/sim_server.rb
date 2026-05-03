@@ -10,8 +10,9 @@ require_relative '../lib/dnd5e/simulation/json_combat_result_handler'
 require_relative '../lib/dnd5e/simulation/variable_expander'
 require_relative '../lib/dnd5e/builders/character_builder'
 require_relative '../lib/dnd5e/builders/monster_builder'
-require_relative '../lib/dnd5e/core/features/improved_critical'
-require_relative '../lib/dnd5e/core/features/battle_master'
+require_relative '../lib/dnd5e/core/subclass_registry'
+require_relative '../lib/dnd5e/core/feat_registry'
+require_relative '../lib/dnd5e/core/weapon_registry'
 
 set :bind, '0.0.0.0'
 set :port, 4567
@@ -70,7 +71,10 @@ get '/api/metadata' do
     classes: all_classes,
     subclasses: subclasses,
     monsters: %w[goblin bugbear ogre],
-    feats: Dnd5e::Core::FeatRegistry.all_keys
+    feats: Dnd5e::Core::FeatRegistry.all_keys,
+    weapons: Dnd5e::Core::WeaponRegistry.all_keys,
+    armor: Dnd5e::Core::ArmorRegistry.all_keys.reject { |k| k == 'shield' },
+    shields: ['shield']
   }.to_json
 end
 ['/simulations', '/api/simulations'].each do |path|
@@ -208,8 +212,16 @@ def build_character(builder, cfg, level)
   builder.send(method_name, level: level, abilities: abilities)
   builder.with_subclass(cfg['subclass'], level: level) if cfg['subclass']
 
+  apply_custom_equipment(builder, cfg)
   apply_feats(builder, cfg['feats'])
   builder.build
+end
+
+def apply_custom_equipment(builder, cfg)
+  # Custom Equipment (overrides class defaults if provided)
+  builder.with_weapon(cfg['weapon']) if cfg['weapon']
+  builder.with_armor(cfg['armor']) if cfg['armor']
+  builder.with_shield if cfg['shield']
 end
 
 def apply_feats(builder, feats)

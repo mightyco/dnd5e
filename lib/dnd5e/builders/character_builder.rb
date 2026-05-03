@@ -96,6 +96,13 @@ module Dnd5e
         self
       end
 
+      def with_weapon(weapon_key)
+        weapon = Core::WeaponRegistry.create(weapon_key)
+        @attacks.clear if weapon # Usually we want to replace starting gear if a specific weapon is chosen
+        @attacks << weapon if weapon
+        self
+      end
+
       def with_spell(spell)
         @spells << spell
         self
@@ -108,6 +115,18 @@ module Dnd5e
 
       def with_feat(feat_key)
         @features << Core::FeatRegistry.create(feat_key)
+        self
+      end
+
+      def with_armor(armor_key)
+        armor = Core::ArmorRegistry.create(armor_key)
+        @statblock&.instance_variable_set(:@equipped_armor, armor)
+        self
+      end
+
+      def with_shield
+        shield = Core::ArmorRegistry.create('shield')
+        @statblock&.instance_variable_set(:@equipped_shield, shield)
         self
       end
 
