@@ -108,6 +108,7 @@ end
     content_type :json
     run_sim_batch(JSON.parse(request.body.read))
   rescue StandardError => e
+    logger.error "Simulation error: #{e.message}\n#{e.backtrace.join("\n")}"
     halt 500, { error: e.message }.to_json
   end
 end
@@ -211,17 +212,19 @@ def build_monster(cfg)
 end
 
 def build_character(builder, cfg, level)
-  class_name = cfg['type']
-  method_name = "as_#{class_name}"
-
   abilities = (cfg['abilities'] || {}).transform_keys(&:to_sym)
-  builder.send(method_name, level: level, abilities: abilities)
-  builder.with_subclass(cfg['subclass'], level: level) if cfg['subclass']
-  builder.with_fighting_style(cfg['fightingStyle']) if cfg['fightingStyle']
-
+  builder.send("as_#{cfg['type']}", level: level, abilities: abilities)
+  apply_character_options(builder, cfg, level)
   apply_custom_equipment(builder, cfg)
   apply_feats(builder, cfg['feats'])
   builder.build
+end
+
+def apply_character_options(builder, cfg, level)
+  subclass = cfg['subclass']
+  subclass = nil if subclass == ''
+  builder.with_subclass(subclass, level: level) if subclass
+  builder.with_fighting_style(cfg['fightingStyle']) if cfg['fightingStyle']
 end
 
 def apply_custom_equipment(builder, cfg)

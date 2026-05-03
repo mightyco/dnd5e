@@ -214,8 +214,8 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
               <div key={c.id} data-testid="pool-member" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', padding: '0.75rem', background: '#fff', border: '1px solid #eee', borderRadius: '6px' }}>
                 <span style={{ fontWeight: '500' }}>{c.name} <span style={{ color: '#666', fontWeight: 'normal', fontSize: '0.8rem' }}>({c.type})</span></span>
                 <div style={{ display: 'flex', gap: '0.25rem' }}>
-                  <button onClick={() => addToTeam(c, 0)} style={{ fontSize: '0.75rem', padding: '4px 8px', background: '#e8f5e9', border: '1px solid #c8e6c9', color: '#2e7d32', borderRadius: '4px', cursor: 'pointer' }}>+ Team A</button>
-                  <button onClick={() => addToTeam(c, 1)} style={{ fontSize: '0.75rem', padding: '4px 8px', background: '#ffebee', border: '1px solid #ffcdd2', color: '#c62828', borderRadius: '4px', cursor: 'pointer' }}>+ Team B</button>
+                  <button onClick={() => addToTeam(c, 0)} data-testid={`add-to-team-0-${c.name}`} style={{ fontSize: '0.75rem', padding: '4px 8px', background: '#e8f5e9', border: '1px solid #c8e6c9', color: '#2e7d32', borderRadius: '4px', cursor: 'pointer' }}>+ Team A</button>
+                  <button onClick={() => addToTeam(c, 1)} data-testid={`add-to-team-1-${c.name}`} style={{ fontSize: '0.75rem', padding: '4px 8px', background: '#ffebee', border: '1px solid #ffcdd2', color: '#c62828', borderRadius: '4px', cursor: 'pointer' }}>+ Team B</button>
                 </div>
               </div>
             ))}

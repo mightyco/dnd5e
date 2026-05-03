@@ -34,7 +34,7 @@ const CombatantToken = ({ name, state, isActive }: { name: string, state: Combat
   const hpColor = state.hp > 0 ? '#4caf50' : '#d32f2f';
 
   return (
-    <div className={flashClass} style={{
+    <div className={flashClass} data-testid="playback-combatant" data-team={state.team} style={{
       border: isActive ? '2px solid #ffeb3b' : '1px solid #444',
       background: isActive ? '#424242' : '#333',
       padding: '0.75rem',
@@ -206,13 +206,13 @@ const CombatPlaybackContent = ({ combatData }) => {
 
   // Group combatants by team
   const teams = stateEntries.reduce((acc, [name, state]: [any, any]) => {
-    const teamName = state.team && state.team !== 'None' ? state.team : (name.toLowerCase().includes('hero') ? 'Heroes' : 'Monsters');
+    const teamName = state.team && state.team !== 'None' ? state.team : 'Unknown';
     if (!acc[teamName]) acc[teamName] = [];
     acc[teamName].push({ name, state });
     return acc;
   }, {});
 
-  const teamNames = Object.keys(teams);
+  const teamNames = Object.keys(teams).sort(); // Sort to keep Heroes/Monsters order consistent if possible
   const teamA = teamNames[0] ? teams[teamNames[0]] : [];
   const teamB = teamNames[1] ? teams[teamNames[1]] : [];
 
@@ -279,9 +279,9 @@ const CombatPlaybackContent = ({ combatData }) => {
 
                 {/* Tokens */}
                 {stateEntries.map(([name, state]: [any, any]) => {
-                  const isTeamB = teamB.find(t => t.name === name);
+                  const isTeamB = teamNames[1] && state.team === teamNames[1];
                   return (
-                    <g key={name} style={{ transition: `all ${tickRate}ms linear` }}>
+                    <g key={name} style={{ transition: `all ${tickRate}ms linear` }} data-testid="map-token" data-team={state.team}>
                       <circle 
                         cx={`${scalePos(state.x)}%`} 
                         cy={`${scalePos(state.y, true)}%`} 

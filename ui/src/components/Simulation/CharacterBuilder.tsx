@@ -117,11 +117,11 @@ export const CharacterBuilder = ({ onSave }) => {
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
         <div>
           <label style={labelStyle}>Name</label>
-          <input type="text" name="name" value={char.name} onChange={handleChange} style={{ width: '100%', padding: '0.5rem' }} />
+          <input type="text" name="name" value={char.name} onChange={handleChange} data-testid="char-builder-name" style={{ width: '100%', padding: '0.5rem' }} />
         </div>
         <div>
           <label style={labelStyle}>Class / Monster</label>
-          <select name="type" value={char.type} onChange={handleChange} style={{ width: '100%', padding: '0.5rem' }}>
+          <select name="type" value={char.type} onChange={handleChange} data-testid="char-builder-type" style={{ width: '100%', padding: '0.5rem' }}>
             <optgroup label="Classes">
               {metadata.classes.map(cls => (
                 <option key={cls} value={cls}>{cls.toUpperCase()}</option>
@@ -136,7 +136,7 @@ export const CharacterBuilder = ({ onSave }) => {
         </div>
         <div>
           <label style={labelStyle}>Level</label>
-          <input type="number" name="level" value={char.level} onChange={handleChange} min="1" max="20" style={{ width: '100%', padding: '0.5rem' }} />
+          <input type="number" name="level" value={char.level} onChange={handleChange} data-testid="char-builder-level" min="1" max="20" style={{ width: '100%', padding: '0.5rem' }} />
         </div>
       </div>
 
@@ -229,6 +229,7 @@ export const CharacterBuilder = ({ onSave }) => {
 
       <button 
         onClick={() => onSave(char)}
+        data-testid="save-to-pool-btn"
         style={{ 
           marginTop: '0.5rem',
           padding: '12px 20px', 

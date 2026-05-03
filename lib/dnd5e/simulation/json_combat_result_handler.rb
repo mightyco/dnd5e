@@ -128,7 +128,8 @@ module Dnd5e
       def combatant_data(combatant, combat)
         pos = combat ? combat.grid.find_position(combatant) : find_ctx_pos(combatant)
         { x: pos&.x || 0, y: pos&.y || 0, z: combatant.statblock.altitude,
-          hp: combatant.statblock.hit_points, max_hp: combatant.statblock.max_hp }
+          hp: combatant.statblock.hit_points, max_hp: combatant.statblock.max_hp,
+          team: combatant.team&.name }
       end
 
       def find_ctx_pos(combatant)
