@@ -38,7 +38,8 @@ module Dnd5e
 
       # Prepares the character for the start of their turn.
       def start_turn
-        @turn_context.reset!(@statblock.speed)
+        @statblock.start_turn
+        @turn_context.reset!(@statblock.movement_speed)
       end
 
       # --- Condition Delegation ---

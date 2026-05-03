@@ -7,6 +7,7 @@ require_relative 'attack_formatting'
 module Dnd5e
   module Simulation
     # Collects detailed combat data and exports it as JSON for visualization.
+    # rubocop:disable Metrics/ClassLength
     class JSONCombatResultHandler < CombatResultHandler
       include AttackFormatting
 
@@ -99,6 +100,15 @@ module Dnd5e
         @current_combat = nil
       end
 
+      def handle_timeout
+        return unless @current_combat
+
+        @current_combat[:winner] = nil
+        @current_combat[:timeout] = true
+        @combat_data << @current_combat
+        @current_combat = nil
+      end
+
       def identify_winner(winner)
         winner.respond_to?(:name) ? winner.name : winner.to_s
       end
@@ -125,5 +135,6 @@ module Dnd5e
         combatant.instance_variable_get(:@combat_context)&.grid&.find_position(combatant)
       end
     end
+    # rubocop:enable Metrics/ClassLength
   end
 end

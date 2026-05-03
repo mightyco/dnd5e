@@ -1,8 +1,0 @@
-D&D 2024 Subclass Benchmark
-===========================
-Subclass             | Encounter            | Win Rate   | Avg Rounds
-----------------------------------------------------------------------
-Barbarian (berserker) | Duel (vs 1 Bugbear)  |     91.0% |        2.8
-Barbarian (berserker) | Duel (vs 2 Bugbear)  |      3.0% |        2.9
-Barbarian (berserker) | Swarm (vs 3 Goblins) |    100.0% |        2.6
-Barbarian (berserker) | Swarm (vs 6 Goblins) |     79.0% |        4.9

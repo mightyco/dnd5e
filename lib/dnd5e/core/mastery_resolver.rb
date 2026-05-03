@@ -11,6 +11,7 @@ module Dnd5e
         when :vex then attacker.add_condition(:vexing, { target: defender, expiry: :turn_end })
         when :topple then resolve_topple(attacker, defender, attack)
         when :push then resolve_push(attacker, defender, options[:combat])
+        when :slow then defender.add_condition(:slowed, { expiry: :turn_start })
         end
       end
 

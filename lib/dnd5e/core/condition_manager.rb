@@ -26,6 +26,11 @@ module Dnd5e
         @conditions[condition_name]
       end
 
+      # Handles start-of-turn cleanup
+      def start_turn
+        @conditions.delete_if { |_name, options| options[:expiry] == :turn_start }
+      end
+
       # Handles end-of-turn cleanup
       def end_turn
         @conditions.delete_if { |_name, options| options[:expiry] == :turn_end }

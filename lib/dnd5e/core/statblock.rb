@@ -9,6 +9,7 @@ require_relative 'statblock_mechanics'
 module Dnd5e
   module Core
     # Represents a character's stat block in the D&D 5e system.
+    # rubocop:disable Metrics/ClassLength
     class Statblock
       include StatblockInitialization
       include StatblockMechanics
@@ -45,6 +46,18 @@ module Dnd5e
 
       def prone?
         condition?(:prone)
+      end
+
+      def start_turn
+        @condition_manager.start_turn
+      end
+
+      def movement_speed
+        return 0 if condition?(:restrained) || condition?(:grappled) || condition?(:incapacitated)
+
+        s = @speed
+        s -= 10 if condition?(:slowed)
+        [s, 0].max
       end
 
       def sync_initial_conditions
@@ -116,7 +129,7 @@ module Dnd5e
         when :barbarian then 12
         when :fighter, :paladin, :ranger then 10
         when :bard, :cleric, :druid, :monk, :rogue, :warlock then 8
-        when :wizard, :sorcerer then 6
+        when :sorcerer, :wizard then 6
         else hit_die_sides
         end
       end
@@ -130,5 +143,6 @@ module Dnd5e
         copy
       end
     end
+    # rubocop:enable Metrics/ClassLength
   end
 end

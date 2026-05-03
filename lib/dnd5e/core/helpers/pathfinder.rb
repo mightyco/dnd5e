@@ -31,7 +31,7 @@ module Dnd5e
           iterations = 0
           while open_set.any?
             iterations += 1
-            return nil if iterations > 200
+            return nil if iterations > 1000
 
             current_node = find_best_node(open_set)
             _, current, current_g = current_node
@@ -56,7 +56,7 @@ module Dnd5e
         end
 
         def out_of_bounds?(current, start)
-          (current.x - start.x).abs > 100 || (current.y - start.y).abs > 100
+          (current.x - start.x).abs > 1000 || (current.y - start.y).abs > 1000
         end
 
         def find_best_node(open_set)

@@ -24,22 +24,26 @@ module Dnd5e
       end
 
       def run_battle
-        # Re-create teams for each battle
-        new_teams = create_teams
-        # We don't need to pass result_handler anymore if we rely on observer
-        # But wait, create_teams creates new TeamCombat.
-        # We need to attach the result_handler (which should be an observer) to the new TeamCombat.
-
-        scenario = Core::TeamCombat.new(teams: new_teams, max_rounds: 100)
-        scenario.add_observer(@result_handler) if @result_handler.respond_to?(:update)
+        scenario = build_battle_scenario
 
         begin
           scenario.run_combat
         rescue Core::CombatTimeoutError => e
           @logger.warn "Combat timed out: #{e.message}"
+          @result_handler.handle_timeout if @result_handler.respond_to?(:handle_timeout)
         end
 
-        # Add result to local results if available
+        record_battle_result
+      end
+
+      def build_battle_scenario
+        new_teams = create_teams
+        scenario = Core::TeamCombat.new(teams: new_teams, max_rounds: 100)
+        scenario.add_observer(@result_handler) if @result_handler.respond_to?(:update)
+        scenario
+      end
+
+      def record_battle_result
         return unless @result_handler.respond_to?(:results) && @result_handler.results.any?
 
         @results << @result_handler.results.last

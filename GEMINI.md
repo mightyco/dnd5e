@@ -43,6 +43,10 @@ All changes MUST meet these criteria:
 - **Automated Logging**: Whenever a command fails, the user expresses dissatisfaction (e.g., swearing, complaints), or you are asked to redo a task that should have been correct, you MUST immediately log the event.
 - **Log Location**: Append to `/Users/chuckmcintyre/src/dnd5e/.gemini/feedback_log.md`.
 - **Non-Interactive Mandate**: You MUST verify non-interactive flags (e.g., `--yes`, `-y`, `--consent`) before running any CLI tool for the first time. If unsure, run `command --help` first.
+- **Execution Guardrails**: ANY ruby command expected to take more than 5 seconds MUST be wrapped in a `timeout` (e.g., `timeout 30s bundle exec ...`).
+- **Token Conservation**: Prefer `grep` and `cat` for targeted investigation over reading full directories or large log files. Avoid redundant `update_topic` calls for small sub-tasks.
+- **Loop Prevention**: If a debug trace produces repetitive output, terminate the tool early and propose a surgical fix rather than letting the log scroll indefinitely.
+- **Rules Integrity**: Verify mechanical claims (e.g., "OAs with a bow") against the project's SRD/Rules reference if there is any ambiguity. Do not state rules as fact without verification.
 - **Log Format**:
   ```markdown
   - [YYYY-MM-DD HH:MM] SCORE: -1 | TYPE: [FAILURE|COMPLAINT|REDO] | CONTEXT: [Brief description of what happened and why it failed]
