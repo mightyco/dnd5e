@@ -61,22 +61,55 @@ end
 
 get '/api/metadata' do
   content_type :json
-  all_classes = %w[fighter wizard rogue barbarian paladin monk ranger cleric bard druid sorcerer warlock]
-  subclasses = Dnd5e::Core::SubclassRegistry.all_by_class
+  build_metadata_payload.to_json
+end
 
-  # Ensure all classes are present in the subclasses hash even if empty
-  all_classes.each { |cls| subclasses[cls.to_sym] ||= [] }
-
+def build_metadata_payload
+  cls, scs = discover_classes_and_subclasses
   {
-    classes: all_classes,
-    subclasses: subclasses,
+    classes: cls, subclasses: scs,
     monsters: %w[goblin bugbear ogre],
     feats: Dnd5e::Core::FeatRegistry.all_keys,
     fighting_styles: %w[archery defense dueling great_weapon_fighting protection two_weapon_fighting],
     weapons: Dnd5e::Core::WeaponRegistry.all_keys,
     armor: Dnd5e::Core::ArmorRegistry.all_keys.reject { |k| k == 'shield' },
-    shields: ['shield']
-  }.to_json
+    shields: ['shield'], ui_schema: build_ui_schema
+  }
+end
+
+def discover_classes_and_subclasses
+  all_classes = %w[fighter wizard rogue barbarian paladin monk ranger cleric bard druid sorcerer warlock]
+  subclasses = Dnd5e::Core::SubclassRegistry.all_by_class
+  all_classes.each { |cls| subclasses[cls.to_sym] ||= [] }
+  [all_classes, subclasses]
+end
+
+def build_ui_schema
+  {
+    character_fields: [
+      fighting_style_field_schema,
+      shield_field_schema
+    ]
+  }
+end
+
+def fighting_style_field_schema
+  {
+    name: 'fightingStyle',
+    label: 'Fighting Style',
+    type: 'select',
+    options_key: 'fighting_styles',
+    visible_if: { field: 'type', in: %w[fighter paladin ranger] }
+  }
+end
+
+def shield_field_schema
+  {
+    name: 'shield',
+    label: 'Equip Shield (+2 AC)',
+    type: 'checkbox',
+    visible_if: { field: 'type', not_in: %w[wizard sorcerer monk] }
+  }
 end
 ['/simulations', '/api/simulations'].each do |path|
   get path do

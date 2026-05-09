@@ -9,7 +9,8 @@ export const CharacterBuilder = ({ onSave }) => {
     fighting_styles: [],
     weapons: [],
     armor: [],
-    shields: []
+    shields: [],
+    ui_schema: { character_fields: [] }
   });
 
   const [char, setChar] = useState({
@@ -35,7 +36,13 @@ export const CharacterBuilder = ({ onSave }) => {
   useEffect(() => {
     fetch('/api/metadata')
       .then(res => res.json())
-      .then(data => setMetadata(data))
+      .then(data => {
+        // Fallback for ui_schema if missing (safety anchor)
+        if (!data.ui_schema) {
+          data.ui_schema = { character_fields: [] };
+        }
+        setMetadata(data);
+      })
       .catch(err => console.error('Failed to load metadata', err));
   }, []);
 
@@ -109,6 +116,59 @@ export const CharacterBuilder = ({ onSave }) => {
     color: '#666'
   };
 
+  const isFieldVisible = (field) => {
+    if (!field.visible_if) return true;
+    const { field: targetField, in: inValues, not_in: notInValues } = field.visible_if;
+    const actualValue = char[targetField];
+    if (inValues) return inValues.includes(actualValue);
+    if (notInValues) return !notInValues.includes(actualValue);
+    return true;
+  };
+
+  const renderDynamicField = (field) => {
+    if (!isFieldVisible(field)) return null;
+
+    if (field.type === 'select') {
+      const options = metadata[field.options_key] || [];
+      return (
+        <div key={field.name} style={sectionStyle}>
+          <label style={labelStyle}>{field.label}</label>
+          <select 
+            name={field.name} 
+            value={char[field.name]} 
+            onChange={handleChange} 
+            data-testid={`char-builder-${field.name}`}
+            style={{ width: '100%', padding: '0.4rem' }}
+          >
+            <option value="">None</option>
+            {options.map(opt => (
+              <option key={opt} value={opt}>{opt.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>
+            ))}
+          </select>
+        </div>
+      );
+    }
+
+    if (field.type === 'checkbox') {
+      return (
+        <div key={field.name} style={{ ...sectionStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.85rem' }}>
+            <input 
+              type="checkbox" 
+              name={field.name} 
+              checked={!!char[field.name]} 
+              onChange={handleChange} 
+              data-testid={`char-builder-${field.name}`}
+            />
+            {field.label}
+          </label>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div style={{ padding: '1.5rem', border: '1px solid #ddd', borderRadius: '8px', background: '#fff', marginBottom: '1rem', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
       <h3 style={{ marginTop: 0, borderBottom: '2px solid var(--accent, #2e7d32)', paddingBottom: '0.5rem' }}>Advanced Character Builder</h3>
@@ -146,7 +206,7 @@ export const CharacterBuilder = ({ onSave }) => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gap: '1rem' }}>
             <div style={sectionStyle}>
               <label style={labelStyle}>Subclass</label>
-              <select name="subclass" value={char.subclass} onChange={handleChange} style={{ width: '100%', padding: '0.4rem' }}>
+              <select name="subclass" value={char.subclass} onChange={handleChange} data-testid="char-builder-subclass" style={{ width: '100%', padding: '0.4rem' }}>
                 <option value="">None (Standard)</option>
                 {subclasses.map(sc => (
                   <option key={sc} value={sc}>{sc.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>
@@ -154,17 +214,8 @@ export const CharacterBuilder = ({ onSave }) => {
               </select>
             </div>
 
-            {['fighter', 'paladin', 'ranger'].includes(char.type) && (
-              <div style={sectionStyle}>
-                <label style={labelStyle}>Fighting Style</label>
-                <select name="fightingStyle" value={char.fightingStyle} onChange={handleChange} style={{ width: '100%', padding: '0.4rem' }}>
-                  <option value="">None</option>
-                  {(metadata.fighting_styles || []).map(fs => (
-                    <option key={fs} value={fs}>{fs.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>
-                  ))}
-                </select>
-              </div>
-            )}
+            {/* Dynamic Schema Fields (Level 1) */}
+            {(metadata.ui_schema?.character_fields || []).filter(f => f.name === 'fightingStyle').map(renderDynamicField)}
             
             <div style={sectionStyle}>
               <label style={labelStyle}>Ability Scores</label>
@@ -189,7 +240,7 @@ export const CharacterBuilder = ({ onSave }) => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
             <div style={sectionStyle}>
               <label style={labelStyle}>Weapon</label>
-              <select name="weapon" value={char.weapon} onChange={handleChange} style={{ width: '100%', padding: '0.4rem' }}>
+              <select name="weapon" value={char.weapon} onChange={handleChange} data-testid="char-builder-weapon" style={{ width: '100%', padding: '0.4rem' }}>
                 {metadata.weapons.map(w => (
                   <option key={w} value={w}>{w.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</option>
                 ))}
@@ -197,19 +248,16 @@ export const CharacterBuilder = ({ onSave }) => {
             </div>
             <div style={sectionStyle}>
               <label style={labelStyle}>Armor</label>
-              <select name="armor" value={char.armor} onChange={handleChange} style={{ width: '100%', padding: '0.4rem' }}>
+              <select name="armor" value={char.armor} onChange={handleChange} data-testid="char-builder-armor" style={{ width: '100%', padding: '0.4rem' }}>
                 <option value="">Unarmored</option>
                 {metadata.armor.map(a => (
                   <option key={a} value={a}>{a.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</option>
                 ))}
               </select>
             </div>
-            <div style={{ ...sectionStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.85rem' }}>
-                <input type="checkbox" name="shield" checked={char.shield} onChange={handleChange} />
-                Equip Shield (+2 AC)
-              </label>
-            </div>
+            
+            {/* Dynamic Schema Fields (Level 2) */}
+            {(metadata.ui_schema?.character_fields || []).filter(f => f.name === 'shield').map(renderDynamicField)}
           </div>
 
           {/* Feats */}
