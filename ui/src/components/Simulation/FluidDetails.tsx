@@ -40,9 +40,9 @@ export const FluidDetails: React.FC<FluidDetailsProps> = ({
     
     let actualValue;
     if (targetField === 'not_monster') {
-      actualValue = !metadata.monsters?.includes(data.type);
+      actualValue = data && !metadata.monsters?.includes(data.type);
     } else {
-      actualValue = data[targetField];
+      actualValue = data ? data[targetField] : undefined;
     }
 
     if (inValues) return inValues.includes(actualValue);
@@ -107,7 +107,7 @@ export const FluidDetails: React.FC<FluidDetailsProps> = ({
 
     let options = [];
     if (field.dynamic_options) {
-      options = metadata[field.options_key!]?.[data.type] || [];
+      options = (data && metadata[field.options_key!]?.[data.type]) || [];
     } else {
       options = metadata[field.options_key!] || [];
     }
