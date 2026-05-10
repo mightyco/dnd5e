@@ -61,14 +61,14 @@ import puppeteer from 'puppeteer';
   // Wait for the specific select to be populated (means metadata is loaded)
   console.log('Waiting for metadata to populate selects...');
   await page.waitForFunction(() => {
-    const options = Array.from(document.querySelectorAll('[data-testid="member-type-select"] option'));
+    const options = Array.from(document.querySelectorAll('[data-testid="char-builder-type"] option'));
     return options.some(opt => opt.value === 'wizard');
   }, { timeout: 20000 });
 
   // Change "fighter" to "wizard" for the first member
-  await page.select('[data-testid="member-type-select"]', 'wizard');
+  await page.select('[data-testid="char-builder-type"]', 'wizard');
   
-  const selectedType = await page.$eval('[data-testid="member-type-select"]', el => el.value);
+  const selectedType = await page.$eval('[data-testid="char-builder-type"]', el => el.value);
   console.log('New Member Type:', selectedType);
 
   if (selectedType !== 'wizard') {

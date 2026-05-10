@@ -96,7 +96,6 @@ export const CharacterBuilder = ({ onSave }) => {
   };
 
   const isClass = metadata.classes.includes(char.type);
-  const subclasses = metadata.subclasses[char.type] || [];
   const selectedFeats = char.feats || [];
 
   const sectionStyle: React.CSSProperties = {
@@ -119,94 +118,49 @@ export const CharacterBuilder = ({ onSave }) => {
     <div style={{ padding: '1.5rem', border: '1px solid #ddd', borderRadius: '8px', background: '#fff', marginBottom: '1rem', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
       <h3 style={{ marginTop: 0, borderBottom: '2px solid var(--accent, #2e7d32)', paddingBottom: '0.5rem' }}>Advanced Character Builder</h3>
       
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div>
-          <label style={labelStyle}>Name</label>
-          <input type="text" name="name" value={char.name} onChange={handleChange} data-testid="char-builder-name" style={{ width: '100%', padding: '0.5rem' }} />
-        </div>
-        <div>
-          <label style={labelStyle}>Class / Monster</label>
-          <select name="type" value={char.type} onChange={handleChange} data-testid="char-builder-type" style={{ width: '100%', padding: '0.5rem' }}>
-            <optgroup label="Classes">
-              {metadata.classes.map(cls => <option key={cls} value={cls}>{cls.toUpperCase()}</option>)}
-            </optgroup>
-            <optgroup label="Monsters">
-              {metadata.monsters.map(m => <option key={m} value={m}>{m.toUpperCase()}</option>)}
-            </optgroup>
-          </select>
-        </div>
-        <div>
-          <label style={labelStyle}>Level</label>
-          <input type="number" name="level" value={char.level} onChange={handleChange} data-testid="char-builder-level" min="1" max="20" style={{ width: '100%', padding: '0.5rem' }} />
-        </div>
+      {/* BASIC ZONE */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+        <FluidDetails 
+          schema={metadata.ui_schema}
+          metadata={metadata}
+          data={char}
+          onChange={handleChange}
+          zone="basic"
+          labelStyle={labelStyle}
+        />
       </div>
 
       {isClass && (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gap: '1rem' }}>
-            <div style={sectionStyle}>
-              <label style={labelStyle}>Subclass</label>
-              <select name="subclass" value={char.subclass} onChange={handleChange} data-testid="char-builder-subclass" style={{ width: '100%', padding: '0.4rem' }}>
-                <option value="">None (Standard)</option>
-                {subclasses.map(sc => (
-                  <option key={sc} value={sc}>{sc.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>
-                ))}
-              </select>
-            </div>
-
-            <FluidDetails 
-              schema={{ character_fields: metadata.ui_schema.character_fields.filter(f => f.name === 'fightingStyle') }}
-              metadata={metadata}
-              data={char}
-              onChange={handleChange}
-              sectionStyle={sectionStyle}
-              labelStyle={labelStyle}
-            />
-            
-            <div style={sectionStyle}>
-              <label style={labelStyle}>Ability Scores</label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '0.5rem' }}>
-                {Object.keys(char.abilities).map(ability => (
-                  <div key={ability}>
-                    <label style={{ ...labelStyle, textAlign: 'center', fontSize: '0.6rem' }}>{ability.slice(0, 3).toUpperCase()}</label>
-                    <input 
-                      type="number" 
-                      name={`ability.${ability}`} 
-                      value={char.abilities[ability]} 
-                      onChange={handleChange} 
-                      style={{ width: '100%', textAlign: 'center', padding: '0.2rem' }} 
-                    />
-                  </div>
-                ))}
-              </div>
+          {/* STATS ZONE */}
+          <div style={sectionStyle}>
+            <label style={labelStyle}>Ability Scores</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '0.5rem' }}>
+              <FluidDetails 
+                schema={metadata.ui_schema}
+                metadata={metadata}
+                data={char}
+                onChange={handleChange}
+                zone="stats"
+                labelStyle={{ ...labelStyle, textAlign: 'center', fontSize: '0.6rem' }}
+              />
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-            <div style={sectionStyle}>
-              <label style={labelStyle}>Weapon</label>
-              <select name="weapon" value={char.weapon} onChange={handleChange} data-testid="char-builder-weapon" style={{ width: '100%', padding: '0.4rem' }}>
-                {metadata.weapons.map(w => <option key={w} value={w}>{w.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</option>)}
-              </select>
-            </div>
-            <div style={sectionStyle}>
-              <label style={labelStyle}>Armor</label>
-              <select name="armor" value={char.armor} onChange={handleChange} data-testid="char-builder-armor" style={{ width: '100%', padding: '0.4rem' }}>
-                <option value="">Unarmored</option>
-                {metadata.armor.map(a => <option key={a} value={a}>{a.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</option>)}
-              </select>
-            </div>
-            
+          {/* EQUIPMENT ZONE */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
             <FluidDetails 
-              schema={{ character_fields: metadata.ui_schema.character_fields.filter(f => f.name === 'shield') }}
+              schema={metadata.ui_schema}
               metadata={metadata}
               data={char}
               onChange={handleChange}
+              zone="equipment"
               sectionStyle={sectionStyle}
               labelStyle={labelStyle}
             />
           </div>
 
+          {/* FEATS ZONE */}
           <div style={sectionStyle}>
             <label style={labelStyle}>Feats (2024)</label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.5rem' }}>

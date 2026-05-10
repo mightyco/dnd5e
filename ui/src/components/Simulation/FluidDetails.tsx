@@ -4,11 +4,18 @@ interface Field {
   name: string;
   label: string;
   type: 'select' | 'checkbox' | 'number' | 'text';
+  zone: string;
   options_key?: string;
+  dynamic_options?: boolean;
+  grouped_options?: boolean;
+  path?: string;
+  min?: number;
+  max?: number;
   visible_if?: {
     field: string;
     in?: string[];
     not_in?: string[];
+    is?: any;
   };
 }
 
@@ -17,42 +24,119 @@ interface FluidDetailsProps {
   metadata: any;
   data: any;
   onChange: (e: any) => void;
+  zone?: string;
   sectionStyle?: React.CSSProperties;
   labelStyle?: React.CSSProperties;
 }
 
 export const FluidDetails: React.FC<FluidDetailsProps> = ({ 
-  schema, metadata, data, onChange, sectionStyle, labelStyle 
+  schema, metadata, data, onChange, zone, sectionStyle, labelStyle 
 }) => {
   const isFieldVisible = (field: Field) => {
     if (!field.visible_if) return true;
-    const { field: targetField, in: inValues, not_in: notInValues } = field.visible_if;
-    const actualValue = data[targetField];
+    const { field: targetField, in: inValues, not_in: notInValues, is: isValue } = field.visible_if;
+    
+    // Special handling for computed fields
+    let actualValue;
+    if (targetField === 'not_monster') {
+      actualValue = !metadata.monsters?.includes(data.type);
+    } else {
+      actualValue = data[targetField];
+    }
+
     if (inValues) return inValues.includes(actualValue);
     if (notInValues) return !notInValues.includes(actualValue);
+    if (isValue !== undefined) return actualValue === isValue;
     return true;
   };
 
+  const getValue = (field: Field) => {
+    if (field.path) {
+      const parts = field.path.split('.');
+      let val = data;
+      for (const p of parts) {
+        val = val ? val[p] : undefined;
+      }
+      return val;
+    }
+    return data[field.name];
+  };
+
+  const handleChange = (field: Field, e: React.ChangeEvent<any>) => {
+    const { value, type, checked } = e.target;
+    let finalValue: any = type === 'checkbox' ? checked : value;
+    if (field.type === 'number') finalValue = parseInt(value);
+
+    const name = field.path ? `ability.${field.path.split('.')[1]}` : field.name;
+    
+    onChange({
+      target: {
+        name,
+        value: finalValue,
+        type,
+        checked
+      }
+    });
+  };
+
+  const renderSelect = (field: Field, value: any) => {
+    if (field.grouped_options) {
+      return (
+        <select 
+          name={field.name} 
+          value={value} 
+          onChange={(e) => handleChange(field, e)} 
+          data-testid={`char-builder-${field.name}`}
+          style={{ width: '100%', padding: '0.4rem' }}
+        >
+          <optgroup label="Classes">
+            {metadata.classes.map((cls: string) => (
+              <option key={cls} value={cls}>{cls.toUpperCase()}</option>
+            ))}
+          </optgroup>
+          <optgroup label="Monsters">
+            {metadata.monsters.map((m: string) => (
+              <option key={m} value={m}>{m.toUpperCase()}</option>
+            ))}
+          </optgroup>
+        </select>
+      );
+    }
+
+    let options = [];
+    if (field.dynamic_options) {
+      options = metadata[field.options_key!]?.[data.type] || [];
+    } else {
+      options = metadata[field.options_key!] || [];
+    }
+
+    return (
+      <select 
+        name={field.name} 
+        value={value} 
+        onChange={(e) => handleChange(field, e)} 
+        data-testid={`char-builder-${field.name}`}
+        style={{ width: '100%', padding: '0.4rem' }}
+      >
+        <option value="">{field.name === 'subclass' ? 'Standard' : 'None'}</option>
+        {options.map((opt: string) => (
+          <option key={opt} value={opt}>{opt.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>
+        ))}
+      </select>
+    );
+  };
+
   const renderField = (field: Field) => {
+    if (zone && field.zone !== zone) return null;
     if (!isFieldVisible(field)) return null;
 
+    const value = getValue(field) || '';
+
     if (field.type === 'select') {
-      const options = metadata[field.options_key!] || [];
       return (
         <div key={field.name} style={sectionStyle}>
           <label style={labelStyle}>{field.label}</label>
-          <select 
-            name={field.name} 
-            value={data[field.name] || ''} 
-            onChange={onChange} 
-            data-testid={`char-builder-${field.name}`}
-            style={{ width: '100%', padding: '0.4rem' }}
-          >
-            <option value="">None</option>
-            {options.map((opt: string) => (
-              <option key={opt} value={opt}>{opt.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>
-            ))}
-          </select>
+          {renderSelect(field, value)}
         </div>
       );
     }
@@ -64,12 +148,30 @@ export const FluidDetails: React.FC<FluidDetailsProps> = ({
             <input 
               type="checkbox" 
               name={field.name} 
-              checked={!!data[field.name]} 
-              onChange={onChange} 
+              checked={!!value} 
+              onChange={(e) => handleChange(field, e)} 
               data-testid={`char-builder-${field.name}`}
             />
             {field.label}
           </label>
+        </div>
+      );
+    }
+
+    if (field.type === 'number' || field.type === 'text') {
+      return (
+        <div key={field.name} style={sectionStyle}>
+          <label style={labelStyle}>{field.label}</label>
+          <input 
+            type={field.type}
+            name={field.name}
+            value={value}
+            min={field.min}
+            max={field.max}
+            onChange={(e) => handleChange(field, e)}
+            data-testid={`char-builder-${field.name}`}
+            style={{ width: '100%', padding: '0.4rem' }}
+          />
         </div>
       );
     }

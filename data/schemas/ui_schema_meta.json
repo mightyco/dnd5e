@@ -7,12 +7,17 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name", "label", "type"],
+        "required": ["name", "label", "type", "zone"],
         "properties": {
           "name": { "type": "string" },
           "label": { "type": "string" },
           "type": { "type": "string", "enum": ["select", "checkbox", "number", "text"] },
+          "zone": { "type": "string", "enum": ["basic", "stats", "equipment", "feats"] },
           "options_key": { "type": "string" },
+          "dynamic_options": { "type": "boolean" },
+          "path": { "type": "string" },
+          "min": { "type": "number" },
+          "max": { "type": "number" },
           "visible_if": {
             "type": "object",
             "properties": {

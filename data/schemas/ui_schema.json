@@ -1,17 +1,117 @@
 {
   "character_fields": [
     {
+      "name": "type",
+      "label": "Class / Monster",
+      "type": "select",
+      "options_key": "types",
+      "zone": "basic",
+      "grouped_options": true
+    },
+    {
+      "name": "name",
+      "label": "Character Name",
+      "type": "text",
+      "zone": "basic"
+    },
+    {
+      "name": "level",
+      "label": "Level",
+      "type": "number",
+      "zone": "basic",
+      "min": 1,
+      "max": 20
+    },
+    {
+      "name": "subclass",
+      "label": "Subclass",
+      "type": "select",
+      "options_key": "subclasses",
+      "zone": "basic",
+      "dynamic_options": true
+    },
+    {
       "name": "fightingStyle",
       "label": "Fighting Style",
       "type": "select",
       "options_key": "fighting_styles",
+      "zone": "basic",
       "visible_if": { "field": "type", "in": ["fighter", "paladin", "ranger"] }
+    },
+    {
+      "name": "strength",
+      "label": "STR",
+      "type": "number",
+      "zone": "stats",
+      "min": 1,
+      "max": 30,
+      "path": "abilities.strength"
+    },
+    {
+      "name": "dexterity",
+      "label": "DEX",
+      "type": "number",
+      "zone": "stats",
+      "min": 1,
+      "max": 30,
+      "path": "abilities.dexterity"
+    },
+    {
+      "name": "constitution",
+      "label": "CON",
+      "type": "number",
+      "zone": "stats",
+      "min": 1,
+      "max": 30,
+      "path": "abilities.constitution"
+    },
+    {
+      "name": "intelligence",
+      "label": "INT",
+      "type": "number",
+      "zone": "stats",
+      "min": 1,
+      "max": 30,
+      "path": "abilities.intelligence"
+    },
+    {
+      "name": "wisdom",
+      "label": "WIS",
+      "type": "number",
+      "zone": "stats",
+      "min": 1,
+      "max": 30,
+      "path": "abilities.wisdom"
+    },
+    {
+      "name": "charisma",
+      "label": "CHA",
+      "type": "number",
+      "zone": "stats",
+      "min": 1,
+      "max": 30,
+      "path": "abilities.charisma"
+    },
+    {
+      "name": "weapon",
+      "label": "Primary Weapon",
+      "type": "select",
+      "options_key": "weapons",
+      "zone": "equipment"
+    },
+    {
+      "name": "armor",
+      "label": "Armor",
+      "type": "select",
+      "options_key": "armor",
+      "zone": "equipment"
     },
     {
       "name": "shield",
       "label": "Equip Shield (+2 AC)",
       "type": "checkbox",
-      "visible_if": { "field": "type", "not_in": ["wizard", "sorcerer", "monk"] }
+      "zone": "equipment",
+      "visible_if": { "field": "not_monster", "is": true }
     }
   ]
 }

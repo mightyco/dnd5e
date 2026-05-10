@@ -150,14 +150,8 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
     });
   };
 
-  const handleRun = async () => {
-    if (!showConfirm) {
-      setShowConfirm(true);
-      return;
-    }
-    
-    setShowConfirm(false);
-    const payload = {
+  const buildPayload = () => {
+    return {
       ...simConfig,
       variables: Object.keys(variables).length > 0 ? variables : undefined,
       teams: teams.map(t => ({
@@ -167,6 +161,16 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
         members: t.members.length > 1 ? t.members : (t.members.length === 1 ? undefined : [])
       }))
     };
+  };
+
+  const handleRun = async () => {
+    if (!showConfirm) {
+      setShowConfirm(true);
+      return;
+    }
+    
+    setShowConfirm(false);
+    const payload = buildPayload();
     
     try {
       const response = await fetch('/api/run', {
@@ -194,23 +198,28 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
       <h2>Scientific Lab Runner</h2>
 
       {showConfirm && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-          <div style={{ background: '#fff', padding: '2rem', borderRadius: '12px', maxWidth: '500px', width: '100%', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', color: '#333' }}>
-            <h3 style={{ marginTop: 0 }}>Review Simulation Intent</h3>
-            <p style={{ fontSize: '0.9rem', color: '#666' }}>Confirming parameters for <strong>{simConfig.name}</strong>:</p>
-            <ul style={{ fontSize: '0.85rem', marginBottom: '1.5rem', textAlign: 'left' }}>
-              <li><strong>Teams:</strong> {teams.map(t => `${t.name} (x${t.count})`).join(' vs ')}</li>
-              <li><strong>Scale:</strong> {simConfig.num_simulations} simulations</li>
-              <li><strong>Scope:</strong> {simConfig.max_rounds} rounds @ {simConfig.distance}ft</li>
-            </ul>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+          <div style={{ background: '#fff', padding: '2rem', borderRadius: '12px', maxWidth: '800px', width: '90%', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', color: '#333' }}>
+            <h3 style={{ marginTop: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              Verify Simulation Intent
+              <span style={{ fontSize: '0.7rem', background: '#e3f2fd', color: '#1565c0', padding: '4px 10px', borderRadius: '20px' }}>AI Manifest v3.0</span>
+            </h3>
+            
+            <div style={{ flexGrow: 1, overflowY: 'auto', marginBottom: '1.5rem', background: '#f5f5f5', borderRadius: '8px', padding: '1rem', border: '1px solid #ddd' }}>
+              <pre style={{ fontSize: '0.75rem', margin: 0, color: '#2e7d32' }}>
+                {JSON.stringify(buildPayload(), null, 2)}
+              </pre>
+            </div>
+
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <button onClick={() => setShowConfirm(false)} style={{ flex: 1, padding: '10px', background: '#eee', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Edit Further</button>
-              <button onClick={handleRun} data-testid="confirm-launch" style={{ flex: 2, padding: '10px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>Launch Analysis</button>
+              <button onClick={() => setShowConfirm(false)} style={{ flex: 1, padding: '12px', background: '#eee', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>Abort & Edit</button>
+              <button onClick={handleRun} data-testid="confirm-launch" style={{ flex: 2, padding: '12px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' }}>Confirm & Launch Analysis</button>
             </div>
           </div>
         </div>
       )}
       
+      {/* Variable Editor */}
       <div style={{ padding: '1.5rem', border: '1px solid var(--border)', borderRadius: '8px', background: '#f8fafd', marginBottom: '2rem' }}>
         <h3 style={{ marginTop: 0, color: 'var(--accent)' }}>1. Parameter Sweep Variables</h3>
         <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
@@ -230,8 +239,8 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
           <div style={{ maxHeight: '250px', overflowY: 'auto' }} data-testid="character-pool">
             {characterPool.length === 0 && <p style={{ color: '#999', fontStyle: 'italic', textAlign: 'center', marginTop: '2rem' }}>Pool is empty.</p>}
             {characterPool.map(c => (
-              <div key={c.id} data-testid="pool-member" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', padding: '0.75rem', background: '#fff', border: '1px solid #eee', borderRadius: '6px' }}>
-                <span style={{ fontWeight: '500' }}>{c.name} <span style={{ color: '#666', fontSize: '0.8rem' }}>({c.type})</span></span>
+              <div key={c.id} data-testid="pool-member" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', padding: '0.75rem', background: '#fff', border: '1px solid var(--border)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-sm)' }}>
+                <span style={{ fontWeight: '500' }}>{c.name} <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>({c.type})</span></span>
                 <div style={{ display: 'flex', gap: '0.25rem' }}>
                   <button onClick={() => addToTeam(c, 0)} data-testid={`add-to-team-0-${c.name}`} style={{ fontSize: '0.75rem', padding: '4px 8px', background: '#e8f5e9', border: '1px solid #c8e6c9', color: '#2e7d32', borderRadius: '4px' }}>+ Team A</button>
                   <button onClick={() => addToTeam(c, 1)} data-testid={`add-to-team-1-${c.name}`} style={{ fontSize: '0.75rem', padding: '4px 8px', background: '#ffebee', border: '1px solid #ffcdd2', color: '#c62828', borderRadius: '4px' }}>+ Team B</button>
@@ -244,9 +253,9 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
 
       <div className="grid-2" style={{ marginTop: '2rem' }}>
         {teams.map((team, idx) => (
-          <div key={idx} data-testid={`team-panel-${idx}`} style={{ padding: '1.5rem', border: '1px solid var(--border)', borderRadius: '8px', background: idx === 0 ? '#f1f8e9' : '#fff3e0' }}>
+          <div key={idx} data-testid={`team-panel-${idx}`} style={{ padding: '1.5rem', border: '1px solid var(--border)', borderRadius: 'var(--radius)', background: idx === 0 ? 'var(--team-a-bg)' : 'var(--team-b-bg)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ margin: 0, color: idx === 0 ? '#2e7d32' : '#ef6c00' }}>{team.name}</h3>
+              <h3 style={{ margin: 0, color: idx === 0 ? 'var(--team-a-primary)' : 'var(--team-b-primary)' }}>{team.name}</h3>
               <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
                 Count: <input value={team.count} onChange={e => updateTeamCount(idx, e.target.value)} style={{ width: '60px', padding: '0.25rem' }} />
               </label>
@@ -255,10 +264,9 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               {team.members.map((m, mIdx) => {
                 const isClass = metadata.classes.includes(m.type);
-                const subclasses = metadata.subclasses[m.type] || [];
                 
                 return (
-                  <li key={m.id || mIdx} data-testid="team-member" style={{ padding: '1rem', background: '#fff', border: '1px solid rgba(0,0,0,0.05)', borderRadius: '8px', marginBottom: '1rem' }}>
+                  <li key={m.id || mIdx} data-testid="team-member" style={{ padding: '1rem', background: '#fff', border: '1px solid var(--border)', borderRadius: 'var(--radius)', marginBottom: '1rem', boxShadow: 'var(--shadow-sm)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                       <input value={m.name} onChange={e => updateMemberField(idx, mIdx, 'name', e.target.value)} style={{ fontWeight: 'bold', border: 'none', borderBottom: '1px solid #eee', width: '70%' }} />
                       <button onClick={() => {
@@ -269,61 +277,36 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
                     </div>
                     
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                      <div>
-                        <label style={labelStyle}>Type</label>
-                        <select value={m.type} onChange={e => updateMemberField(idx, mIdx, 'type', e.target.value)} style={{ width: '100%' }} data-testid="member-type-select">
-                          <optgroup label="Classes">
-                            {metadata.classes.map(cls => <option key={cls} value={cls}>{cls.toUpperCase()}</option>)}
-                          </optgroup>
-                          <optgroup label="Monsters">
-                            {metadata.monsters.map(mon => <option key={mon} value={mon}>{mon.toUpperCase()}</option>)}
-                          </optgroup>
-                        </select>
-                      </div>
-                      
-                      {isClass && (
-                        <div>
-                          <label style={labelStyle}>Subclass</label>
-                          <select value={m.subclass || ''} onChange={e => updateMemberField(idx, mIdx, 'subclass', e.target.value)} style={{ width: '100%' }} data-testid="member-subclass-select">
-                            <option value="">Standard</option>
-                            {subclasses.map(sc => <option key={sc} value={sc}>{sc.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>)}
-                          </select>
-                        </div>
-                      )}
+                      <FluidDetails 
+                        schema={metadata.ui_schema}
+                        metadata={metadata}
+                        data={m}
+                        onChange={e => updateMemberField(idx, mIdx, e.target.name, e.target.value)}
+                        zone="basic"
+                        labelStyle={labelStyle}
+                      />
                     </div>
 
                     {isClass && (
                       <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #f5f5f5' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '4px' }}>
-                          {['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'].map(ab => (
-                            <div key={ab}>
-                              <div style={{ fontSize: '0.55rem', textAlign: 'center' }}>{ab.slice(0,3).toUpperCase()}</div>
-                              <input type="number" value={m.abilities ? m.abilities[ab] : 10} onChange={e => updateMemberField(idx, mIdx, `ability.${ab}`, e.target.value)} style={{ width: '100%', textAlign: 'center', fontSize: '0.75rem' }} />
-                            </div>
-                          ))}
-                        </div>
-                        
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginTop: '0.75rem' }}>
-                          <div>
-                            <label style={labelStyle}>Weapon</label>
-                            <select value={m.weapon || 'longsword'} onChange={e => updateMemberField(idx, mIdx, 'weapon', e.target.value)} style={{ width: '100%', fontSize: '0.75rem' }}>
-                              {metadata.weapons.map(w => <option key={w} value={w}>{w.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</option>)}
-                            </select>
-                          </div>
-                          <div>
-                            <label style={labelStyle}>Armor</label>
-                            <select value={m.armor || 'breastplate'} onChange={e => updateMemberField(idx, mIdx, 'armor', e.target.value)} style={{ width: '100%', fontSize: '0.75rem' }}>
-                              <option value="">Unarmored</option>
-                              {metadata.armor.map(a => <option key={a} value={a}>{a.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</option>)}
-                            </select>
-                          </div>
-                          
                           <FluidDetails 
                             schema={metadata.ui_schema}
                             metadata={metadata}
                             data={m}
                             onChange={e => updateMemberField(idx, mIdx, e.target.name, e.target.value)}
-                            sectionStyle={{ padding: '0', border: 'none', background: 'transparent' }}
+                            zone="stats"
+                            labelStyle={{ ...labelStyle, textAlign: 'center', fontSize: '0.55rem' }}
+                          />
+                        </div>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginTop: '0.75rem' }}>
+                          <FluidDetails 
+                            schema={metadata.ui_schema}
+                            metadata={metadata}
+                            data={m}
+                            onChange={e => updateMemberField(idx, mIdx, e.target.name, e.target.value)}
+                            zone="equipment"
                             labelStyle={labelStyle}
                           />
                         </div>

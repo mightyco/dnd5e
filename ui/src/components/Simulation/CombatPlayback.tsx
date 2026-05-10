@@ -260,7 +260,7 @@ const CombatPlaybackContent = ({ combatData }) => {
       <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr 200px', gap: '1rem' }}>
         {/* Left Column - Team A */}
         <div style={{ background: '#1a1a1a', borderRadius: '8px', padding: '0.5rem', border: '1px solid #333', maxHeight: '500px', overflowY: 'auto' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#2196f3', textAlign: 'center', borderBottom: '1px solid #333', paddingBottom: '0.5rem' }}>{teamNames[0] || 'Team A'}</h4>
+          <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--team-a-primary)', textAlign: 'center', borderBottom: '1px solid #333', paddingBottom: '0.5rem' }}>{teamNames[0] || 'Team A'}</h4>
           {teamA.map(c => <CombatantToken key={c.name} name={c.name} state={c.state} isActive={activeCombatant === c.name} />)}
         </div>
 
@@ -286,7 +286,7 @@ const CombatPlaybackContent = ({ combatData }) => {
                         cx={`${scalePos(state.x)}%`} 
                         cy={`${scalePos(state.y, true)}%`} 
                         r="3%" 
-                        fill={isTeamB ? '#f44336' : '#2196f3'} 
+                        fill={isTeamB ? 'var(--team-b-primary)' : 'var(--team-a-primary)'} 
                         stroke={activeCombatant === name ? '#ffeb3b' : '#fff'}
                         strokeWidth={activeCombatant === name ? '4' : '2'}
                       />
@@ -325,7 +325,7 @@ const CombatPlaybackContent = ({ combatData }) => {
 
         {/* Right Column - Team B */}
         <div style={{ background: '#1a1a1a', borderRadius: '8px', padding: '0.5rem', border: '1px solid #333', maxHeight: '500px', overflowY: 'auto' }}>
-          <h4 style={{ margin: '0 0 0.75rem 0', color: '#f44336', textAlign: 'center', borderBottom: '1px solid #333', paddingBottom: '0.5rem' }}>{teamNames[1] || 'Team B'}</h4>
+          <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--team-b-primary)', textAlign: 'center', borderBottom: '1px solid #333', paddingBottom: '0.5rem' }}>{teamNames[1] || 'Team B'}</h4>
           {teamB.map(c => <CombatantToken key={c.name} name={c.name} state={c.state} isActive={activeCombatant === c.name} />)}
         </div>
       </div>
