@@ -68,9 +68,14 @@ end
 
 def build_metadata_payload
   cls, scs = discover_classes_and_subclasses
+  assemble_metadata(cls, scs)
+end
+
+def assemble_metadata(cls, scs)
   {
     classes: cls, subclasses: scs,
     monsters: %w[goblin bugbear ogre],
+    types: { classes: cls, monsters: %w[goblin bugbear ogre] },
     feats: Dnd5e::Core::FeatRegistry.all_keys,
     fighting_styles: %w[archery defense dueling great_weapon_fighting protection two_weapon_fighting],
     weapons: Dnd5e::Core::WeaponRegistry.all_keys,

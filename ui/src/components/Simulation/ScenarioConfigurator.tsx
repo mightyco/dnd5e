@@ -283,6 +283,7 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
                         data={m}
                         onChange={e => updateMemberField(idx, mIdx, e.target.name, e.target.value)}
                         zone="basic"
+                        testIdPrefix={`member-${idx}-${mIdx}`}
                         labelStyle={labelStyle}
                       />
                     </div>
@@ -296,6 +297,7 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
                             data={m}
                             onChange={e => updateMemberField(idx, mIdx, e.target.name, e.target.value)}
                             zone="stats"
+                            testIdPrefix={`member-${idx}-${mIdx}`}
                             labelStyle={{ ...labelStyle, textAlign: 'center', fontSize: '0.55rem' }}
                           />
                         </div>
@@ -307,6 +309,7 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
                             data={m}
                             onChange={e => updateMemberField(idx, mIdx, e.target.name, e.target.value)}
                             zone="equipment"
+                            testIdPrefix={`member-${idx}-${mIdx}`}
                             labelStyle={labelStyle}
                           />
                         </div>

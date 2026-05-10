@@ -112,6 +112,14 @@
       "type": "checkbox",
       "zone": "equipment",
       "visible_if": { "field": "not_monster", "is": true }
+    },
+    {
+      "name": "feats",
+      "label": "Feats (2024)",
+      "type": "multi-checkbox",
+      "options_key": "feats",
+      "zone": "feats",
+      "visible_if": { "field": "not_monster", "is": true }
     }
   ]
 }

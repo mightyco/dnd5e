@@ -85,18 +85,17 @@ export const CharacterBuilder = ({ onSave }) => {
     });
   };
 
-  const handleFeatToggle = (feat) => {
+  const handleToggleList = (field, item) => {
     setChar(prev => {
-      const feats = prev.feats || [];
-      const updatedFeats = feats.includes(feat)
-        ? feats.filter(f => f !== feat)
-        : [...feats, feat];
-      return { ...prev, feats: updatedFeats };
+      const list = prev[field] || [];
+      const updated = list.includes(item)
+        ? list.filter(i => i !== item)
+        : [...list, item];
+      return { ...prev, [field]: updated };
     });
   };
 
   const isClass = metadata.classes.includes(char.type);
-  const selectedFeats = char.feats || [];
 
   const sectionStyle: React.CSSProperties = {
     padding: '1rem',
@@ -161,17 +160,16 @@ export const CharacterBuilder = ({ onSave }) => {
           </div>
 
           {/* FEATS ZONE */}
-          <div style={sectionStyle}>
-            <label style={labelStyle}>Feats (2024)</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.5rem' }}>
-              {metadata.feats.map(feat => (
-                <label key={feat} style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', padding: '0.2rem', borderRadius: '2px', border: selectedFeats.includes(feat) ? '1px solid var(--accent)' : '1px solid transparent' }}>
-                  <input type="checkbox" checked={selectedFeats.includes(feat)} onChange={() => handleFeatToggle(feat)} />
-                  {feat.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                </label>
-              ))}
-            </div>
-          </div>
+          <FluidDetails 
+            schema={metadata.ui_schema}
+            metadata={metadata}
+            data={char}
+            onChange={handleChange}
+            onToggleList={handleToggleList}
+            zone="feats"
+            sectionStyle={sectionStyle}
+            labelStyle={labelStyle}
+          />
         </>
       )}
 
