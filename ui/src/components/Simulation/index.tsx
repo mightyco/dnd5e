@@ -132,51 +132,64 @@ export const SimulationDashboard = () => {
 
       {loading && <p>Processing data...</p>}
 
-      <div id="simulation-results">
+      <div id="simulation-results" style={{ display: 'flex', flexDirection: 'column', gap: '3rem', paddingBottom: '5rem' }}>
         {currentRun && (
-          <div style={{ marginTop: '3rem', borderTop: '2px solid #eee', paddingTop: '2rem' }}>
-            <h2>Analysis: {compareMode ? `Comparative (${selectedIndices.length} runs)` : currentRun.name}</h2>
+          <div className="animate-in" style={{ borderTop: '2px solid var(--border)', paddingTop: '3rem' }}>
+            <h2 style={{ marginBottom: '2.5rem', color: 'var(--primary)' }}>Analysis: {compareMode ? `Comparative (${selectedIndices.length} runs)` : currentRun.name}</h2>
             
-            {/* Replayer is now TOP LEVEL results - available for single and sweep runs (sample) */}
+            {/* Replayer - Full Width */}
             {!compareMode && (
-              <div id="combat-playback-section" style={{ marginBottom: '2rem', padding: '1.5rem', background: '#fff', border: '1px solid #ddd', borderRadius: '8px' }}>
-                <h3>Combat Replay</h3>
-                <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '1rem' }}>Viewing sample combat from the simulation set.</p>
+              <section id="combat-playback-section" style={{ marginBottom: '3rem', padding: '2rem', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-md)' }}>
+                <h3 style={{ marginTop: 0 }}>Combat Replay</h3>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '2rem' }}>Viewing sample combat from the simulation set.</p>
                 <CombatPlayback combatData={currentRun.payload.results[0].data} />
-              </div>
+              </section>
             )}
 
-            {currentRun.isBatch && !compareMode ? (
-              <TrendChart batchResults={currentRun.payload} />
-            ) : (
-              <>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-                  {!compareMode ? (
-                    <>
-                      {currentRun.payload.id?.includes('swarm') ? (
-                        <HeroEfficiency data={currentRun.payload.results[0].data} />
-                      ) : (
-                        <SurvivalChart data={currentRun.payload.results[0].data} />
-                      )}
-                      <div style={{ padding: '1rem', background: '#fff', border: '1px solid #ddd', borderRadius: '8px' }}>
-                        <h3>Quick Stats</h3>
-                        <ul>
-                          <li>Total Simulations: {currentRun.payload.results[0].data.length}</li>
-                          <li>Average Rounds: {(currentRun.payload.results[0].data.reduce((acc, c) => acc + c.rounds.length, 0) / currentRun.payload.results[0].data.length).toFixed(1)}</li>
-                        </ul>
-                      </div>
-                    </>
-                  ) : (
-                    <DeltaAnalysis datasets={selectedDatasets} />
-                  )}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'start', marginBottom: '3rem' }}>
+              {!compareMode ? (
+                <>
+                  <div className="lab-card" style={{ padding: 0, overflow: 'hidden' }}>
+                    {currentRun.payload.id?.includes('swarm') ? (
+                      <HeroEfficiency data={currentRun.payload.results[0].data} />
+                    ) : (
+                      <SurvivalChart data={currentRun.payload.results[0].data} />
+                    )}
+                  </div>
+                  <div className="lab-card" style={{ height: '100%', minHeight: '300px' }}>
+                    <h3 style={{ marginTop: 0 }}>Quick Stats</h3>
+                    <ul style={{ listStyle: 'none', padding: 0, fontSize: '1.1rem' }}>
+                      <li style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Total Simulations:</span> <strong>{currentRun.payload.results[0].data.length}</strong>
+                      </li>
+                      <li>
+                        <span style={{ color: 'var(--text-muted)' }}>Average Rounds:</span> <strong>{(currentRun.payload.results[0].data.reduce((acc, c) => acc + c.rounds.length, 0) / currentRun.payload.results[0].data.length).toFixed(1)}</strong>
+                      </li>
+                    </ul>
+                  </div>
+                </>
+              ) : (
+                <div className="lab-card" style={{ gridColumn: 'span 2' }}>
+                  <DeltaAnalysis datasets={selectedDatasets} />
                 </div>
-                
-                {!compareMode && <LuckAnalyzer data={currentRun.payload.results[0].data} />}
-              </>
+              )}
+            </div>
+            
+            {!compareMode && (
+              <div className="lab-card" style={{ marginBottom: '3rem' }}>
+                <LuckAnalyzer data={currentRun.payload.results[0].data} />
+              </div>
             )}
             
-            <DPRChart datasets={selectedDatasets} />
-            {!currentRun.isBatch && !compareMode && <RollInspector data={currentRun.payload.results[0].data} />}
+            <div className="lab-card" style={{ marginBottom: '3rem' }}>
+              <DPRChart datasets={selectedDatasets} />
+            </div>
+
+            {!currentRun.isBatch && !compareMode && (
+              <div className="lab-card">
+                <RollInspector data={currentRun.payload.results[0].data} />
+              </div>
+            )}
           </div>
         )}
       </div>

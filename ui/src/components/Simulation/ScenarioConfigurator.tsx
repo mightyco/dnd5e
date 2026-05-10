@@ -198,8 +198,8 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
       <h2>Scientific Lab Runner</h2>
 
       {showConfirm && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-          <div style={{ background: '#fff', padding: '2rem', borderRadius: '12px', maxWidth: '800px', width: '90%', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', color: '#333' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 'var(--z-modal-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', backdropFilter: 'blur(4px)' }}>
+          <div style={{ background: '#fff', padding: '2rem', borderRadius: '12px', maxWidth: '800px', width: '90%', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 50px rgba(0,0,0,0.4)', color: '#333', zIndex: 'var(--z-modal-content)' }}>
             <h3 style={{ marginTop: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               Verify Simulation Intent
               <span style={{ fontSize: '0.7rem', background: '#e3f2fd', color: '#1565c0', padding: '4px 10px', borderRadius: '20px' }}>AI Manifest v3.0</span>
@@ -234,9 +234,9 @@ export const ScenarioConfigurator = ({ onRun, initialConfig, onConfigHandled }) 
           <CharacterBuilder onSave={addToPool} />
         </div>
         
-        <div style={{ padding: '1.5rem', border: '1px solid var(--border)', borderRadius: '8px', background: '#fafafa' }}>
+        <div style={{ padding: '1.5rem', border: '1px solid var(--border)', borderRadius: 'var(--radius)', background: '#fafafa', display: 'flex', flexDirection: 'column' }}>
           <h3 style={{ marginTop: 0 }}>2. Character Pool</h3>
-          <div style={{ maxHeight: '250px', overflowY: 'auto' }} data-testid="character-pool">
+          <div style={{ flexGrow: 1, maxHeight: '500px', overflowY: 'auto', paddingRight: '0.5rem' }} data-testid="character-pool">
             {characterPool.length === 0 && <p style={{ color: '#999', fontStyle: 'italic', textAlign: 'center', marginTop: '2rem' }}>Pool is empty.</p>}
             {characterPool.map(c => (
               <div key={c.id} data-testid="pool-member" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', padding: '0.75rem', background: '#fff', border: '1px solid var(--border)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-sm)' }}>

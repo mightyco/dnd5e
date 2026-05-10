@@ -19,6 +19,15 @@
   --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
   --radius: 8px;
+
+  /* Stacking Contexts */
+  --z-modal-bg: 1000;
+  --z-modal-content: 1001;
+  --z-toast: 2000;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {

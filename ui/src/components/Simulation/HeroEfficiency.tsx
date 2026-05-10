@@ -39,8 +39,8 @@ export const HeroEfficiency = ({ data }) => {
   const avgSurvivalHealth = (totalHeroHPRemaining / totalSims * 100).toFixed(1);
 
   return (
-    <div style={{ padding: '1.5rem', background: '#f0f4f8', borderRadius: '12px', border: '1px solid #d1d9e6' }}>
-      <h3 style={{ marginTop: 0, color: '#2c3e50', borderBottom: '2px solid #d1d9e6', paddingBottom: '0.5rem' }}>Hero Efficiency Score</h3>
+    <div style={{ padding: '1.5rem', background: 'var(--bg-app)', borderRadius: 'var(--radius)', border: '1px solid var(--border)', height: '100%', boxSizing: 'border-box' }}>
+      <h3 style={{ marginTop: 0, color: 'var(--text-main)', borderBottom: '2px solid var(--border)', paddingBottom: '0.5rem' }}>Hero Efficiency Score</h3>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
         <div className="stat-card" style={{ background: '#fff', padding: '1rem', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
           <div style={{ fontSize: '0.8rem', color: '#7f8c8d', textTransform: 'uppercase', fontWeight: 'bold' }}>Avg Rounds Survived</div>
