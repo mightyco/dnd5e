@@ -13,6 +13,7 @@ class TestEditFlow < Minitest::Test
   end
 
   def test_get_simulation_detail
+    header 'Host', 'localhost'
     # Verify the API endpoint works
     get '/api/simulations/champion-vs-bugbear-pack'
 
@@ -24,6 +25,7 @@ class TestEditFlow < Minitest::Test
   end
 
   def test_list_simulations_includes_metadata
+    header 'Host', 'localhost'
     get '/api/simulations'
 
     assert_predicate last_response, :ok?

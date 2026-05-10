@@ -331,7 +331,11 @@ const CombatPlaybackContent = ({ combatData }) => {
       </div>
 
       {/* Event Log */}
-      <div style={{ marginTop: '1.5rem', padding: '1rem', background: '#333', borderRadius: '8px', maxHeight: '200px', overflowY: 'auto' }}>
+      <div 
+        style={{ marginTop: '1.5rem', padding: '1rem', background: '#333', borderRadius: '8px', maxHeight: '200px', overflowY: 'auto' }}
+        aria-live="polite"
+        aria-relevant="additions"
+      >
         <div style={{ fontWeight: 'bold', borderBottom: '1px solid #444', paddingBottom: '0.5rem', marginBottom: '0.5rem', color: '#888', fontSize: '0.8rem', textTransform: 'uppercase' }}>Event Log</div>
         {events.slice(0, eventIndex + 1).reverse().map((e, i) => (
           <div key={i} style={{ 

@@ -1,0 +1,28 @@
+{
+  "title": "UI Schema",
+  "description": "Defines dynamic UI components and visibility rules for the D&D Simulator",
+  "type": "object",
+  "properties": {
+    "character_fields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "label", "type"],
+        "properties": {
+          "name": { "type": "string" },
+          "label": { "type": "string" },
+          "type": { "type": "string", "enum": ["select", "checkbox", "number", "text"] },
+          "options_key": { "type": "string" },
+          "visible_if": {
+            "type": "object",
+            "properties": {
+              "field": { "type": "string" },
+              "in": { "type": "array", "items": { "type": "string" } },
+              "not_in": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    }
+  }
+}

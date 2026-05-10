@@ -1,52 +1,54 @@
 # frozen_string_literal: true
 
 require 'sinatra'
-require 'sinatra/cross_origin'
 require 'json'
 require 'fileutils'
-require_relative '../lib/dnd5e/simulation/runner'
-require_relative '../lib/dnd5e/simulation/scenario_builder'
-require_relative '../lib/dnd5e/simulation/json_combat_result_handler'
-require_relative '../lib/dnd5e/simulation/variable_expander'
+require 'logger'
 require_relative '../lib/dnd5e/builders/character_builder'
 require_relative '../lib/dnd5e/builders/monster_builder'
-require_relative '../lib/dnd5e/core/subclass_registry'
 require_relative '../lib/dnd5e/core/feat_registry'
 require_relative '../lib/dnd5e/core/weapon_registry'
+require_relative '../lib/dnd5e/core/subclass_registry'
+require_relative '../lib/dnd5e/core/schema_registry'
+require_relative '../lib/dnd5e/simulation/runner'
+require_relative '../lib/dnd5e/simulation/json_combat_result_handler'
+require_relative '../lib/dnd5e/simulation/variable_expander'
+require_relative '../lib/dnd5e/simulation/scenario_builder'
 
-set :bind, '0.0.0.0'
-set :port, 4567
-
+# Configuration
+UI_DIST_DIR = File.expand_path('../ui/dist', __dir__)
 PRESETS_DIR = File.expand_path('../data/simulations/presets', __dir__)
 CUSTOM_DIR = File.expand_path('../data/simulations/custom', __dir__)
-UI_DIST_DIR = File.expand_path('../ui/dist', __dir__)
-DOCS_BUILD_DIR = File.expand_path('../docs/portal/build', __dir__)
 
-configure do
-  enable :cross_origin
-  disable :protection
-  set :host_authorization, { permitted_hosts: [] } if development?
-  set :public_folder, UI_DIST_DIR
+set :public_folder, UI_DIST_DIR
+set :port, 4567
+set :bind, '0.0.0.0'
+
+configure :test do
+  set :protection, false
 end
 
-before do
-  response.headers['Access-Control-Allow-Origin'] = '*'
-end
+# Logging
+logger = Logger.new('log/api.log')
 
-# --- UI ROUTES (Strict Isolation) ---
+# --- STATIC ASSETS ---
 
-# The root route is EXCLUSIVELY for the Human UI.
-# It will never return JSON to prevent browser content negotiation bugs.
 get '/' do
-  index = File.join(UI_DIST_DIR, 'index.html')
-  halt 404, 'UI Build Missing. Run rake unify:build' unless File.exist?(index)
-  send_file index
+  send_file File.join(UI_DIST_DIR, 'index.html')
 end
 
-get '/docs/?*' do
-  path = params[:splat].first
-  path = 'index.html' if path.nil? || path.empty?
-  file_path = File.join(DOCS_BUILD_DIR, path)
+# Fallback for React Router / SPA
+get %r{/(?!api|assets|favicon).*} do
+  send_file File.join(UI_DIST_DIR, 'index.html')
+end
+
+get '/docs' do
+  redirect '/docs/index.html'
+end
+
+get '/docs/*' do |path|
+  docs_dir = File.expand_path('../docs/build', __dir__)
+  file_path = File.join(docs_dir, path)
   file_path = File.join(file_path, 'index.html') if File.directory?(file_path)
   File.exist?(file_path) ? send_file(file_path) : halt(404, 'Docs Missing. Run rake unify:build')
 end
@@ -85,32 +87,9 @@ def discover_classes_and_subclasses
 end
 
 def build_ui_schema
-  {
-    character_fields: [
-      fighting_style_field_schema,
-      shield_field_schema
-    ]
-  }
+  Dnd5e::Core::SchemaRegistry.load_ui_schema
 end
 
-def fighting_style_field_schema
-  {
-    name: 'fightingStyle',
-    label: 'Fighting Style',
-    type: 'select',
-    options_key: 'fighting_styles',
-    visible_if: { field: 'type', in: %w[fighter paladin ranger] }
-  }
-end
-
-def shield_field_schema
-  {
-    name: 'shield',
-    label: 'Equip Shield (+2 AC)',
-    type: 'checkbox',
-    visible_if: { field: 'type', not_in: %w[wizard sorcerer monk] }
-  }
-end
 ['/simulations', '/api/simulations'].each do |path|
   get path do
     content_type :json
@@ -133,6 +112,8 @@ end
     sim = find_simulation(params[:id])
     halt 404, { error: 'Simulation not found' }.to_json unless sim
     run_sim_batch(sim)
+  rescue StandardError => e
+    halt 500, { error: e.message }.to_json
   end
 end
 
@@ -149,9 +130,9 @@ end
 ['/simulations/save', '/api/simulations/save'].each do |path|
   post path do
     content_type :json
-    payload = JSON.parse(request.body.read)
-    halt 400, { error: 'ID is required' }.to_json unless payload['id']
-    save_custom_sim(payload)
+    save_custom_sim(JSON.parse(request.body.read))
+  rescue StandardError => e
+    halt 500, { error: e.message }.to_json
   end
 end
 
@@ -160,13 +141,22 @@ end
 def list_simulations(dir, type)
   return [] unless Dir.exist?(dir)
 
-  Dir.glob("#{dir}/*.json").map { |p| format_sim_metadata(p, JSON.parse(File.read(p)), type) }
+  Dir.glob("#{dir}/*.json").map do |path|
+    map_simulation_file(path, type)
+  end
 end
 
-def format_sim_metadata(path, data, type)
-  { id: File.basename(path, '.json'), name: data['name'], description: data['description'],
-    type: type, level: data['level'], num_simulations: data['num_simulations'],
-    is_variable: !data['variables']&.empty? }
+def map_simulation_file(path, type)
+  data = JSON.parse(File.read(path))
+  {
+    id: File.basename(path, '.json'),
+    name: data['name'],
+    description: data['description'],
+    type: type,
+    level: data['level'],
+    num_simulations: data['num_simulations'],
+    is_variable: !data['variables'].nil?
+  }
 end
 
 def find_simulation(id)

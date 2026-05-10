@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { FluidDetails } from './FluidDetails';
 
 export const CharacterBuilder = ({ onSave }) => {
   const [metadata, setMetadata] = useState({ 
@@ -37,7 +38,6 @@ export const CharacterBuilder = ({ onSave }) => {
     fetch('/api/metadata')
       .then(res => res.json())
       .then(data => {
-        // Fallback for ui_schema if missing (safety anchor)
         if (!data.ui_schema) {
           data.ui_schema = { character_fields: [] };
         }
@@ -68,7 +68,6 @@ export const CharacterBuilder = ({ onSave }) => {
         const scs = metadata.subclasses[value] || [];
         updated.subclass = scs.length > 0 ? scs[0] : '';
         
-        // Auto-optimize stats based on class
         const newAbilities = { ...prev.abilities };
         if (['wizard', 'warlock', 'sorcerer'].includes(value)) {
           newAbilities.intelligence = 18;
@@ -116,64 +115,10 @@ export const CharacterBuilder = ({ onSave }) => {
     color: '#666'
   };
 
-  const isFieldVisible = (field) => {
-    if (!field.visible_if) return true;
-    const { field: targetField, in: inValues, not_in: notInValues } = field.visible_if;
-    const actualValue = char[targetField];
-    if (inValues) return inValues.includes(actualValue);
-    if (notInValues) return !notInValues.includes(actualValue);
-    return true;
-  };
-
-  const renderDynamicField = (field) => {
-    if (!isFieldVisible(field)) return null;
-
-    if (field.type === 'select') {
-      const options = metadata[field.options_key] || [];
-      return (
-        <div key={field.name} style={sectionStyle}>
-          <label style={labelStyle}>{field.label}</label>
-          <select 
-            name={field.name} 
-            value={char[field.name]} 
-            onChange={handleChange} 
-            data-testid={`char-builder-${field.name}`}
-            style={{ width: '100%', padding: '0.4rem' }}
-          >
-            <option value="">None</option>
-            {options.map(opt => (
-              <option key={opt} value={opt}>{opt.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</option>
-            ))}
-          </select>
-        </div>
-      );
-    }
-
-    if (field.type === 'checkbox') {
-      return (
-        <div key={field.name} style={{ ...sectionStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.85rem' }}>
-            <input 
-              type="checkbox" 
-              name={field.name} 
-              checked={!!char[field.name]} 
-              onChange={handleChange} 
-              data-testid={`char-builder-${field.name}`}
-            />
-            {field.label}
-          </label>
-        </div>
-      );
-    }
-
-    return null;
-  };
-
   return (
     <div style={{ padding: '1.5rem', border: '1px solid #ddd', borderRadius: '8px', background: '#fff', marginBottom: '1rem', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
       <h3 style={{ marginTop: 0, borderBottom: '2px solid var(--accent, #2e7d32)', paddingBottom: '0.5rem' }}>Advanced Character Builder</h3>
       
-      {/* Basic Info */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
         <div>
           <label style={labelStyle}>Name</label>
@@ -183,14 +128,10 @@ export const CharacterBuilder = ({ onSave }) => {
           <label style={labelStyle}>Class / Monster</label>
           <select name="type" value={char.type} onChange={handleChange} data-testid="char-builder-type" style={{ width: '100%', padding: '0.5rem' }}>
             <optgroup label="Classes">
-              {metadata.classes.map(cls => (
-                <option key={cls} value={cls}>{cls.toUpperCase()}</option>
-              ))}
+              {metadata.classes.map(cls => <option key={cls} value={cls}>{cls.toUpperCase()}</option>)}
             </optgroup>
             <optgroup label="Monsters">
-              {metadata.monsters.map(m => (
-                <option key={m} value={m}>{m.toUpperCase()}</option>
-              ))}
+              {metadata.monsters.map(m => <option key={m} value={m}>{m.toUpperCase()}</option>)}
             </optgroup>
           </select>
         </div>
@@ -202,7 +143,6 @@ export const CharacterBuilder = ({ onSave }) => {
 
       {isClass && (
         <>
-          {/* Subclass & Abilities */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gap: '1rem' }}>
             <div style={sectionStyle}>
               <label style={labelStyle}>Subclass</label>
@@ -214,8 +154,14 @@ export const CharacterBuilder = ({ onSave }) => {
               </select>
             </div>
 
-            {/* Dynamic Schema Fields (Level 1) */}
-            {(metadata.ui_schema?.character_fields || []).filter(f => f.name === 'fightingStyle').map(renderDynamicField)}
+            <FluidDetails 
+              schema={{ character_fields: metadata.ui_schema.character_fields.filter(f => f.name === 'fightingStyle') }}
+              metadata={metadata}
+              data={char}
+              onChange={handleChange}
+              sectionStyle={sectionStyle}
+              labelStyle={labelStyle}
+            />
             
             <div style={sectionStyle}>
               <label style={labelStyle}>Ability Scores</label>
@@ -236,31 +182,31 @@ export const CharacterBuilder = ({ onSave }) => {
             </div>
           </div>
 
-          {/* Equipment */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
             <div style={sectionStyle}>
               <label style={labelStyle}>Weapon</label>
               <select name="weapon" value={char.weapon} onChange={handleChange} data-testid="char-builder-weapon" style={{ width: '100%', padding: '0.4rem' }}>
-                {metadata.weapons.map(w => (
-                  <option key={w} value={w}>{w.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</option>
-                ))}
+                {metadata.weapons.map(w => <option key={w} value={w}>{w.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</option>)}
               </select>
             </div>
             <div style={sectionStyle}>
               <label style={labelStyle}>Armor</label>
               <select name="armor" value={char.armor} onChange={handleChange} data-testid="char-builder-armor" style={{ width: '100%', padding: '0.4rem' }}>
                 <option value="">Unarmored</option>
-                {metadata.armor.map(a => (
-                  <option key={a} value={a}>{a.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</option>
-                ))}
+                {metadata.armor.map(a => <option key={a} value={a}>{a.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</option>)}
               </select>
             </div>
             
-            {/* Dynamic Schema Fields (Level 2) */}
-            {(metadata.ui_schema?.character_fields || []).filter(f => f.name === 'shield').map(renderDynamicField)}
+            <FluidDetails 
+              schema={{ character_fields: metadata.ui_schema.character_fields.filter(f => f.name === 'shield') }}
+              metadata={metadata}
+              data={char}
+              onChange={handleChange}
+              sectionStyle={sectionStyle}
+              labelStyle={labelStyle}
+            />
           </div>
 
-          {/* Feats */}
           <div style={sectionStyle}>
             <label style={labelStyle}>Feats (2024)</label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.5rem' }}>
@@ -275,23 +221,7 @@ export const CharacterBuilder = ({ onSave }) => {
         </>
       )}
 
-      <button 
-        onClick={() => onSave(char)}
-        data-testid="save-to-pool-btn"
-        style={{ 
-          marginTop: '0.5rem',
-          padding: '12px 20px', 
-          background: 'var(--accent, #2e7d32)', 
-          color: '#fff', 
-          border: 'none', 
-          borderRadius: '4px',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          width: '100%',
-          fontSize: '1rem',
-          transition: 'background 0.2s'
-        }}
-      >
+      <button onClick={() => onSave(char)} data-testid="save-to-pool-btn" style={{ marginTop: '0.5rem', padding: '12px 20px', background: 'var(--accent, #2e7d32)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', width: '100%', fontSize: '1rem', transition: 'background 0.2s' }}>
         Save to Character Pool
       </button>
     </div>

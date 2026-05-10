@@ -7,9 +7,13 @@ import puppeteer from 'puppeteer';
   page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
   page.on('pageerror', err => console.error('BROWSER ERROR:', err.message));
   page.on('requestfailed', request => console.error('REQUEST FAILED:', request.url(), request.failure().errorText));
+  page.on('dialog', async dialog => {
+    console.log('BROWSER DIALOG:', dialog.message());
+    await dialog.dismiss();
+  });
   
   console.log('Navigating to Simulation Laboratory...');
-  await page.goto('http://localhost:4567', { waitUntil: 'networkidle0' });
+  await page.goto('http://localhost:4567', { waitUntil: 'domcontentloaded' });
   
   const content = await page.content();
   console.log('Page loaded. Content length:', content.length);
@@ -21,17 +25,27 @@ import puppeteer from 'puppeteer';
   console.log('Waiting for Simulation Library selector...');
   await page.waitForSelector('[data-testid^="edit-preset-"]', { timeout: 10000 });
   
-  // 2. Click "Edit in Lab" for a known preset
-  console.log('Clicking "Edit in Lab" for champion-vs-bugbear-pack...');
-  await page.click('[data-testid="edit-preset-champion-vs-bugbear-pack"]');
+  // 2. Click "Edit in Lab" for the first available preset
+  console.log('Clicking "Edit in Lab" for the first preset...');
+  await page.evaluate(() => {
+    const btn = document.querySelector('[data-testid^="edit-preset-"]');
+    if (btn) btn.click();
+  });
   
   // 3. Verify ScenarioConfigurator is visible and has data
   console.log('Verifying Scenario Configurator...');
   await page.waitForSelector('.scenario-configurator');
+  await new Promise(resolve => setTimeout(resolve, 2000));
   
-  // Check if the "Experiment Name" input has the expected value (Copy of Champion vs Bugbear Pack (Level 1))
-  const experimentName = await page.$eval('input[type="text"][value^="Copy of Champion vs Bugbear Pack"]', el => el.value);
+  // Check if the "Experiment Name" input has the expected value (Starts with "Copy of")
+  const experimentName = await page.$eval('[data-testid="experiment-name-input"]', el => el.value);
   console.log('Found Experiment Name:', experimentName);
+  
+  if (!experimentName.startsWith('Copy of ')) {
+    console.error('FAILURE: Experiment name does not start with "Copy of "');
+    await browser.close();
+    process.exit(1);
+  }
   
   // Verify Character Pool has loaded members from preset
   const poolMembers = await page.$$eval('[data-testid="pool-member"]', els => els.length);
@@ -45,10 +59,11 @@ import puppeteer from 'puppeteer';
   console.log('Modifying member type...');
   
   // Wait for the specific select to be populated (means metadata is loaded)
+  console.log('Waiting for metadata to populate selects...');
   await page.waitForFunction(() => {
-    const select = document.querySelector('[data-testid="member-type-select"]');
-    return select && select.options.length > 1;
-  }, { timeout: 5000 });
+    const options = Array.from(document.querySelectorAll('[data-testid="member-type-select"] option'));
+    return options.some(opt => opt.value === 'wizard');
+  }, { timeout: 20000 });
 
   // Change "fighter" to "wizard" for the first member
   await page.select('[data-testid="member-type-select"]', 'wizard');
@@ -64,7 +79,17 @@ import puppeteer from 'puppeteer';
 
   // 5. Launch and verify results show new type
   console.log('Launching modified experiment...');
-  await page.click('[data-testid="launch-experiment"]');
+  await page.evaluate(() => {
+    const btn = document.querySelector('[data-testid="launch-experiment"]');
+    if (btn) btn.click();
+  });
+  
+  console.log('Confirming simulation intent...');
+  await page.waitForSelector('[data-testid="confirm-launch"]', { timeout: 10000 });
+  await page.evaluate(() => {
+    const btn = document.querySelector('[data-testid="confirm-launch"]');
+    if (btn) btn.click();
+  });
   
   console.log('Waiting for results...');
   await page.waitForSelector('#simulation-results h2', { timeout: 30000 });

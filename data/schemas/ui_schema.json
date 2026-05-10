@@ -1,0 +1,17 @@
+{
+  "character_fields": [
+    {
+      "name": "fightingStyle",
+      "label": "Fighting Style",
+      "type": "select",
+      "options_key": "fighting_styles",
+      "visible_if": { "field": "type", "in": ["fighter", "paladin", "ranger"] }
+    },
+    {
+      "name": "shield",
+      "label": "Equip Shield (+2 AC)",
+      "type": "checkbox",
+      "visible_if": { "field": "type", "not_in": ["wizard", "sorcerer", "monk"] }
+    }
+  ]
+}

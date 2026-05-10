@@ -17,6 +17,7 @@ class SimServerTest < Minitest::Test
   end
 
   def test_root_route_serves_html_for_browser
+    header 'Host', 'localhost'
     # Simulates a default browser request (no specific Accept or preferred HTML)
     get '/'
 
@@ -26,6 +27,7 @@ class SimServerTest < Minitest::Test
   end
 
   def test_api_health_serves_json
+    header 'Host', 'localhost'
     get '/api/health'
 
     assert_predicate last_response, :ok?
@@ -36,6 +38,7 @@ class SimServerTest < Minitest::Test
   end
 
   def test_api_metadata_includes_fighting_styles
+    header 'Host', 'localhost'
     get '/api/metadata'
 
     assert_predicate last_response, :ok?
@@ -46,6 +49,7 @@ class SimServerTest < Minitest::Test
   end
 
   def test_list_simulations
+    header 'Host', 'localhost'
     get '/api/simulations'
 
     assert_predicate last_response, :ok?
@@ -56,6 +60,7 @@ class SimServerTest < Minitest::Test
   end
 
   def test_run_preset_simulation
+    header 'Host', 'localhost'
     post '/api/simulations/run/champion-vs-bugbear-pack'
 
     assert_predicate last_response, :ok?
@@ -67,6 +72,7 @@ class SimServerTest < Minitest::Test
 
   def test_run_simulation_contract_and_math
     payload = build_valid_payload
+    header 'Host', 'localhost'
     header 'Content-Type', 'application/json'
     post '/api/run', payload.to_json
 
