@@ -181,16 +181,41 @@ const CombatPlaybackContent = ({ combatData }) => {
   const stateEntries = Object.entries(currentState);
   const activeCombatant = getActiveCombatant();
 
-  // Map Bounds
-  const minX = Math.min(...stateEntries.map(([_, s]: [any, any]) => s.x), 0);
-  const maxX = Math.max(...stateEntries.map(([_, s]: [any, any]) => s.x), 30);
-  const minY = Math.min(...stateEntries.map(([_, s]: [any, any]) => s.y), 0);
-  const maxY = Math.max(...stateEntries.map(([_, s]: [any, any]) => s.y), 30);
+  // Calculate Global Bounds for stable viewport (Zoom Out behavior)
+  const globalBounds = useMemo(() => {
+    if (!currentCombat) return { minX: 0, maxX: 30, minY: 0, maxY: 30 };
+    
+    let minX = 0, maxX = 30, minY = 0, maxY = 30;
+    
+    // Check initial positions
+    Object.values(currentCombat.initial_positions || {}).forEach((s: any) => {
+      minX = Math.min(minX, s.x); maxX = Math.max(maxX, s.x);
+      minY = Math.min(minY, s.y); maxY = Math.max(maxY, s.y);
+    });
+    
+    // Check all event movements and snapshots
+    events.forEach(e => {
+      if (e.to) {
+        minX = Math.min(minX, e.to.x); maxX = Math.max(maxX, e.to.x);
+        minY = Math.min(minY, e.to.y); maxY = Math.max(maxY, e.to.y);
+      }
+      if (e.snapshot) {
+        Object.values(e.snapshot).forEach((s: any) => {
+          minX = Math.min(minX, s.x); maxX = Math.max(maxX, s.x);
+          minY = Math.min(minY, s.y); maxY = Math.max(maxY, s.y);
+        });
+      }
+    });
+
+    // Add 10ft padding buffer
+    return { minX: minX - 10, maxX: maxX + 10, minY: minY - 10, maxY: maxY + 10 };
+  }, [currentCombat, events]);
 
   const scalePos = (val: number, isY = false) => {
-    const min = isY ? minY : minX;
-    const range = (isY ? maxY : maxX) - min || 1;
-    return 10 + ((val - min) / range) * 80; // Percent with padding
+    const min = isY ? globalBounds.minY : globalBounds.minX;
+    const max = isY ? globalBounds.maxY : globalBounds.maxX;
+    const range = max - min || 1;
+    return 5 + ((val - min) / range) * 90; // Percent with 5% padding
   };
 
   const exportJSON = (data, filename) => {
