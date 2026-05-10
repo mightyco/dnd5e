@@ -99,7 +99,7 @@ export const TrendChart = ({ batchResults }) => {
         * Vertical bars indicate 95% Confidence Interval (Win Rate only)
       </p>
       
-      <ResponsiveContainer width="100%" height="80%">
+      <ResponsiveContainer width="100%" height="80%" aspect={2}>
         <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="x" label={{ value: variableKey, position: 'insideBottom', offset: -10 }} />

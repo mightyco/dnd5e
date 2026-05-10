@@ -77,8 +77,8 @@ export const LuckAnalyzer = ({ data }) => {
         </div>
       </div>
 
-      <div style={{ width: '100%', height: 200, marginTop: '1rem' }}>
-        <ResponsiveContainer width="100%" height="100%">
+      <div style={{ width: '100%', minHeight: 200, marginTop: '1rem' }}>
+        <ResponsiveContainer width="100%" height="100%" minHeight={150} aspect={4}>
           <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="roll" tick={{ fontSize: 10 }} />

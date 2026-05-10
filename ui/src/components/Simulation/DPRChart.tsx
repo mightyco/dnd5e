@@ -57,9 +57,9 @@ export const DPRChart = ({ datasets }) => {
   const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#0088FE', '#00C49F'];
 
   return (
-    <div style={{ width: '100%', height: 400, marginTop: '2rem' }}>
+    <div style={{ width: '100%', minHeight: 400, marginTop: '2rem' }}>
       <h3>Average Damage Per Round (DPR) {runs.length > 1 && '(Comparison Mode)'}</h3>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minHeight={300} aspect={2}>
         <LineChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="round" label={{ value: 'Round', position: 'insideBottomRight', offset: -5 }} />

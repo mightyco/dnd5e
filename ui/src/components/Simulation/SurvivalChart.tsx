@@ -36,12 +36,12 @@ export const SurvivalChart = ({ data }) => {
   const colors = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
   return (
-    <div style={{ width: '100%', height: 300, marginTop: '2rem' }}>
+    <div style={{ width: '100%', minHeight: 300, marginTop: '2rem' }}>
       <h3>Win Distribution (%)</h3>
       <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem' }}>
         * Error bars represent 95% Confidence Interval (n={data.length})
       </div>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minHeight={200} aspect={2.5}>
         <BarChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />
