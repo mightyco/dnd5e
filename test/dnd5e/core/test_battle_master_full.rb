@@ -22,6 +22,7 @@ module Dnd5e
 
       def test_tactical_shift
         @hero.strategy.use_damage_maneuver = false
+        @hero.statblock.hit_points = 5 # Below threshold
         @hero.start_turn
         @hero.strategy.execute_turn(@hero, @combat)
 

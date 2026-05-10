@@ -16,7 +16,7 @@ module Dnd5e
         end
 
         def execute_turn(combatant, combat)
-          try_second_wind(combatant, combat)
+          attempt_second_wind(combatant, combat)
 
           # Move and Action sequence
           target, attack = prepare_turn_data(combatant, combat)

@@ -85,21 +85,36 @@ module Dnd5e
           end
         end
 
-        def try_second_wind(combatant, combat)
-          return unless second_wind_available?(combatant)
+        # rubocop:disable Naming/PredicateMethod
+        # This method performs a side-effect (regains HP/consumes BA) and returns status.
+        def attempt_second_wind(combatant, combat)
+          return false unless second_wind_available?(combatant)
 
+          combatant.turn_context.use_bonus_action
           combatant.statblock.resources.consume(:second_wind)
           combat.notify_observers(:resource_used, { combatant: combatant, resource: :second_wind })
           heal_combatant(combatant)
+          true
         end
 
         def second_wind_available?(combatant)
-          combatant.statblock.resources.available?(:second_wind) &&
-            combatant.statblock.hit_points < combatant.statblock.calculate_hit_points / 2
+          return false unless combatant.turn_context.bonus_action_available?
+          return false unless combatant.statblock.resources.available?(:second_wind)
+
+          # 75% efficiency heuristic: 75% of 1d10 is 7.5 (round to 8).
+          # Trigger if missing HP >= (8 + Fighter Level)
+          missing_hp = combatant.statblock.max_hp - combatant.statblock.hit_points
+          threshold = 8 + fighter_level(combatant)
+          missing_hp >= threshold
         end
 
         def heal_combatant(combatant)
-          combatant.statblock.heal(DiceRoller.new.roll("1d10+#{combatant.statblock.level}"))
+          amount = DiceRoller.new.roll("1d10+#{fighter_level(combatant)}")
+          combatant.statblock.heal(amount)
+        end
+
+        def fighter_level(combatant)
+          combatant.statblock.class_levels[:fighter] || combatant.statblock.level
         end
 
         def try_action_surge(combatant, combat)
@@ -114,6 +129,7 @@ module Dnd5e
           execute_action(combatant, combat)
           combatant.turn_context.instance_variable_set(:@actions_used, original_actions + 1)
         end
+        # rubocop:enable Naming/PredicateMethod
       end
     end
   end

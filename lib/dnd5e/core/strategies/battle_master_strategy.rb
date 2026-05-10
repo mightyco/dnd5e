@@ -18,19 +18,16 @@ module Dnd5e
         end
 
         def execute_turn(combatant, combat)
-          try_second_wind(combatant, combat)
-
+          used_wind = attempt_second_wind(combatant, combat)
           target, attack = prepare_turn_data(combatant, combat)
+
           if target && attack
-            try_tactical_shift(combatant, target, attack, combat)
+            try_tactical_shift_move(combatant, target, combat) if used_wind
             move_towards_target(combatant, target, attack, combat)
           end
 
           execute_action(combatant, combat)
-
-          target, attack = prepare_turn_data(combatant, combat)
-          move_towards_target(combatant, target, attack, combat) if target && attack
-
+          post_action_movement(combatant, combat)
           try_action_surge(combatant, combat)
         end
 
@@ -45,6 +42,11 @@ module Dnd5e
         end
 
         private
+
+        def post_action_movement(combatant, combat)
+          target, attack = prepare_turn_data(combatant, combat)
+          move_towards_target(combatant, target, attack, combat) if target && attack
+        end
 
         def perform_action_cycle(combatant, target, attack, combat)
           if in_range?(combatant, target, attack, combat)
@@ -76,16 +78,14 @@ module Dnd5e
           move_towards_target(combatant, target, attack, combat)
         end
 
-        def try_tactical_shift(combatant, target, attack, combat)
-          return if in_range?(combatant, target, attack, combat)
-          return unless combatant.turn_context.bonus_action_available?
+        def try_tactical_shift_move(combatant, target, combat)
+          return if in_range?(combatant, target, nil, combat)
 
           bm_feat = combatant.feature_manager.features.find { |f| f.name == 'Battle Master' }
           move_dist = bm_feat&.apply_tactical_shift(combatant, combat)
           return unless move_dist
 
           execute_tactical_move(combatant, target, move_dist, combat)
-          combatant.turn_context.use_bonus_action
         end
 
         def execute_tactical_move(combatant, target, move_dist, combat)

@@ -162,7 +162,7 @@ module Dnd5e
         @turn_manager = TurnManager.new(combatants: @combatants, dice_roller: dice_roller)
         @dice_roller = dice_roller
         @max_rounds = max_rounds
-        @round_counter = 0
+        @round_counter = 1
         @combat_attack_handler = CombatAttackHandler.new(logger: Logger.new(nil))
         @grid = TacticalGrid.new
         setup_stationary_grid(distance)

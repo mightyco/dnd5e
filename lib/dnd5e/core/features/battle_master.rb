@@ -135,10 +135,7 @@ module Dnd5e
         end
 
         def apply_tactical_shift(attacker, _combat)
-          # 2024: Tactical Shift uses Second Wind
-          return unless attacker.statblock.resources.available?(:second_wind)
-
-          attacker.statblock.resources.consume(:second_wind)
+          # 2024: Tactical Shift is triggered by Second Wind usage
           attacker.statblock.speed / 2
         end
 
