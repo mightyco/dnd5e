@@ -221,7 +221,7 @@ module Dnd5e
         old_pos = @grid.find_position(combatant)
         check_opportunity_attacks(combatant, step_pos) if old_pos
         @grid.move(combatant, step_pos)
-        notify_observers(:move_resolved, combatant: combatant, position: step_pos)
+        notify_observers(:move_resolved, combatant: combatant, from: old_pos, to: step_pos)
       end
 
       def check_timeout

@@ -45,7 +45,7 @@ export const RollInspector = ({ data }) => {
               if (event.type === 'move') {
                 return (
                   <div key={idx} style={{ padding: '0.2rem 0', color: '#666', fontSize: '0.85rem' }}>
-                    [MOVE] {event.combatant} moved to ({event.to?.x ?? '?'}, {event.to?.y ?? '?'})
+                    [MOVE] {event.combatant} moved to ({event.to.x}, {event.to.y})
                   </div>
                 );
               }

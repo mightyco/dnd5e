@@ -47,9 +47,9 @@ const CombatantToken = ({ name, state, isActive }: { name: string, state: Combat
       <div style={{ fontWeight: 'bold', fontSize: '0.95rem', marginBottom: '0.25rem', color: '#fff' }}>{name}</div>
       <div style={{ fontSize: '0.8rem', color: '#bbb', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.25rem' }}>
         <span>HP: <strong style={{ color: hpColor }}>{state.hp}/{state.max_hp}</strong></span>
-        <span>AC: <strong>{state.ac || '?'}</strong></span>
-        <span>ATK: <strong>{state.attack_bonus >= 0 ? `+${state.attack_bonus || 0}` : state.attack_bonus}</strong></span>
-        <span>DMG: <strong>{state.damage || '?'}</strong></span>
+        <span>AC: <strong>{state.ac}</strong></span>
+        <span>ATK: <strong>{state.attack_bonus >= 0 ? `+${state.attack_bonus}` : state.attack_bonus}</strong></span>
+        <span>DMG: <strong>{state.damage}</strong></span>
       </div>
       <div style={{ marginTop: '0.25rem', height: '4px', background: '#222', borderRadius: '2px', overflow: 'hidden' }}>
         <div style={{ 
@@ -426,7 +426,7 @@ const CombatPlaybackContent = ({ combatData }) => {
                 {e.is_dead && <span style={{ color: '#9e9e9e', marginLeft: '4px' }}> [DEAD]</span>}
               </span>
             )}
-            {e.type === 'move' && <span><strong>{e.combatant}</strong> moved to ({e.to?.x ?? '?'}, {e.to?.y ?? '?'})</span>}
+            {e.type === 'move' && <span><strong>{e.combatant}</strong> moved to ({e.to.x}, {e.to.y})</span>}
             {e.type === 'turn_start' && <span style={{ color: '#ffeb3b' }}>▶ <strong>{e.combatant}</strong> started their turn</span>}
           </div>
         ))}

@@ -46,7 +46,7 @@ module Dnd5e
       def handle_combat_start(data)
         @combatants_list = data[:combatants]
         @current_combat = {
-          teams: @combatants_list.map(&:name),
+          teams: @combatants_list.map { |c| c.team&.name }.uniq.compact,
           rounds: [],
           initial_positions: @capture_snapshots ? spatial_snapshot(data[:combat]) : nil
         }
@@ -122,7 +122,8 @@ module Dnd5e
 
       def format_combatants(combatants)
         combatants.map do |c|
-          { name: c.name, hp: c.statblock.hit_points, max_hp: c.statblock.max_hp, ac: c.statblock.armor_class }
+          { name: c.name, hp: c.statblock.hit_points, max_hp: c.statblock.max_hp, ac: c.statblock.armor_class,
+            team: c.team&.name }
         end
       end
 
@@ -132,12 +133,34 @@ module Dnd5e
         end
       end
 
+      # rubocop:disable Metrics/AbcSize
       def combatant_data(combatant, combat)
         pos = combat ? combat.grid.find_position(combatant) : find_ctx_pos(combatant)
+        atk = combatant.attacks.first
         { x: pos&.x || 0, y: pos&.y || 0, z: combatant.statblock.altitude,
           hp: combatant.statblock.hit_points, max_hp: combatant.statblock.max_hp,
-          ac: combatant.statblock.armor_class,
-          team: combatant.team&.name }
+          ac: combatant.statblock.armor_class, team: combatant.team&.name }
+          .merge(combat_stats(combatant, atk))
+      end
+      # rubocop:enable Metrics/AbcSize
+
+      def combat_stats(comb, atk)
+        { attack_bonus: calculate_atk_bonus(comb, atk),
+          damage: calculate_atk_damage(comb, atk) }
+      end
+
+      def calculate_atk_bonus(comb, atk)
+        return 0 unless atk
+
+        comb.statblock.ability_modifier(atk.relevant_stat) +
+          comb.statblock.proficiency_bonus +
+          (atk.magic_bonus || 0)
+      end
+
+      def calculate_atk_damage(comb, atk)
+        return '0' unless atk
+
+        atk.damage_dice_for(comb.statblock.level).to_s
       end
 
       def find_ctx_pos(combatant)
