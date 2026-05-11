@@ -6,19 +6,15 @@ require_relative 'attack_formatting'
 
 module Dnd5e
   module Simulation
-    # Collects detailed combat data and exports it as JSON for visualization.
+    # Collects detailed combat data and exports it as JSON for visual playback.
     # rubocop:disable Metrics/ClassLength
     class JSONCombatResultHandler < CombatResultHandler
-      include AttackFormatting
-
       attr_reader :combat_data
-      attr_accessor :capture_snapshots
 
       def initialize(capture_snapshots: false)
         super()
         @combat_data = []
         @current_combat = nil
-        @combatants_list = []
         @capture_snapshots = capture_snapshots
       end
 
@@ -29,6 +25,7 @@ module Dnd5e
         when :turn_start then handle_turn_start(data)
         when :move_resolved then handle_move_resolved(data)
         when :resource_used then handle_resource_used(data)
+        when :mastery_used then handle_mastery_used(data)
         else handle_result_events(event, data)
         end
       end
@@ -60,34 +57,43 @@ module Dnd5e
       end
 
       def handle_turn_start(data)
-        event = {
+        @current_combat[:rounds].last[:events] << {
           type: 'turn_start',
-          combatant: data[:combatant].name
+          combatant: data[:combatant].name,
+          snapshot: @capture_snapshots ? spatial_snapshot(data[:combat]) : nil
         }
-        event[:snapshot] = spatial_snapshot(data[:combat]) if @capture_snapshots
+      end
+
+      def handle_attack_resolved(data)
+        event = AttackFormatting.format(data[:result])
         @current_combat[:rounds].last[:events] << event
+      end
+
+      def handle_resource_used(data)
+        @current_combat[:rounds].last[:events] << {
+          type: 'resource_used',
+          combatant: data[:combatant].name,
+          resource: data[:resource]
+        }
+      end
+
+      def handle_mastery_used(data)
+        @current_combat[:rounds].last[:events] << {
+          type: 'mastery',
+          attacker: data[:attacker].name,
+          defender: data[:defender].name,
+          mastery: data[:mastery],
+          success: data[:success]
+        }
       end
 
       def handle_move_resolved(data)
         @current_combat[:rounds].last[:events] << {
           type: 'move',
           combatant: data[:combatant].name,
-          to: { x: data[:position].x, y: data[:position].y, z: data[:combatant].statblock.altitude }
+          from: data[:from],
+          to: data[:to]
         }
-      end
-
-      def handle_resource_used(data)
-        @current_combat[:rounds].last[:events] << { type: 'resource_used', combatant: data[:combatant].name,
-                                                    resource: data[:resource] }
-      end
-
-      def handle_attack_resolved(data)
-        return unless @current_combat
-
-        result = data[:result]
-        event = format_attack_event(result)
-        event[:snapshot] = spatial_snapshot(nil) if @capture_snapshots
-        @current_combat[:rounds].last[:events] << event
       end
 
       def handle_combat_end(data)
@@ -96,6 +102,7 @@ module Dnd5e
         @current_combat[:winner] = identify_winner(data[:winner])
         @current_combat[:combatants] = format_combatants(data[:combatants])
         @current_combat[:initiative_winner] = data[:initiative_winner]&.name
+        @current_combat[:statistics] = data[:statistics]
         @combat_data << @current_combat
         @current_combat = nil
       end
@@ -115,13 +122,13 @@ module Dnd5e
 
       def format_combatants(combatants)
         combatants.map do |c|
-          { name: c.name, hit_points: c.statblock.hit_points, max_hp: c.statblock.max_hp }
+          { name: c.name, hp: c.statblock.hit_points, max_hp: c.statblock.max_hp, ac: c.statblock.armor_class }
         end
       end
 
       def spatial_snapshot(combat)
-        @combatants_list.each_with_object({}) do |combatant, hash|
-          hash[combatant.name] = combatant_data(combatant, combat)
+        combat.combatants.each_with_object({}) do |c, acc|
+          acc[c.name] = combatant_data(c, combat)
         end
       end
 
@@ -129,6 +136,7 @@ module Dnd5e
         pos = combat ? combat.grid.find_position(combatant) : find_ctx_pos(combatant)
         { x: pos&.x || 0, y: pos&.y || 0, z: combatant.statblock.altitude,
           hp: combatant.statblock.hit_points, max_hp: combatant.statblock.max_hp,
+          ac: combatant.statblock.armor_class,
           team: combatant.team&.name }
       end
 

@@ -388,6 +388,11 @@ const CombatPlaybackContent = ({ combatData }) => {
                 {e.is_dead && <span style={{ color: '#9e9e9e', marginLeft: '4px' }}> [DEAD]</span>}
               </span>
             )}
+            {e.type === 'mastery' && (
+              <span style={{ color: '#ce93d8' }}>
+                ⚔️ <strong>{e.attacker}</strong> applied <strong>{String(e.mastery).toUpperCase()}</strong> to <strong>{e.defender}</strong> ({e.success ? 'SUCCESS' : 'FAILED'})
+              </span>
+            )}
             {e.type === 'resource_used' && (
               <span style={{ color: '#4fc3f7' }}>
                 🛡️ <strong>{e.combatant}</strong> used {String(e.resource).replace('_', ' ')}

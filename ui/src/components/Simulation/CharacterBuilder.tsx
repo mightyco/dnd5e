@@ -30,9 +30,42 @@ export const CharacterBuilder = ({ onSave }) => {
     weapon: 'longsword',
     armor: 'breastplate',
     shield: false,
+    ac: 16,
+    hp: 44,
+    max_hp: 44,
     feats: [],
     fightingStyle: ''
   });
+
+  const calculateAC = (c) => {
+    let base = 10;
+    const dexMod = Math.floor((c.abilities.dexterity - 10) / 2);
+    
+    // Simplified AC Logic for UI preview
+    const armorAC = {
+      'padded': 11 + dexMod,
+      'leather': 11 + dexMod,
+      'studded_leather': 12 + dexMod,
+      'hide': 12 + Math.min(2, dexMod),
+      'chain_shirt': 13 + Math.min(2, dexMod),
+      'breastplate': 14 + Math.min(2, dexMod),
+      'half_plate': 15 + Math.min(2, dexMod),
+      'ring_mail': 14,
+      'chain_mail': 16,
+      'splint': 17,
+      'plate': 18
+    };
+
+    base = armorAC[c.armor] || (10 + dexMod);
+    if (c.shield) base += 2;
+    return base;
+  };
+
+  const calculateHP = (c) => {
+    const conMod = Math.floor((c.abilities.constitution - 10) / 2);
+    const hitDie = ['wizard', 'sorcerer', 'warlock'].includes(c.type) ? 6 : (['fighter', 'paladin', 'ranger'].includes(c.type) ? 10 : 8);
+    return hitDie + (c.level - 1) * (hitDie / 2 + 1) + (c.level * conMod);
+  };
 
   useEffect(() => {
     fetch('/api/metadata')
@@ -45,6 +78,16 @@ export const CharacterBuilder = ({ onSave }) => {
       })
       .catch(err => console.error('Failed to load metadata', err));
   }, []);
+
+  // Update AC/HP when dependencies change
+  useEffect(() => {
+    setChar(prev => ({
+      ...prev,
+      ac: calculateAC(prev),
+      hp: Math.floor(calculateHP(prev)),
+      max_hp: Math.floor(calculateHP(prev))
+    }));
+  }, [char.abilities, char.armor, char.shield, char.level, char.type]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -115,7 +158,13 @@ export const CharacterBuilder = ({ onSave }) => {
 
   return (
     <div style={{ padding: '1.5rem', border: '1px solid #ddd', borderRadius: '8px', background: '#fff', marginBottom: '1rem', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
-      <h3 style={{ marginTop: 0, borderBottom: '2px solid var(--accent, #2e7d32)', paddingBottom: '0.5rem' }}>Advanced Character Builder</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid var(--accent, #2e7d32)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
+        <h3 style={{ margin: 0 }}>Advanced Character Builder</h3>
+        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem' }}>
+          <span>AC: <strong>{char.ac}</strong></span>
+          <span>HP: <strong>{char.max_hp}</strong></span>
+        </div>
+      </div>
       
       {/* BASIC ZONE */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>

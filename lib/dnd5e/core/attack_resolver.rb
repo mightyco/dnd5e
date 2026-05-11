@@ -84,6 +84,9 @@ module Dnd5e
       end
 
       def apply_graze(att, defn, atk, dmg_data)
+        opts = { attacker: att, defender: defn, mastery: :graze, success: true }
+        att.instance_variable_get(:@combat_context)&.notify_observers(:mastery_used, opts)
+
         dmg_data[:damage] = [1, att.statblock.ability_modifier(atk.relevant_stat)].max
         defn.statblock.take_damage(dmg_data[:damage])
         att.statblock.record_damage_dealt(dmg_data[:damage])
