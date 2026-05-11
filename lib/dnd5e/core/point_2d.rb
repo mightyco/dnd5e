@@ -24,6 +24,18 @@ module Dnd5e
         "(#{@x}, #{@y})"
       end
 
+      def to_h
+        { x: @x, y: @y }
+      end
+
+      def as_json(*_args)
+        to_h
+      end
+
+      def to_json(*_args)
+        to_h.to_json
+      end
+
       def inspect
         "#<Point2D x:#{@x} y:#{@y}>"
       end

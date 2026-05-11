@@ -13,6 +13,8 @@ module Dnd5e
         when :topple then resolve_topple(attacker, defender, attack, combat)
         when :push then resolve_push(attacker, defender, combat)
         when :slow then apply_slow(attacker, defender, combat)
+        when :nick then notify_mastery(combat, attacker, defender, :nick, true)
+        when :cleave then notify_mastery(combat, attacker, defender, :cleave, true)
         end
       end
 

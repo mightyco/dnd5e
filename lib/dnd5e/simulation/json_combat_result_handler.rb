@@ -91,8 +91,8 @@ module Dnd5e
         @current_combat[:rounds].last[:events] << {
           type: 'move',
           combatant: data[:combatant].name,
-          from: data[:from],
-          to: data[:to]
+          from: data[:from]&.to_h,
+          to: data[:to]&.to_h
         }
       end
 

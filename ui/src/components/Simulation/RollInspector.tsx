@@ -45,7 +45,7 @@ export const RollInspector = ({ data }) => {
               if (event.type === 'move') {
                 return (
                   <div key={idx} style={{ padding: '0.2rem 0', color: '#666', fontSize: '0.85rem' }}>
-                    [MOVE] {event.combatant} moved to ({event.to?.x}, {event.to?.y})
+                    [MOVE] {event.combatant} moved to ({event.to?.x ?? '?'}, {event.to?.y ?? '?'})
                   </div>
                 );
               }
@@ -75,7 +75,7 @@ export const RollInspector = ({ data }) => {
                   <br/>
                   <small style={{ color: '#666' }}>
                     Roll: {meta.attack_roll || '?'} (Raw: [{meta.raw_rolls?.join(', ') || '?'}] + {meta.modifier || 0}) vs AC {meta.target_ac || '?'}
-                    {event.damage > 0 && ` | Damage: ${event.damage} (${meta.damage_rolls?.join('+') || '?'} + ${meta.damage_modifier || 0})`}
+                    {event.damage > 0 && ` | Damage: ${event.damage} (${meta.damage_rolls?.join(' + ') || '?'} + ${meta.damage_modifier || 0})`}
                     {meta.current_hp !== undefined && ` | Target HP: ${meta.current_hp}/${meta.max_hp}`}
                   </small>
                 </div>

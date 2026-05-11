@@ -162,12 +162,33 @@ const CombatPlaybackContent = ({ combatData }) => {
     
     const state = latestSnapshot || JSON.parse(JSON.stringify(currentCombat.initial_positions || {}));
     
-    // Replay intermediate moves
+    // Replay intermediate events to get current stats/positions
     for (let i = snapshotIndex + 1; i <= safeIndex; i++) {
       const e = events[i];
-      if (e && e.type === 'move' && state[e.combatant] && e.to) {
-        state[e.combatant].x = e.to.x;
-        state[e.combatant].y = e.to.y;
+      if (!e) continue;
+
+      const target = state[e.combatant || e.defender || e.attacker];
+      if (!target) continue;
+
+      switch (e.type) {
+        case 'move':
+          if (e.to && state[e.combatant]) {
+            state[e.combatant].x = e.to.x;
+            state[e.combatant].y = e.to.y;
+          }
+          break;
+        case 'attack':
+        case 'save':
+          if (e.success && e.defender && state[e.defender]) {
+            state[e.defender].hp = Math.max(0, state[e.defender].hp - (e.damage || 0));
+          }
+          break;
+        case 'resource_used':
+          if (e.resource === 'second_wind' && e.combatant && state[e.combatant]) {
+            // Second Wind healing is already applied in the next snapshot, 
+            // but for smooth playback we could estimate or wait for snapshot.
+          }
+          break;
       }
     }
     
@@ -405,7 +426,7 @@ const CombatPlaybackContent = ({ combatData }) => {
                 {e.is_dead && <span style={{ color: '#9e9e9e', marginLeft: '4px' }}> [DEAD]</span>}
               </span>
             )}
-            {e.type === 'move' && <span><strong>{e.combatant}</strong> moved to ({e.to?.x}, {e.to?.y})</span>}
+            {e.type === 'move' && <span><strong>{e.combatant}</strong> moved to ({e.to?.x ?? '?'}, {e.to?.y ?? '?'})</span>}
             {e.type === 'turn_start' && <span style={{ color: '#ffeb3b' }}>▶ <strong>{e.combatant}</strong> started their turn</span>}
           </div>
         ))}
