@@ -144,13 +144,17 @@ const CombatPlaybackContent = ({ combatData }) => {
   const computeCurrentState = () => {
     if (!currentCombat || events.length === 0) return {};
     
-    // Find latest snapshot at or before eventIndex
+    // Cap eventIndex to prevent out-of-bounds access during data transitions
+    const safeIndex = Math.min(eventIndex, events.length - 1);
+    
+    // Find latest snapshot at or before safeIndex
     let snapshotIndex = -1;
     let latestSnapshot = null;
     
-    for (let i = eventIndex; i >= 0; i--) {
-      if (events[i]?.snapshot) {
-        latestSnapshot = JSON.parse(JSON.stringify(events[i].snapshot));
+    for (let i = safeIndex; i >= 0; i--) {
+      const e = events[i];
+      if (e && e.snapshot) {
+        latestSnapshot = JSON.parse(JSON.stringify(e.snapshot));
         snapshotIndex = i;
         break;
       }
@@ -159,9 +163,9 @@ const CombatPlaybackContent = ({ combatData }) => {
     const state = latestSnapshot || JSON.parse(JSON.stringify(currentCombat.initial_positions || {}));
     
     // Replay intermediate moves
-    for (let i = snapshotIndex + 1; i <= eventIndex; i++) {
+    for (let i = snapshotIndex + 1; i <= safeIndex; i++) {
       const e = events[i];
-      if (e.type === 'move' && state[e.combatant] && e.to) {
+      if (e && e.type === 'move' && state[e.combatant] && e.to) {
         state[e.combatant].x = e.to.x;
         state[e.combatant].y = e.to.y;
       }
@@ -171,8 +175,10 @@ const CombatPlaybackContent = ({ combatData }) => {
   };
 
   const getActiveCombatant = () => {
-    for (let i = eventIndex; i >= 0; i--) {
-      if (events[i]?.type === 'turn_start') return events[i].combatant;
+    const safeIndex = Math.min(eventIndex, events.length - 1);
+    for (let i = safeIndex; i >= 0; i--) {
+      const e = events[i];
+      if (e && e.type === 'turn_start') return e.combatant;
     }
     return null;
   };
