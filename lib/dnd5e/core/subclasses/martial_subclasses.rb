@@ -8,7 +8,7 @@ module Dnd5e
         battlemaster: {
           class: :fighter,
           features: ->(level) { [Features::BattleMaster.new(level: level)] },
-          strategy: ->(_level) { Strategies::BattleMasterStrategy.new }
+          strategy: ->(_level) { Strategies::BattleMasterStrategy.new(use_precision_attack: true) }
         },
         champion: {
           class: :fighter,

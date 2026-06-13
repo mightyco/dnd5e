@@ -68,3 +68,4 @@ log/
 results.json
 
 execution_times.txt
+.sdd/

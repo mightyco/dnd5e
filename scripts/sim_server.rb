@@ -71,6 +71,7 @@ def build_metadata_payload
   assemble_metadata(cls, scs)
 end
 
+# rubocop:disable Metrics/MethodLength
 def assemble_metadata(cls, scs)
   {
     classes: cls, subclasses: scs,
@@ -84,6 +85,7 @@ def assemble_metadata(cls, scs)
     shields: ['shield'], ui_schema: build_ui_schema
   }
 end
+# rubocop:enable Metrics/MethodLength
 
 def discover_classes_and_subclasses
   all_classes = %w[fighter wizard rogue barbarian paladin monk ranger cleric bard druid sorcerer warlock]
@@ -254,11 +256,11 @@ def apply_character_options(builder, cfg, level)
   subclass = nil if subclass == ''
   builder.with_subclass(subclass, level: level) if subclass
   builder.with_fighting_style(cfg['fightingStyle']) if cfg['fightingStyle']
-  
-  if cfg['maneuvers'].is_a?(Array)
-    builder.with_strategy(Dnd5e::Core::Strategies::BattleMasterStrategy.new) # Ensure BM strategy
-    # If we add specific maneuver support to strategy, we would pass them here
-  end
+
+  return unless cfg['maneuvers'].is_a?(Array)
+
+  builder.with_strategy(Dnd5e::Core::Strategies::BattleMasterStrategy.new) # Ensure BM strategy
+  # If we add specific maneuver support to strategy, we would pass them here
 end
 
 def apply_custom_equipment(builder, cfg)

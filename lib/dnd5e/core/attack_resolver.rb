@@ -26,7 +26,7 @@ module Dnd5e
 
       def apply_save_attack(attacker, defender, attack, _opts)
         res_data = Helpers::SaveResolutionHelper.resolve(attacker, defender, attack)
-        
+
         details = res_data[:details].merge(hp_and_prof_details(attacker, defender))
         @result_builder.build(attacker: attacker, defender: defender, attack: attack,
                               outcome: res_data[:outcome], details: details)
@@ -55,9 +55,9 @@ module Dnd5e
 
       def apply_and_build_result(attacker, defender, attack, roll_data, outcome)
         attacker.statblock.heroic_inspiration = true if roll_data[:is_crit]
-        
+
         dmg_data = calculate_damage(attacker, defender, attack, roll_data, outcome)
-        
+
         if outcome[:success]
           handle_hit_effects(attacker, defender, attack, outcome, dmg_data)
         elsif attack.mastery == :graze
@@ -69,30 +69,32 @@ module Dnd5e
         build_final_result(attacker, defender, attack, roll_data, outcome, dmg_data)
       end
 
+      # rubocop:disable Metrics/AbcSize
       def calculate_damage(attacker, defender, attack, roll_data, outcome)
         return { damage: 0, rolls: [], modifier: 0 } unless outcome[:success] || attack.mastery == :graze
 
         opt = outcome[:options]
         mod = Helpers::DamageRollHelper.calculate_modifier(attacker, attack, opt)
         dice = Helpers::DamageRollHelper.calculate_dice(attacker, attack, roll_data[:is_crit], opt)
-        
+
         base_dmg = attack.dice_roller.roll_with_dice(Dice.new(dice.count, dice.sides, modifier: mod))
         base_rolls = attack.dice_roller.dice.rolls.dup
 
         extra_dmg, extra_rolls = Helpers::DamageRollHelper.roll_extra(attacker, defender, attack, opt)
-        
+
         total_dmg = base_dmg + extra_dmg
         total_dmg = apply_damage_taken_hooks(defender, attacker, attack, total_dmg, opt)
 
         { damage: total_dmg, rolls: base_rolls + extra_rolls, modifier: mod }
       end
+      # rubocop:enable Metrics/AbcSize
 
       def handle_hit_effects(attacker, defender, attack, outcome, dmg_data)
         # Trigger on_attack_hit for Maneuvers and other on-hit features
-        context = { 
+        context = {
           attacker: attacker, defender: defender, attack: attack,
           options: outcome[:options], combat: outcome[:options][:combat],
-          result: dmg_data, dice_roller: attack.dice_roller 
+          result: dmg_data, dice_roller: attack.dice_roller
         }
         attacker.feature_manager.execute_hook(:on_attack_hit, context)
 
@@ -106,6 +108,7 @@ module Dnd5e
         dmg_data[:damage] = [1, att.statblock.ability_modifier(atk.relevant_stat)].max
       end
 
+      # rubocop:disable Metrics/AbcSize, Metrics/MethodLength, Metrics/ParameterLists
       def build_final_result(attacker, defender, attack, roll_data, outcome, dmg_data)
         details = {
           attack_roll: roll_data[:total], raw_roll: roll_data[:raw], modifier: roll_data[:modifier],
@@ -120,6 +123,7 @@ module Dnd5e
                               outcome: outcome.merge(damage: dmg_data[:damage]),
                               details: details)
       end
+      # rubocop:enable Metrics/AbcSize, Metrics/MethodLength, Metrics/ParameterLists
 
       def hp_and_prof_details(attacker, defender)
         {

@@ -45,9 +45,7 @@ module Dnd5e
           save_roll = roll_save(defender, :wisdom, context[:dice_roller])
           dc = calculate_maneuver_dc(context[:attacker])
           success = save_roll < dc
-          if success
-            defender.add_condition(:frightened, { source: context[:attacker], expiry: :turn_end })
-          end
+          defender.add_condition(:frightened, { source: context[:attacker], expiry: :turn_end }) if success
           notify_mastery(context[:options][:combat], context[:attacker], defender, :menacing_attack, success)
         end
 
@@ -66,6 +64,7 @@ module Dnd5e
           notify_mastery(context[:options][:combat], context[:attacker], context[:defender], :pushing_attack, success)
         end
 
+        # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
         def execute_push(combat, attacker, defender)
           attacker_pos = combat.grid.find_position(attacker)
           defender_pos = combat.grid.find_position(defender)
@@ -84,9 +83,10 @@ module Dnd5e
           new_pos = Point2D.new(defender_pos.x + push_x, defender_pos.y + push_y)
           combat.grid.move(defender, new_pos)
         end
+        # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
         def notify_mastery(combat, attacker, defender, mastery, success)
-          return unless combat && combat.respond_to?(:notify_observers)
+          return unless combat.respond_to?(:notify_observers)
 
           combat.notify_observers(:mastery_used, {
                                     attacker: attacker, defender: defender,
@@ -113,7 +113,7 @@ module Dnd5e
           roll_data = context[:current_value]
           roll_data[:total] += bonus
           roll_data[:precision_attack_bonus] = bonus
-          
+
           combat = context.dig(:options, :combat)
           notify_mastery(combat, attacker, context[:defender], :precision_attack, true)
           roll_data

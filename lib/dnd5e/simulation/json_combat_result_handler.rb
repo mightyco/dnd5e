@@ -18,6 +18,7 @@ module Dnd5e
         @capture_snapshots = capture_snapshots
       end
 
+      # rubocop:disable Metrics/CyclomaticComplexity
       def update(event, data)
         case event
         when :combat_start then handle_combat_start(data)
@@ -30,6 +31,7 @@ module Dnd5e
         else handle_result_events(event, data)
         end
       end
+      # rubocop:enable Metrics/CyclomaticComplexity
 
       def to_json(*_args)
         JSON.pretty_generate(@combat_data)

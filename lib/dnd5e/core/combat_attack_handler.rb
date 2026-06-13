@@ -38,14 +38,12 @@ module Dnd5e
         # Identify victims using grid if available
         victims = find_aoe_victims(attacker, target, attack, combat)
 
-        results = victims.map do |victim|
+        victims.map do |victim|
           @attack_resolver.resolve(attacker, victim, attack, **options)
         end
-
-        results
       end
 
-      def find_aoe_victims(attacker, target, attack, combat)
+      def find_aoe_victims(_attacker, target, attack, combat)
         target_pos = combat.grid.find_position(target)
         return [target] unless target_pos
 

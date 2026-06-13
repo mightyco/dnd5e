@@ -57,12 +57,6 @@ module Dnd5e
           end
         end
 
-        def should_kite?(combatant, target, combat)
-          # Kite if target is Prone (disadvantage on their next move) 
-          # or Frightened (disadvantage on attacks).
-          target.prone? || target.condition?(:frightened) || super
-        end
-
         def execute_battle_master_attacks(combatant, target, attack, combat)
           num_attacks = attack.type == :save ? 1 : 1 + combatant.statblock.extra_attacks
           # We must manually implement the loop here to pass options to each attack
@@ -91,17 +85,17 @@ module Dnd5e
         def pick_maneuver(combatant, target)
           return @maneuver_choice if @maneuver_choice
 
-          # 1. Menacing if not already frightened (best control)
-          return :menacing_attack if !target.condition?(:frightened)
-
-          # 2. Trip if not already prone (grant advantage)
+          # 1. Trip if not already prone (grant advantage on melee)
           return :trip_attack if !target.prone? && combatant.attacks.any? { |a| a.range <= 5 }
+
+          # 2. Menacing if not already frightened (best control)
+          return :menacing_attack unless target.condition?(:frightened)
 
           # 3. Pushing if we need to disengage
           return :pushing_attack if combatant.statblock.hit_points < combatant.statblock.max_hp / 2
 
-          # Default to Menacing (re-up) or Trip
-          :menacing_attack
+          # Default to Trip or Menacing
+          :trip_attack
         end
 
         def perform_action_cycle(combatant, target, attack, combat)
@@ -109,7 +103,8 @@ module Dnd5e
             execute_battle_master_attacks(combatant, target, attack, combat)
           else
             move_towards_target(combatant, target, attack, combat)
-            execute_battle_master_attacks(combatant, target, attack, combat) if in_range?(combatant, target, attack, combat)
+            execute_battle_master_attacks(combatant, target, attack, combat) if in_range?(combatant, target, attack,
+                                                                                          combat)
           end
         end
 

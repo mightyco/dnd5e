@@ -30,7 +30,7 @@ module Dnd5e
         end
         # rubocop:enable Metrics/AbcSize
 
-        def self.calculate_dice(attacker, attack, is_crit, options)
+        def self.calculate_dice(_attacker, attack, is_crit, _options)
           count = attack.damage_dice.count
           count *= 2 if is_crit
           Dice.new(count, attack.damage_dice.sides)

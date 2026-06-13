@@ -52,10 +52,10 @@ module Dnd5e
 
       def create_duel_scenario
         bm = Builders::CharacterBuilder.new(name: 'Battlemaster')
-                                       .as_fighter(level: 5)
+                                       .as_fighter(level: 5, abilities: { strength: 16, constitution: 16 })
                                        .with_subclass(:battlemaster).build
         champ = Builders::CharacterBuilder.new(name: 'Champion')
-                                          .as_fighter(level: 5)
+                                          .as_fighter(level: 5, abilities: { strength: 16, constitution: 16 })
                                           .with_subclass(:champion).build
 
         t1 = Core::Team.new(name: 'Battlemaster', members: [bm])
