@@ -5,19 +5,8 @@ require_relative '../dice'
 module Dnd5e
   module Core
     module Helpers
-      # Helper for calculating and rolling damage.
+      # Helper for damage roll calculations.
       class DamageRollHelper
-        def self.calculate_dice(attacker, attack, is_crit, options)
-          base_dice = attack.damage_dice_for(attacker.statblock.level)
-          return base_dice unless base_dice.is_a?(Dice)
-
-          context = { attacker: attacker, attack: attack, dice: base_dice, options: options, is_crit: is_crit }
-          base_dice = attacker.feature_manager.apply_hook(:on_damage_calculation, context, base_dice)
-
-          count = is_crit ? base_dice.count * 2 : base_dice.count
-          Dice.new(count, base_dice.sides, modifier: base_dice.modifier)
-        end
-
         # rubocop:disable Metrics/AbcSize
         def self.calculate_modifier(attacker, attack, options)
           # Start with weapon's built-in modifier and magic bonus
@@ -33,25 +22,33 @@ module Dnd5e
             ability_mod = 0 unless has_twf_style
           end
 
-          # Add Fighting Style damage bonuses (e.g. Dueling)
-          require_relative 'fighting_style_helper'
-          fighting_style_mod = FightingStyleHelper.extra_damage_modifier(attacker, attack, options)
+          # Unified Feature Modifier Hook
+          context = { attacker: attacker, attack: attack, options: options }
+          feature_mod = attacker.feature_manager.apply_modifier_hook(:extra_damage_modifier, context, 0)
 
-          base_mod + ability_mod + fighting_style_mod
+          base_mod + ability_mod + feature_mod
         end
         # rubocop:enable Metrics/AbcSize
+
+        def self.calculate_dice(attacker, attack, is_crit, options)
+          count = attack.damage_dice.count
+          count *= 2 if is_crit
+          Dice.new(count, attack.damage_dice.sides)
+        end
 
         def self.roll_extra(attacker, defender, attack, options)
           context = { attacker: attacker, defender: defender, attack: attack, options: options }
           extra_dice_list = attacker.feature_manager.apply_list_hook(:extra_damage_dice, context)
 
           total = 0
-          all_rolls = []
+          rolls = []
           extra_dice_list.each do |dice|
-            total += attack.dice_roller.roll_with_dice(dice)
-            all_rolls.concat(attack.dice_roller.dice.rolls)
+            dice_total = attack.dice_roller.roll_with_dice(dice)
+            total += dice_total
+            rolls += attack.dice_roller.dice.rolls
           end
-          [total, all_rolls]
+
+          [total, rolls]
         end
       end
     end

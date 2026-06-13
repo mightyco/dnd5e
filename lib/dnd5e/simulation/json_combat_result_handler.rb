@@ -26,6 +26,7 @@ module Dnd5e
         when :move_resolved then handle_move_resolved(data)
         when :resource_used then handle_resource_used(data)
         when :mastery_used then handle_mastery_used(data)
+        when :attack then handle_attack_start(data)
         else handle_result_events(event, data)
         end
       end
@@ -62,6 +63,10 @@ module Dnd5e
           combatant: data[:combatant].name,
           snapshot: @capture_snapshots ? spatial_snapshot(data[:combat]) : nil
         }
+      end
+
+      def handle_attack_start(data)
+        # Log the raw attack intent to ensure visibility even if resolve fails
       end
 
       def handle_attack_resolved(data)

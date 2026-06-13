@@ -77,6 +77,7 @@ module Dnd5e
 
         def self.apply_attacker_conditions(attacker, adv, dis)
           dis = true if attacker.prone? || attacker.condition?(:restrained) || attacker.condition?(:sapped)
+          dis = true if attacker.condition?(:frightened)
           adv = true if attacker.condition?(:hidden)
           [adv, dis]
         end

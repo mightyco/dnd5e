@@ -78,6 +78,7 @@ def assemble_metadata(cls, scs)
     types: { classes: cls, monsters: %w[goblin bugbear ogre] },
     feats: Dnd5e::Core::FeatRegistry.all_keys,
     fighting_styles: %w[archery defense dueling great_weapon_fighting protection two_weapon_fighting],
+    maneuvers: %w[menacing_attack trip_attack pushing_attack precision_attack],
     weapons: Dnd5e::Core::WeaponRegistry.all_keys,
     armor: Dnd5e::Core::ArmorRegistry.all_keys.reject { |k| k == 'shield' },
     shields: ['shield'], ui_schema: build_ui_schema
@@ -253,6 +254,11 @@ def apply_character_options(builder, cfg, level)
   subclass = nil if subclass == ''
   builder.with_subclass(subclass, level: level) if subclass
   builder.with_fighting_style(cfg['fightingStyle']) if cfg['fightingStyle']
+  
+  if cfg['maneuvers'].is_a?(Array)
+    builder.with_strategy(Dnd5e::Core::Strategies::BattleMasterStrategy.new) # Ensure BM strategy
+    # If we add specific maneuver support to strategy, we would pass them here
+  end
 end
 
 def apply_custom_equipment(builder, cfg)

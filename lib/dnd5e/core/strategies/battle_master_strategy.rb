@@ -18,14 +18,16 @@ module Dnd5e
         end
 
         def execute_turn(combatant, combat)
-          used_wind = attempt_second_wind(combatant, combat)
+          attempt_second_wind(combatant, combat)
           target, attack = prepare_turn_data(combatant, combat)
 
           if target && attack
-            try_tactical_shift_move(combatant, target, combat) if used_wind
+            # Use Tactical Shift (bonus move) if we used Second Wind and are not in range
+            try_tactical_shift_move(combatant, target, combat) if combatant.turn_context.bonus_actions_used.positive?
             move_towards_target(combatant, target, attack, combat)
           end
 
+          # execute_action is called here, which calls perform_action_cycle -> execute_battle_master_attacks
           execute_action(combatant, combat)
           post_action_movement(combatant, combat)
           try_action_surge(combatant, combat)
@@ -45,22 +47,34 @@ module Dnd5e
 
         def post_action_movement(combatant, combat)
           target, attack = prepare_turn_data(combatant, combat)
-          move_towards_target(combatant, target, attack, combat) if target && attack
-        end
+          return unless target && attack
 
-        def perform_action_cycle(combatant, target, attack, combat)
-          if in_range?(combatant, target, attack, combat)
-            execute_battle_master_attacks(combatant, target, attack, combat)
+          # 2024 Tactical AI: Kite away if the target is prone or frightened
+          if should_kite?(combatant, target, combat)
+            move_away_from_target(combatant, target, combat)
           else
-            combatant.turn_context.instance_variable_set(:@movement_used, 0)
             move_towards_target(combatant, target, attack, combat)
           end
         end
 
+        def should_kite?(combatant, target, combat)
+          # Kite if target is Prone (disadvantage on their next move) 
+          # or Frightened (disadvantage on attacks).
+          target.prone? || target.condition?(:frightened) || super
+        end
+
         def execute_battle_master_attacks(combatant, target, attack, combat)
           num_attacks = attack.type == :save ? 1 : 1 + combatant.statblock.extra_attacks
-          perform_attack_sequence(num_attacks, combatant, target, attack, combat)
-          try_multi_attacks(combatant, target, attack, combat)
+          # We must manually implement the loop here to pass options to each attack
+          num_attacks.times do
+            # Re-acquire target
+            current_target = determine_best_target(combatant, target, attack, combat)
+            break unless current_target
+
+            execute_sequence_attack(combatant, current_target, attack, combat)
+            try_cleave_attack(combatant, current_target, attack, combat)
+          end
+          try_extra_attacks(combatant, target, attack, combat)
         end
 
         def execute_sequence_attack(combatant, target, attack, combat)
@@ -69,13 +83,34 @@ module Dnd5e
             options[:maneuver] = pick_maneuver(combatant, target)
           end
 
+          # Use the combat instance to perform the attack with maneuver options
           combat.attack(combatant, target, **options)
           combatant.statblock.resources.consume(attack.resource_cost) if attack.resource_cost
         end
 
-        def execute_dash_if_needed(combatant, target, attack, combat)
-          combatant.turn_context.instance_variable_set(:@movement_used, 0)
-          move_towards_target(combatant, target, attack, combat)
+        def pick_maneuver(combatant, target)
+          return @maneuver_choice if @maneuver_choice
+
+          # 1. Menacing if not already frightened (best control)
+          return :menacing_attack if !target.condition?(:frightened)
+
+          # 2. Trip if not already prone (grant advantage)
+          return :trip_attack if !target.prone? && combatant.attacks.any? { |a| a.range <= 5 }
+
+          # 3. Pushing if we need to disengage
+          return :pushing_attack if combatant.statblock.hit_points < combatant.statblock.max_hp / 2
+
+          # Default to Menacing (re-up) or Trip
+          :menacing_attack
+        end
+
+        def perform_action_cycle(combatant, target, attack, combat)
+          if in_range?(combatant, target, attack, combat)
+            execute_battle_master_attacks(combatant, target, attack, combat)
+          else
+            move_towards_target(combatant, target, attack, combat)
+            execute_battle_master_attacks(combatant, target, attack, combat) if in_range?(combatant, target, attack, combat)
+          end
         end
 
         def try_tactical_shift_move(combatant, target, combat)
@@ -98,29 +133,6 @@ module Dnd5e
 
           segment, = calculate_move_segment(path, move_dist, combat.grid)
           combat.move_combatant(combatant, segment)
-        end
-
-        def pick_maneuver(combatant, target)
-          if !target.prone? && combatant.attacks.any? { |a| a.range <= 5 }
-            :trip_attack
-          else
-            :menacing_attack
-          end
-        end
-
-        def try_multi_attacks(combatant, target, attack, combat)
-          target = ensure_alive_target(combatant, target, combat)
-          return unless target
-
-          try_nick_attack(combatant, target, combat)
-          target = ensure_alive_target(combatant, target, combat)
-          return unless target
-
-          try_dual_wielder_attack(combatant, target, combat)
-          target = ensure_alive_target(combatant, target, combat)
-          return unless target
-
-          try_gwm_bonus_attack(combatant, target, attack, combat)
         end
       end
     end

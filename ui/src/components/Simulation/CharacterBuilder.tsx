@@ -8,6 +8,7 @@ export const CharacterBuilder = ({ onSave }) => {
     monsters: [], 
     feats: [],
     fighting_styles: [],
+    maneuvers: [],
     weapons: [],
     armor: [],
     shields: [],
@@ -34,6 +35,7 @@ export const CharacterBuilder = ({ onSave }) => {
     hp: 44,
     max_hp: 44,
     feats: [],
+    maneuvers: [],
     fightingStyle: ''
   });
 

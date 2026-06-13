@@ -35,6 +35,7 @@ module Dnd5e
       end
 
       def test_trip_attack
+        @hero.strategy.define_singleton_method(:pick_maneuver) { |*_args| :trip_attack }
         @combat.distance = 5
         @hero.start_turn
 

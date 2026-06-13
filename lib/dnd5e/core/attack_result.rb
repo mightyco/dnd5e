@@ -8,7 +8,7 @@ module Dnd5e
                   :attack_roll, :raw_roll, :modifier, :target_ac,
                   :save_roll, :save_dc, :is_dead, :rolls, :advantage, :disadvantage,
                   :damage_rolls, :damage_modifier, :is_crit, :current_hp, :max_hp,
-                  :proficiency_bonus
+                  :proficiency_bonus, :maneuver
 
       # Initializes a new AttackResult.
       #
@@ -37,6 +37,7 @@ module Dnd5e
         @current_hp = details[:current_hp]
         @max_hp = details[:max_hp]
         @proficiency_bonus = details[:proficiency_bonus]
+        @maneuver = details[:maneuver]
       end
 
       def assign_roll_details(details)

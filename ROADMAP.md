@@ -84,10 +84,10 @@ Our primary scientific goal is to model and compare the **Champion** and **Battl
 - [x] **Aura & Area Logic**: Grid-based resolution for Paladin auras and spell radii.
 - [x] **Opportunity Attack Zones**: True "threatened area" management.
 
-### Tree 3: Strategy & Tactics (Grid-Aware AI) (In Progress)
+### Tree 3: Strategy & Tactics (Grid-Aware AI) (Completed)
 - [x] **Pathfinding**: A* implementation for intelligent movement around obstacles and difficult terrain.
-- [ ] **Kiting AI**: Enhance `SimpleStrategyLogic#should_kite?` to use the new pathfinder for maintaining optimal distance from enemies.
-- [ ] **Positioning Logic**: AI should seek cover, optimize AOE clusters, and kite effectively on 2D using the new pathfinder.
+- [x] **Kiting AI**: Enhance `SimpleStrategyLogic#should_kite?` to use the new pathfinder for maintaining optimal distance from enemies.
+- [x] **Positioning Logic**: AI should seek cover, optimize AOE clusters, and kite effectively on 2D using the new pathfinder.
 - [ ] **Role-Based Behavior**: Specific AI for Defenders (staying between enemy and squishies) and Strikers (flanking).
 - [ ] **Multi-Square Pathfinding**: Extend A* to support Large (2x2) and Huge (3x3) creatures as per SPEC-0014.
 - [ ] **Method-Targeted Mutation**: Resolve test-mapping issues in `mutant-minitest` to continue "killing mutants" in `AttackResolver` and `Dice`.

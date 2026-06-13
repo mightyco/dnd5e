@@ -18,6 +18,7 @@ module Dnd5e
           case maneuver
           when :trip_attack then apply_trip_attack(context)
           when :pushing_attack then apply_pushing_attack(context)
+          when :menacing_attack then apply_menacing_attack(context)
           end
         end
 
@@ -25,29 +26,44 @@ module Dnd5e
           defender = context[:defender]
           return unless valid_target_size?(defender)
 
-          save_roll = roll_strength_save(defender, context[:dice_roller])
-          defender.add_condition(:prone) if save_roll < calculate_maneuver_dc(context[:attacker])
+          save_roll = roll_save(defender, :strength, context[:dice_roller])
+          success = save_roll < calculate_maneuver_dc(context[:attacker])
+          defender.add_condition(:prone) if success
+          notify_mastery(context[:options][:combat], context[:attacker], defender, :trip_attack, success)
         end
 
         def apply_pushing_attack(context)
           defender = context[:defender]
           return unless valid_target_size?(defender)
 
-          save_roll = roll_strength_save(defender, context[:dice_roller])
+          save_roll = roll_save(defender, :strength, context[:dice_roller])
           apply_push_effect(save_roll, context)
         end
 
-        def roll_strength_save(defender, roller)
-          mod = defender.statblock.ability_modifier(:strength)
+        def apply_menacing_attack(context)
+          defender = context[:defender]
+          save_roll = roll_save(defender, :wisdom, context[:dice_roller])
+          dc = calculate_maneuver_dc(context[:attacker])
+          success = save_roll < dc
+          if success
+            defender.add_condition(:frightened, { source: context[:attacker], expiry: :turn_end })
+          end
+          notify_mastery(context[:options][:combat], context[:attacker], defender, :menacing_attack, success)
+        end
+
+        def roll_save(defender, ability, roller)
+          mod = defender.statblock.save_modifier(ability)
           roller ||= DiceRoller.new
           roller.roll(mod.negative? ? "1d20#{mod}" : "1d20+#{mod}")
         end
 
         def apply_push_effect(save_roll, context)
           dc = calculate_maneuver_dc(context[:attacker])
-          return unless save_roll < dc && context[:options][:combat]
-
-          execute_push(context[:options][:combat], context[:attacker], context[:defender])
+          success = save_roll < dc
+          if success && context[:options][:combat]
+            execute_push(context[:options][:combat], context[:attacker], context[:defender])
+          end
+          notify_mastery(context[:options][:combat], context[:attacker], context[:defender], :pushing_attack, success)
         end
 
         def execute_push(combat, attacker, defender)
@@ -55,12 +71,33 @@ module Dnd5e
           defender_pos = combat.grid.find_position(defender)
           return unless attacker_pos && defender_pos
 
-          new_x = defender_pos.x >= attacker_pos.x ? defender_pos.x + 15 : defender_pos.x - 15
-          combat.move_combatant(defender, Point2D.new(new_x, 0))
+          # Calculate direction vector
+          dx = defender_pos.x - attacker_pos.x
+          dy = defender_pos.y - attacker_pos.y
+          mag = Math.sqrt((dx**2) + (dy**2))
+          return if mag.zero?
+
+          # Push 15ft away
+          push_x = ((dx / mag) * 15).round / 5 * 5
+          push_y = ((dy / mag) * 15).round / 5 * 5
+
+          new_pos = Point2D.new(defender_pos.x + push_x, defender_pos.y + push_y)
+          combat.grid.move(defender, new_pos)
+        end
+
+        def notify_mastery(combat, attacker, defender, mastery, success)
+          return unless combat && combat.respond_to?(:notify_observers)
+
+          combat.notify_observers(:mastery_used, {
+                                    attacker: attacker, defender: defender,
+                                    mastery: mastery, success: success
+                                  })
         end
 
         def valid_target_size?(defender)
           # 2024: Targets must be Large or smaller for these maneuvers
+          return true if defender.statblock.size.nil?
+
           %i[tiny small medium large].include?(defender.statblock.size)
         end
 
@@ -76,6 +113,9 @@ module Dnd5e
           roll_data = context[:current_value]
           roll_data[:total] += bonus
           roll_data[:precision_attack_bonus] = bonus
+          
+          combat = context.dig(:options, :combat)
+          notify_mastery(combat, attacker, context[:defender], :precision_attack, true)
           roll_data
         end
       end
@@ -99,7 +139,7 @@ module Dnd5e
         end
 
         def extra_damage_dice(context)
-          options = context[:options]
+          options = context[:options] || {}
           return [] unless maneuver_with_damage?(options[:maneuver])
           return [] if options[:maneuver_used]
 
@@ -127,10 +167,8 @@ module Dnd5e
         def on_attack_hit(context)
           options = context[:options]
           maneuver = options[:maneuver]
-          return unless %i[trip_attack pushing_attack].include?(maneuver)
+          return unless maneuver_with_damage?(maneuver)
 
-          # If it didn't have damage (and thus didn't consume a die yet), consume now.
-          # Note: trip and pushing DO have damage in maneuver_with_damage?
           apply_hit_maneuver(maneuver, context)
         end
 

@@ -4,21 +4,16 @@ require_relative 'attack_resolver'
 
 module Dnd5e
   module Core
-    class InvalidAttackError < StandardError; end
-    class InvalidWinnerError < StandardError; end
-
-    # Handles the logic of resolving an attack in combat.
+    # Handles the orchestration of an attack.
     class CombatAttackHandler
       attr_reader :logger, :attack_resolver
 
-      # Initializes a new CombatAttackHandler instance.
+      # Initializes a new CombatAttackHandler.
       #
       # @param logger [Logger] The logger to use for logging.
       def initialize(logger: Logger.new($stdout), attack_resolver: nil)
         @logger = logger
-        return unless attack_resolver.nil?
-
-        @attack_resolver = AttackResolver.new(logger: @logger)
+        @attack_resolver = attack_resolver || AttackResolver.new(logger: @logger)
       end
 
       def attack(attacker, defender, **options)
@@ -43,47 +38,23 @@ module Dnd5e
         # Identify victims using grid if available
         victims = find_aoe_victims(attacker, target, attack, combat)
 
-        context = { attacker: attacker, target: target, attack: attack, options: options, combat: combat }
-        victims = attacker.feature_manager.apply_hook(:on_aoe_target_selection, context, victims)
-
-        victims.map do |victim|
+        results = victims.map do |victim|
           @attack_resolver.resolve(attacker, victim, attack, **options)
         end
+
+        results
       end
 
-      def find_aoe_victims(_attacker, target, attack, combat)
-        radius = attack.area_radius
+      def find_aoe_victims(attacker, target, attack, combat)
+        target_pos = combat.grid.find_position(target)
+        return [target] unless target_pos
 
-        if combat.respond_to?(:grid)
-          target_pos = combat.grid.find_position(target)
-          return combat.grid.combatants_within(target_pos, radius) if target_pos
+        combat.combatants.select do |c|
+          next unless c.statblock.alive?
+
+          c_pos = combat.grid.find_position(c)
+          c_pos && combat.grid.distance(target_pos, c_pos) <= attack.area_radius
         end
-
-        fallback_aoe_victims(target, radius, combat)
-      end
-
-      def fallback_aoe_victims(target, radius, combat)
-        if combat.distance < radius
-          combat.combatants.select { |c| c.statblock.alive? }
-        else
-          target_team = target.team || combat.teams.find { |t| t.members.include?(target) }
-          target_team.respond_to?(:alive_members) ? target_team.alive_members : []
-        end
-      end
-
-      # Finds a valid defender for the given attacker.
-      #
-      # @param attacker [Combatant] The attacking combatant.
-      # @param combatants [Array<Combatant>] All combatants in the combat.
-      # @return [Combatant, nil] A valid defender if one exists, nil otherwise.
-      def find_valid_defender(attacker, combatants)
-        combat = attacker.instance_variable_get(:@combat_context)
-
-        potential = combatants.select do |c|
-          c.statblock.alive? && c != attacker && (combat ? combat.enemy?(attacker, c) : true)
-        end
-
-        potential.first
       end
     end
   end

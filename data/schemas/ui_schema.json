@@ -114,6 +114,14 @@
       "visible_if": { "field": "not_monster", "is": true }
     },
     {
+      "name": "maneuvers",
+      "label": "Maneuvers (Battle Master)",
+      "type": "multi-checkbox",
+      "options_key": "maneuvers",
+      "zone": "feats",
+      "visible_if": { "field": "subclass", "in": ["battlemaster"] }
+    },
+    {
       "name": "feats",
       "label": "Feats (2024)",
       "type": "multi-checkbox",
