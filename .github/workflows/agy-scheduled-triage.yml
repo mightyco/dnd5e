@@ -1,5 +1,8 @@
 name: '📋 Antigravity Scheduled Issue Triage'
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   schedule:
     - cron: '0 * * * *' # Runs every hour
